@@ -26,10 +26,7 @@ const Game: React.FC = () => {
 
    return (
       <GameContainer>
-         <ScoreContainer>
-            Score: {score} | Shots: {shots}
-         </ScoreContainer>
-         <City onSniperClick={handleSniperClick} />
+         <City />
       </GameContainer>
    );
 };

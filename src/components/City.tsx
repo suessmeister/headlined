@@ -68,6 +68,8 @@ const Window = styled.div<WindowProps>`
 
 const City: React.FC = () => {
    const [buildings, setBuildings] = useState<Building[]>([]);
+   let buildingId = 0;
+   let windowId = 0;
 
    useEffect(() => {
       const handleResize = () => {
@@ -84,75 +86,79 @@ const City: React.FC = () => {
 
    const generateCity = () => {
       const newBuildings: Building[] = [];
-      let buildingId = 0;
-      let windowId = 0;
-
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
 
-      // Calculate optimal building count based on screen width
-      const minBuildingWidth = 150;
-      const maxBuildingWidth = 250;
-      const buildingSpacing = 30;
-      const buildingCount = Math.floor(screenWidth / (minBuildingWidth + buildingSpacing)) + 2; // Add 2 more buildings
+      const minBuildingWidth = 80;
+      const maxBuildingWidth = 160;
+      const minBuildingHeight = screenHeight * 0.3;
+      const maxBuildingHeight = screenHeight * 0.7;
+      const minSpacing = -5;
+      const maxSpacing = 20;
 
-      // Building color palette
-      const buildingColors = [
-         '#2C3E50', // Dark blue-gray
-         '#34495E', // Slightly lighter blue-gray
-         '#2C3E50', // Dark blue-gray
-         '#34495E', // Slightly lighter blue-gray
-         '#2C3E50'  // Dark blue-gray
-      ];
+      const buildingCount = Math.floor(screenWidth / (minBuildingWidth / 3)) + 10;
 
       let currentX = 0;
 
-      // Generate buildings
       for (let i = 0; i < buildingCount; i++) {
-         // Ensure buildings don't overlap and have consistent spacing
-         const width = Math.floor(Math.random() * (maxBuildingWidth - minBuildingWidth)) + minBuildingWidth;
-         const height = Math.floor(Math.random() * (screenHeight * 0.5)) + (screenHeight * 0.3);
+         const width = Math.random() * (maxBuildingWidth - minBuildingWidth) + minBuildingWidth;
+         const height = Math.random() * (maxBuildingHeight - minBuildingHeight) + minBuildingHeight;
+         const spacing = Math.random() * (maxSpacing - minSpacing) + minSpacing;
+         const x = i === 0 ? 0 : currentX - spacing;
 
-         // Ensure buildings don't go off screen
-         if (currentX + width > screenWidth) {
-            break;
-         }
+         if (x > screenWidth + 200) continue;
 
-         const windows: Window[] = [];
-         // Generate windows with better spacing
-         const windowRows = Math.floor(height / 100); // More space between rows
-         const windowCols = Math.floor(width / 50);   // More space between columns
-
-         for (let row = 0; row < windowRows; row++) {
-            for (let col = 0; col < windowCols; col++) {
-               const windowX = col * 50 + 25;  // Increased spacing
-               const windowY = row * 100 + 25; // Increased spacing
-               const isLit = Math.random() > 0.5; // Random window lighting
-
-               windows.push({
-                  id: windowId++,
-                  x: windowX,
-                  y: windowY,
-                  width: 35,
-                  height: 50,
-                  isLit
-               });
-            }
-         }
+         const windows = generateWindows(width, height);
+         const color = i % 2 === 0 ? '#2C3E50' : '#34495E';
 
          newBuildings.push({
             id: buildingId++,
-            x: currentX,
+            x,
             width,
             height,
             windows,
-            color: buildingColors[i % buildingColors.length]
+            color
          });
 
-         currentX += width + buildingSpacing;
+         currentX += width + spacing;
       }
 
       setBuildings(newBuildings);
+   };
+
+   const generateWindows = (buildingWidth: number, buildingHeight: number): Window[] => {
+      const windows: Window[] = [];
+      const windowWidth = 20;
+      const windowHeight = 30;
+      const windowSpacing = 12;
+      const margin = 12;
+
+      const maxWindowsX = Math.floor((buildingWidth - (margin * 2)) / (windowWidth + windowSpacing));
+      const maxWindowsY = Math.floor((buildingHeight - (margin * 2)) / (windowHeight + windowSpacing));
+
+      const windowsX = Math.max(1, maxWindowsX);
+      const windowsY = Math.max(1, maxWindowsY);
+
+      for (let row = 0; row < windowsY; row++) {
+         for (let col = 0; col < windowsX; col++) {
+            const x = margin + col * (windowWidth + windowSpacing);
+            const y = margin + row * (windowHeight + windowSpacing);
+
+            if (x + windowWidth > buildingWidth - margin) continue;
+            if (y + windowHeight > buildingHeight - margin) continue;
+
+            windows.push({
+               id: windowId++,
+               x,
+               y,
+               width: windowWidth,
+               height: windowHeight,
+               isLit: Math.random() > 0.7
+            });
+         }
+      }
+
+      return windows;
    };
 
    return (
