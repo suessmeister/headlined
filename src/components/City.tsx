@@ -1,18 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-/** Example sniper interface: might hold additional info in real usage. */
-interface Sniper {
+interface Character {
    id: number;
-   x: number;  // The absolute x-position on the canvas/screen
-   y: number;  // The absolute y-position on the canvas/screen
+   x: number;
+   y: number;
+   image: string;
 }
 
-/** A simple styled div representing one sniper. */
+const CharacterImg = styled.img<{ x: number; y: number }>`
+  position: absolute;
+  left: ${(props) => props.x}px;
+  top: ${(props) => props.y + 3}px;
+  width: 20px;
+  height: auto;
+  pointer-events: none;
+`;
+
+interface Sniper {
+   id: number;
+   x: number;
+   y: number;
+}
+
 const SniperDiv = styled.div<{ x: number; y: number }>`
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   background-color: black;
   border: 2px solid white;
   border-radius: 50%;
@@ -21,10 +35,15 @@ const SniperDiv = styled.div<{ x: number; y: number }>`
   cursor: pointer;
 `;
 
-/** Main City component. */
 const City: React.FC = () => {
    const [isZoomed, setIsZoomed] = useState(false);
    const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+
+   // Probability that a lit window will have a character
+   const CHARACTER_PROBABILITY = 0.1; // 10% for example
+
+   // Store the characters for the lit windows
+   const [characters, setCharacters] = useState<Character[]>([]);
 
    // Example: Some "snipers" you want to place around the city
    const [snipers, setSnipers] = useState<Sniper[]>([
@@ -37,9 +56,9 @@ const City: React.FC = () => {
    const canvasRef = useRef<HTMLCanvasElement>(null);
 
    useEffect(() => {
-      // Attach event listeners
       const handleResize = () => {
-         drawCity(); // re-draw city on resize
+         // Whenever window resizes, re-generate and re-draw city
+         generateCity();
       };
 
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,7 +76,6 @@ const City: React.FC = () => {
       const handleClick = (e: MouseEvent) => {
          console.log('Clicked at', e.clientX, e.clientY);
          if (isZoomed) {
-            // If you want to do something special when ctrl is held down
             console.log('Zoomed click');
          }
       };
@@ -68,8 +86,8 @@ const City: React.FC = () => {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('click', handleClick);
 
-      // Draw the city once when the component mounts
-      drawCity();
+      // Draw the city once on mount
+      generateCity();
 
       return () => {
          window.removeEventListener('resize', handleResize);
@@ -80,39 +98,52 @@ const City: React.FC = () => {
       };
    }, []);
 
-   /** Draw the city onto the canvas. */
-   const drawCity = () => {
+   /** 
+    * Generates buildings & windows, draws them on canvas, 
+    * and stores any window positions (for characters) in state.
+    */
+   const generateCity = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Resize canvas to match current window size
+      // Resize canvas
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
       canvas.width = screenWidth;
       canvas.height = screenHeight;
 
-      // Clear it
+      // Clear
       ctx.clearRect(0, 0, screenWidth, screenHeight);
 
-      // Simple gradient sky background
+      // Simple sky background
       const gradient = ctx.createLinearGradient(0, 0, 0, screenHeight);
       gradient.addColorStop(0, '#87CEEB');
       gradient.addColorStop(1, '#E0F7FA');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, screenWidth, screenHeight);
 
-      // Draw some random buildings for decoration
-      drawBuildings(ctx, screenWidth, screenHeight);
+      // We'll collect new character data here
+      const newCharacters: Character[] = [];
+
+      // Draw random buildings
+      drawBuildings(ctx, screenWidth, screenHeight, newCharacters);
+
+      // Once we finish generating windows, update the characters in state
+      setCharacters(newCharacters);
    };
 
-   /** Draw buildings and windows on the canvas. */
+   /**
+    * Draw all buildings on the canvas. 
+    * Also calls `drawWindows()` which may push characters into newCharacters.
+    */
    const drawBuildings = (
       ctx: CanvasRenderingContext2D,
       screenWidth: number,
-      screenHeight: number
+      screenHeight: number,
+      newCharacters: Character[]
    ) => {
       const minBuildingWidth = 40;
       const maxBuildingWidth = 80;
@@ -121,42 +152,50 @@ const City: React.FC = () => {
       const minSpacing = -7;
       const maxSpacing = 10;
 
-      const optimalBuildingCount = Math.floor(screenWidth / (minBuildingWidth / 2)) + 15;
+      const optimalBuildingCount =
+         Math.floor(screenWidth / (minBuildingWidth / 2)) + 15;
+
       let currentX = 0;
 
       for (let i = 0; i < optimalBuildingCount; i++) {
          const width =
-            Math.random() * (maxBuildingWidth - minBuildingWidth) + minBuildingWidth;
+            Math.random() * (maxBuildingWidth - minBuildingWidth) +
+            minBuildingWidth;
          const height =
-            Math.random() * (maxBuildingHeight - minBuildingHeight) + minBuildingHeight;
+            Math.random() * (maxBuildingHeight - minBuildingHeight) +
+            minBuildingHeight;
          const spacing = Math.random() * (maxSpacing - minSpacing) + minSpacing;
          const x = i === 0 ? 0 : currentX - spacing;
 
          // Skip if off screen
          if (x > screenWidth + 200) continue;
 
-         // Alternate colors
+         // Alternate building colors
          const color = i % 2 === 0 ? '#2C3E50' : '#34495E';
-         const y = screenHeight - height; // so it "stands" from bottom
+         const y = screenHeight - height; // align to bottom
 
-         // Draw the building
          ctx.fillStyle = color;
          ctx.fillRect(x, y, width, height);
 
-         // Optionally, draw windows
-         drawWindows(ctx, x, y, width, height);
+         // Draw windows & fill newCharacters if needed
+         drawWindows(ctx, x, y, width, height, newCharacters);
 
          currentX += width + spacing;
       }
    };
 
-   /** Draw windows on a single building rectangle. */
+   /**
+    * Draw windows for one building. 
+    * For each lit window, there's a CHARACTER_PROBABILITY chance to place a character.
+    * We'll add a character's (x, y, image) to `newCharacters` if we decide to spawn one.
+    */
    const drawWindows = (
       ctx: CanvasRenderingContext2D,
       buildingX: number,
       buildingY: number,
       buildingWidth: number,
-      buildingHeight: number
+      buildingHeight: number,
+      newCharacters: Character[]
    ) => {
       const windowWidth = 15;
       const windowHeight = 20;
@@ -179,20 +218,31 @@ const City: React.FC = () => {
             const x = buildingX + margin + col * (windowWidth + windowSpacing);
             const y = buildingY + margin + row * (windowHeight + windowSpacing);
 
-            // Skip if outside building
+            // Skip if it overflows
             if (x + windowWidth > buildingX + buildingWidth - margin) continue;
             if (y + windowHeight > buildingY + buildingHeight - margin) continue;
 
-            // Randomly lit
+            // Is this window lit?
             const isLit = Math.random() > 0.7;
 
+            // Fill window color
             ctx.fillStyle = isLit ? '#FFD700' : '#2C3E50';
             ctx.fillRect(x, y, windowWidth, windowHeight);
+
+            // Maybe place a character
+            if (isLit && Math.random() < CHARACTER_PROBABILITY) {
+               newCharacters.push({
+                  id: Date.now() + Math.random(), // or any unique ID
+                  x,
+                  y,
+                  image: '/figures/stick1.gif', // Path to your PNG
+               });
+            }
          }
       }
    };
 
-   /** Handle the magnifying-glass style scaling. */
+   // Magnifying-glass style scaling
    const wrapperStyle: React.CSSProperties = {
       transform: isZoomed ? 'scale(6)' : 'scale(1)',
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
@@ -205,7 +255,7 @@ const City: React.FC = () => {
 
    return (
       <div style={wrapperStyle}>
-         {/* The canvas used for the decorative city background */}
+         {/* The canvas for the city background */}
          <canvas
             ref={canvasRef}
             style={{
@@ -217,7 +267,18 @@ const City: React.FC = () => {
             }}
          />
 
-         {/* The absolutely positioned snipers on top of the canvas */}
+         {/* Render each randomly placed character as an absolutely positioned <img> */}
+         {characters.map((c) => (
+            <CharacterImg
+               key={c.id}
+               x={c.x}
+               y={c.y}
+               src={'/figures/simple_beer.png'}
+               alt="Character"
+            />
+         ))}
+
+         {/* The absolutely positioned snipers on top (or you could merge them with characters) */}
          {snipers.map((sniper) => (
             <SniperDiv
                key={sniper.id}
@@ -229,7 +290,7 @@ const City: React.FC = () => {
             />
          ))}
 
-         {/* The circular magnifying glass overlay if zoomed */}
+         {/* If zoomed, show the circular magnifying overlay */}
          {isZoomed && (
             <div
                style={{
@@ -252,7 +313,7 @@ const City: React.FC = () => {
                <div
                   style={{
                      position: 'absolute',
-                     width: '1px',
+                     width: '0.5px',
                      height: '100%',
                      backgroundColor: 'gray',
                   }}
@@ -261,7 +322,7 @@ const City: React.FC = () => {
                   style={{
                      position: 'absolute',
                      width: '100%',
-                     height: '1px',
+                     height: '0.5px',
                      backgroundColor: 'gray',
                   }}
                />
