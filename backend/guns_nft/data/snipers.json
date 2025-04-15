@@ -1,0 +1,46 @@
+{
+   "sniper": [
+      {
+         "name": "Barrett M82",
+         "scope_multiplier": 2.0,
+         "mag_capacity": 10,
+         "reload_time": 3.5
+      },
+      {
+         "name": "M40A5",
+         "scope_multiplier": 1.5,
+         "mag_capacity": 5,
+         "reload_time": 2.5
+      },
+      {
+         "name": "AW Magnum",
+         "scope_multiplier": 2.2,
+         "mag_capacity": 5,
+         "reload_time": 3.2
+      },
+      {
+         "name": "SSG 69",
+         "scope_multiplier": 1.6,
+         "mag_capacity": 10,
+         "reload_time": 2.2
+      },
+      {
+         "name": "Blaser R93",
+         "scope_multiplier": 2.5,
+         "mag_capacity": 5,
+         "reload_time": 2.8
+      },
+      {
+         "name": "SAKO TRG 42",
+         "scope_multiplier": 2.0,
+         "mag_capacity": 7,
+         "reload_time": 2.6
+      },
+      {
+         "name": "SSG 3000",
+         "scope_multiplier": 1.7,
+         "mag_capacity": 6,
+         "reload_time": 2.4
+      }
+   ]
+}
