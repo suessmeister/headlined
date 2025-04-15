@@ -11,9 +11,9 @@ interface Character {
 // simple character 1 : offset x-10, y-4
 const CharacterImg = styled.img<{ x: number; y: number }>`
   position: absolute;
-  left: ${(props) => props.x - 10}px;
-  top: ${(props) => props.y - 4}px;
-  width: 40px;
+  left: ${(props) => props.x - 2}px;
+  top: ${(props) => props.y - 1}px;
+  width: 18px;
   height: auto;
   pointer-events: none;
 `;
@@ -236,7 +236,7 @@ const City: React.FC = () => {
                   id: Date.now() + Math.random(), // or any unique ID
                   x,
                   y,
-                  image: '/figures/stick1.gif', // Path to your PNG
+                  image: '/figures/better_s2.gif', // Path to your PNG
                });
             }
          }
@@ -274,7 +274,7 @@ const City: React.FC = () => {
                key={c.id}
                x={c.x}
                y={c.y}
-               src={'/figures/stick1.gif'}
+               src={'/figures/better_s2.gif'}
                alt="Character"
             />
          ))}
@@ -314,7 +314,7 @@ const City: React.FC = () => {
                <div
                   style={{
                      position: 'absolute',
-                     width: '0.5px',
+                     width: '0.2px',
                      height: '100%',
                      backgroundColor: 'gray',
                   }}
@@ -323,7 +323,7 @@ const City: React.FC = () => {
                   style={{
                      position: 'absolute',
                      width: '100%',
-                     height: '0.5px',
+                     height: '0.2px',
                      backgroundColor: 'gray',
                   }}
                />
