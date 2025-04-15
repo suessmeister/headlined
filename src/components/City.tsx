@@ -8,11 +8,12 @@ interface Character {
    image: string;
 }
 
+// simple character 1 : offset x-10, y-4
 const CharacterImg = styled.img<{ x: number; y: number }>`
   position: absolute;
-  left: ${(props) => props.x}px;
-  top: ${(props) => props.y + 3}px;
-  width: 20px;
+  left: ${(props) => props.x - 10}px;
+  top: ${(props) => props.y - 4}px;
+  width: 40px;
   height: auto;
   pointer-events: none;
 `;
@@ -273,7 +274,7 @@ const City: React.FC = () => {
                key={c.id}
                x={c.x}
                y={c.y}
-               src={'/figures/simple_beer.png'}
+               src={'/figures/stick1.gif'}
                alt="Character"
             />
          ))}
