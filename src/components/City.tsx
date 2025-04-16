@@ -17,24 +17,6 @@ const CharacterImg = styled.img<{ x: number; y: number }>`
   pointer-events: none;
 `;
 
-interface Sniper {
-   id: number;
-   x: number;
-   y: number;
-}
-
-const SniperDiv = styled.div<{ x: number; y: number }>`
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background-color: black;
-  border: 2px solid white;
-  border-radius: 50%;
-  left: ${(props) => props.x}px;
-  top: ${(props) => props.y}px;
-  cursor: pointer;
-`;
-
 interface Projectile {
    id: number;
    x: number;
@@ -50,11 +32,7 @@ const City: React.FC = () => {
 
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
-   const [snipers, setSnipers] = useState<Sniper[]>([
-      { id: 1, x: 200, y: 300 },
-      { id: 2, x: 400, y: 350 },
-      { id: 3, x: 600, y: 280 },
-   ]);
+
 
    const [projectiles, setProjectiles] = useState<Projectile[]>([]);
    const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -363,15 +341,6 @@ const City: React.FC = () => {
 
          {!isZoomedOut && characters.map((c) => (
             <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" />
-         ))}
-
-         {snipers.map((sniper) => (
-            <SniperDiv
-               key={sniper.id}
-               x={sniper.x}
-               y={sniper.y}
-               onClick={() => console.log(`Sniper ${sniper.id} clicked!`)}
-            />
          ))}
 
          {projectiles.map((p) => (
