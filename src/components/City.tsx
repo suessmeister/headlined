@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import * as THREE from 'three';
+
 
 interface Character {
    id: number;
@@ -17,13 +19,8 @@ const CharacterImg = styled.img<{ x: number; y: number }>`
   pointer-events: none;
 `;
 
-interface Projectile {
-   id: number;
-   x: number;
-   y: number;
-   vx: number;
-   vy: number;
-}
+
+
 
 const City: React.FC = () => {
    const [isZoomed, setIsZoomed] = useState(false);
@@ -33,11 +30,62 @@ const City: React.FC = () => {
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
 
-
-   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
    const canvasRef = useRef<HTMLCanvasElement>(null);
-
+   const mountRef = useRef<HTMLDivElement>(null);
    useEffect(() => {
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+         75,
+         window.innerWidth / window.innerHeight,
+         0.1,
+         1000
+      );
+
+      camera.position.z = 5;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      mountRef.current?.appendChild(renderer.domElement);
+
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(1, 1, 1);
+      scene.add(light);
+
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      const handleClick = (e: MouseEvent) => {
+         // gotta convert mouse to 2d vector
+         mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+         mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+         raycaster.setFromCamera(mouse, camera);
+
+         const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+         const projectile = new THREE.Mesh(geometry, material);
+         scene.add(projectile);
+
+         const direction = raycaster.ray.direction.clone();
+
+         const speed = 0.1;
+         const target = camera.position.clone().add(direction.multiplyScalar(100));
+         const animateProjectile = () => {
+            const distance = projectile.position.distanceTo(target);
+            if (distance > 1) {
+               //console.log('distance', distance);
+               projectile.translateZ(-speed);
+               requestAnimationFrame(animateProjectile);
+               renderer.render(scene, camera);
+            } else {
+               scene.remove(projectile);
+            }
+         }
+         animateProjectile();
+
+      }
+
       const originalZoom = window.devicePixelRatio;
 
       const checkZoom = () => {
@@ -67,34 +115,6 @@ const City: React.FC = () => {
          setZoomPosition({ x: e.clientX, y: e.clientY });
       };
 
-      const handleClick = (e: MouseEvent) => {
-         if (isZoomed) {
-            const startX = window.innerWidth - 20;
-            const startY = window.innerHeight - 20;
-
-            const targetX = zoomPosition.x;
-            const targetY = zoomPosition.y;
-
-            const dx = targetX - startX;
-            const dy = targetY - startY;
-            const magnitude = Math.sqrt(dx * dx + dy * dy);
-
-            const speed = 25; // 🔥 FAST PROJECTILE
-            const vx = (dx / magnitude) * speed;
-            const vy = (dy / magnitude) * speed;
-
-            const newProjectile: Projectile = {
-               id: Date.now(),
-               x: startX,
-               y: startY,
-               vx,
-               vy,
-            };
-
-            setProjectiles((prev) => [...prev, newProjectile]);
-         }
-      };
-
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
       window.addEventListener('mousemove', handleMouseMove);
@@ -108,25 +128,13 @@ const City: React.FC = () => {
          window.removeEventListener('keyup', handleKeyUp);
          window.removeEventListener('mousemove', handleMouseMove);
          window.removeEventListener('click', handleClick);
+         mountRef.current?.removeChild(renderer.domElement);
          document.body.style.cursor = 'default';
       };
    }, []);
 
-   useEffect(() => {
-      const interval = setInterval(() => {
-         setProjectiles((prev) =>
-            prev
-               .map((p) => ({
-                  ...p,
-                  x: p.x + p.vx,
-                  y: p.y + p.vy,
-               }))
-               .filter((p) => p.x > -50 && p.y > -50)
-         );
-      }, 30);
 
-      return () => clearInterval(interval);
-   }, []);
+
 
    const generateCity = () => {
       const canvas = canvasRef.current;
@@ -323,10 +331,22 @@ const City: React.FC = () => {
       position: 'relative',
       overflow: 'hidden',
       cursor: isZoomed ? 'none' : 'default',
+      marginTop: '-30px'
    };
 
    return (
       <div style={wrapperStyle}>
+         <div ref={mountRef} 
+         style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%', 
+            zIndex: 0
+         }} 
+      />
+
          <canvas
             ref={canvasRef}
             style={{
@@ -335,30 +355,16 @@ const City: React.FC = () => {
                left: 0,
                width: '100%',
                height: '100%',
+               zIndex: 1,
                cursor: isZoomed ? 'none' : 'default',
             }}
          />
 
          {!isZoomedOut && characters.map((c) => (
-            <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" />
+            <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" style={{ zIndex: 2 }} />
          ))}
 
-         {projectiles.map((p) => (
-            <div
-               key={p.id}
-               style={{
-                  position: 'absolute',
-                  left: p.x,
-                  top: p.y,
-                  width: 6,
-                  height: 6,
-                  backgroundColor: 'red',
-                  borderRadius: '50%',
-                  zIndex: 999,
-                  pointerEvents: 'none',
-               }}
-            />
-         ))}
+
 
          {isZoomed && (
             <div

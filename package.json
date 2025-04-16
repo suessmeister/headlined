@@ -32,7 +32,8 @@
     "react-hot-toast": "^2.5.2",
     "react-zoomable": "^0.0.1",
     "react-zoomable-ui": "^0.11.0",
-    "styled-components": "^6.1.17"
+    "styled-components": "^6.1.17",
+    "three.js": "^0.77.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.6",
@@ -40,6 +41,7 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/three": "^0.175.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.24",
     "jest": "^29.7.0",
