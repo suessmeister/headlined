@@ -188,7 +188,7 @@ const City: React.FC = () => {
       const minSpacing = -7;
       const maxSpacing = 10;
       const optimalBuildingCount = Math.floor(screenWidth / (minBuildingWidth / 2)) + 15;
-      const roadHeight = 50; // Height of the road at the bottom
+      const roadHeight = 100;
 
       // Draw the road
       ctx.fillStyle = '#333333';
@@ -213,10 +213,78 @@ const City: React.FC = () => {
          if (x > screenWidth + 200) continue;
 
          const color = i % 2 === 0 ? '#2C3E50' : '#34495E';
-         const y = screenHeight - height - roadHeight; // Subtract roadHeight to place buildings above the road
+         const y = screenHeight - height - roadHeight;
 
+         // Draw building base
          ctx.fillStyle = color;
          ctx.fillRect(x, y, width, height);
+
+         // Draw gothic roof
+         const roofHeight = Math.random() * 30 + 20;
+         const spireCount = Math.floor(width / 20);
+         const spireWidth = width / spireCount;
+
+         // Draw main roof
+         ctx.fillStyle = '#1A1A1A';
+         for (let j = 0; j < spireCount; j++) {
+            const spireX = x + j * spireWidth;
+            ctx.beginPath();
+            ctx.moveTo(spireX, y);
+            ctx.lineTo(spireX + spireWidth / 2, y - roofHeight);
+            ctx.lineTo(spireX + spireWidth, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw decorative spire
+            const spireHeight = roofHeight * 0.3;
+            ctx.beginPath();
+            ctx.moveTo(spireX + spireWidth / 2, y - roofHeight);
+            ctx.lineTo(spireX + spireWidth / 2, y - roofHeight - spireHeight);
+            ctx.lineTo(spireX + spireWidth / 2 + 2, y - roofHeight);
+            ctx.closePath();
+            ctx.fill();
+         }
+
+         // Draw decorative arches at the top
+         const archCount = Math.floor(width / 20);
+         const archWidth = width / archCount;
+         ctx.fillStyle = '#E0E0E0';
+         for (let j = 0; j < archCount; j++) {
+            const archX = x + j * archWidth;
+
+            // Draw main pointed arch
+            ctx.beginPath();
+            ctx.moveTo(archX, y - 5);
+            ctx.quadraticCurveTo(
+               archX + archWidth / 2, y - 15,
+               archX + archWidth, y - 5
+            );
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw decorative tracery inside arch
+            ctx.beginPath();
+            ctx.moveTo(archX + archWidth / 2, y - 5);
+            ctx.lineTo(archX + archWidth / 2, y - 10);
+            ctx.stroke();
+
+            // Draw small decorative circles at arch points
+            ctx.beginPath();
+            ctx.arc(archX + archWidth / 4, y - 5, 2, 0, Math.PI * 2);
+            ctx.arc(archX + archWidth * 3 / 4, y - 5, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw small decorative spires above arch
+            const spireHeight = 8;
+            ctx.beginPath();
+            ctx.moveTo(archX + archWidth / 2, y - 15);
+            ctx.lineTo(archX + archWidth / 2, y - 15 - spireHeight);
+            ctx.lineTo(archX + archWidth / 2 + 2, y - 15);
+            ctx.closePath();
+            ctx.fill();
+         }
+
          drawWindows(ctx, x, y, width, height, newCharacters);
 
          currentX += width + spacing;
@@ -267,7 +335,7 @@ const City: React.FC = () => {
    };
 
    const wrapperStyle: React.CSSProperties = {
-      transform: isZoomed ? 'scale(6)' : 'scale(1)',
+      transform: isZoomed ? 'scale(8)' : 'scale(1)',
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
       transition: 'transform 0.2s ease',
       width: '100vw',
