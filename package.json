@@ -30,6 +30,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.5.2",
+    "react-zoomable": "^0.0.1",
+    "react-zoomable-ui": "^0.11.0",
     "styled-components": "^6.1.17"
   },
   "devDependencies": {

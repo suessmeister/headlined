@@ -159,9 +159,11 @@ const City: React.FC = () => {
 
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
-      canvas.width = screenWidth;
-      canvas.height = screenHeight;
+      const ratio = 4;
+      canvas.width = screenWidth * ratio;
+      canvas.height = screenHeight * ratio;
 
+      ctx.scale(ratio, ratio);
       ctx.clearRect(0, 0, screenWidth, screenHeight);
 
       const gradient = ctx.createLinearGradient(0, 0, 0, screenHeight);
