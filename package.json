@@ -33,6 +33,7 @@
     "react-zoomable": "^0.0.1",
     "react-zoomable-ui": "^0.11.0",
     "styled-components": "^6.1.17",
+    "three": "^0.175.0",
     "three.js": "^0.77.1"
   },
   "devDependencies": {

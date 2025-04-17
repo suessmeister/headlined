@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import * as THREE from 'three';
 
 
+
 interface Character {
    id: number;
    x: number;
@@ -32,8 +33,14 @@ const City: React.FC = () => {
 
    const canvasRef = useRef<HTMLCanvasElement>(null);
    const mountRef = useRef<HTMLDivElement>(null);
-   useEffect(() => {
+   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+   const sceneRef = useRef<THREE.Scene | null>(null);
+   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
+   // give handle click fresh values
+   const isZoomedRef = useRef(false);
+   const zoomPosRef = useRef({ x: 0, y: 0 });
+   useEffect(() => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(
          75,
@@ -41,51 +48,77 @@ const City: React.FC = () => {
          0.1,
          1000
       );
-
       camera.position.z = 5;
 
       const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // 🔧 make WebGL canvas invisible until a laser is drawn
+      renderer.setClearColor(0x000000, 0);        // RGB = black, alpha = 0  (fully transparent)
+      renderer.domElement.style.background = 'transparent';
+      renderer.domElement.style.pointerEvents = 'none'; // so clicks reach your own listeners
+      renderer.domElement.style.zIndex = '0';           // keep it behind the 2‑D skyline
+
       mountRef.current?.appendChild(renderer.domElement);
 
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(1, 1, 1);
-      scene.add(light);
-
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
+      /* store in refs */
+      sceneRef.current = scene;
+      cameraRef.current = camera;
+      rendererRef.current = renderer;
+      //
+      const renderLoop = () => {
+         renderer.render(scene, camera);
+         requestAnimationFrame(renderLoop);
+      };
+      renderLoop();
 
       const handleClick = (e: MouseEvent) => {
-         // gotta convert mouse to 2d vector
-         mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-         mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+         if (!sceneRef.current || !cameraRef.current) return;
+         const screenX = isZoomedRef.current 
+            ? zoomPosRef.current.x -55 + 50 //centering scope on X
+            : e.clientX;
 
-         raycaster.setFromCamera(mouse, camera);
+         const screenY = isZoomedRef.current
+            ? zoomPosRef.current.y - 36 + 50 //centering scope on Y
+            : e.clientY;
 
-         const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-         const projectile = new THREE.Mesh(geometry, material);
-         scene.add(projectile);
+         // normalized coordinates for the cursor 
+         const mouse = new THREE.Vector2(
+            (screenX / window.innerWidth) * 2 - 1,
+            -(screenY / window.innerHeight) * 2 + 1
+         );
+         const raycaster = new THREE.Raycaster();
+         raycaster.setFromCamera(mouse, cameraRef.current); 
+         const dir = raycaster.ray.direction.clone().normalize();
+     
+         // creating the laser
+         const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)];
+         const geom = new THREE.BufferGeometry();
+         geom.setFromPoints(pts);
+         const mat = new THREE.LineBasicMaterial({ color: 0xff0000 });
+         const line = new THREE.Line(geom, mat);
 
-         const direction = raycaster.ray.direction.clone();
-
-         const speed = 0.1;
-         const target = camera.position.clone().add(direction.multiplyScalar(100));
-         const animateProjectile = () => {
-            const distance = projectile.position.distanceTo(target);
-            if (distance > 1) {
-               //console.log('distance', distance);
-               projectile.translateZ(-speed);
-               requestAnimationFrame(animateProjectile);
-               renderer.render(scene, camera);
+         line.position.copy(cameraRef.current.position);
+         line.quaternion.copy(cameraRef.current.quaternion);
+         sceneRef.current.add(line);   
+         
+         
+         const speed = 1.5, maxDist = 300;
+         let travelled = 0;
+         const fly = () => {
+            travelled += speed;
+            if (travelled < maxDist) {
+               line.position.addScaledVector(dir, speed);
+               requestAnimationFrame(fly);
             } else {
-               scene.remove(projectile);
+               sceneRef.current!.remove(line);
+               geom.dispose();
+               mat.dispose();
             }
-         }
-         animateProjectile();
-
+         };
+         fly(); //animating the laser
       }
-
       const originalZoom = window.devicePixelRatio;
 
       const checkZoom = () => {
@@ -128,7 +161,11 @@ const City: React.FC = () => {
          window.removeEventListener('keyup', handleKeyUp);
          window.removeEventListener('mousemove', handleMouseMove);
          window.removeEventListener('click', handleClick);
-         mountRef.current?.removeChild(renderer.domElement);
+         if (rendererRef.current) {
+            rendererRef.current.dispose();
+            mountRef.current?.removeChild(renderer.domElement);
+         }
+         
          document.body.style.cursor = 'default';
       };
    }, []);
@@ -323,7 +360,7 @@ const City: React.FC = () => {
    };
 
    const wrapperStyle: React.CSSProperties = {
-      transform: isZoomed ? 'scale(8)' : 'scale(1)',
+      transform: isZoomed ? 'scale(6)' : 'scale(1)',
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
       transition: 'transform 0.2s ease',
       width: '100vw',
@@ -334,6 +371,14 @@ const City: React.FC = () => {
       marginTop: '-30px'
    };
 
+      useEffect(() => {              // whenever isZoomed changes
+         isZoomedRef.current = isZoomed;
+      }, [isZoomed]);
+   
+      useEffect(() => {              // whenever zoomPos changes
+         zoomPosRef.current = zoomPosition;
+      }, [zoomPosition]);
+
    return (
       <div style={wrapperStyle}>
          <div ref={mountRef} 
@@ -343,7 +388,7 @@ const City: React.FC = () => {
             left: 0, 
             width: '100%', 
             height: '100%', 
-            zIndex: 0
+            zIndex: 10
          }} 
       />
 
