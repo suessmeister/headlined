@@ -2,14 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import * as THREE from 'three';
 
-
-
 interface Character {
    id: number;
    x: number;
    y: number;
    image: string;
 }
+
+// Sniper scope logo styled component
+const SniperScope = styled.img<{ x: number; y: number; visible: boolean }>`
+  position: absolute;
+  left: ${(props) => props.x - 25}px; /* Center the logo */
+  top: ${(props) => props.y - 25}px; /* Center the logo */
+  width: 50px;
+  height: 50px;
+  opacity: ${(props) => (props.visible ? 1 : 0)};
+  transition: opacity 1s ease-in-out;
+  pointer-events: none;
+  z-index: 999;
+`;
 
 const CharacterImg = styled.img<{ x: number; y: number }>`
   position: absolute;
@@ -20,13 +31,12 @@ const CharacterImg = styled.img<{ x: number; y: number }>`
   pointer-events: none;
 `;
 
-
-
-
 const City: React.FC = () => {
    const [isZoomed, setIsZoomed] = useState(false);
    const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
    const [isZoomedOut, setIsZoomedOut] = useState(false);
+   const [sniperScopePosition, setSniperScopePosition] = useState<{ x: number; y: number } | null>(null);
+   const [isSniperScopeVisible, setIsSniperScopeVisible] = useState(false);
 
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
@@ -54,7 +64,6 @@ const City: React.FC = () => {
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
 
-      // 🔧 make WebGL canvas invisible until a laser is drawn
       renderer.setClearColor(0x000000, 0);        // RGB = black, alpha = 0  (fully transparent)
       renderer.domElement.style.background = 'transparent';
       renderer.domElement.style.pointerEvents = 'none'; // so clicks reach your own listeners
@@ -75,36 +84,43 @@ const City: React.FC = () => {
 
       const handleClick = (e: MouseEvent) => {
          if (!sceneRef.current || !cameraRef.current) return;
-         const screenX = isZoomedRef.current 
-            ? zoomPosRef.current.x -55 + 50 //centering scope on X
+
+         const screenX = isZoomedRef.current
+            ? zoomPosRef.current.x - 55 + 50 // centering scope on X
             : e.clientX;
 
          const screenY = isZoomedRef.current
-            ? zoomPosRef.current.y - 36 + 50 //centering scope on Y
+            ? zoomPosRef.current.y - 36 + 50 // centering scope on Y
             : e.clientY;
 
-         // normalized coordinates for the cursor 
+         // normalized coordinates for the cursor
          const mouse = new THREE.Vector2(
             (screenX / window.innerWidth) * 2 - 1,
             -(screenY / window.innerHeight) * 2 + 1
          );
          const raycaster = new THREE.Raycaster();
-         raycaster.setFromCamera(mouse, cameraRef.current); 
+         raycaster.setFromCamera(mouse, cameraRef.current);
          const dir = raycaster.ray.direction.clone().normalize();
-     
+
          // creating the laser
          const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)];
          const geom = new THREE.BufferGeometry();
          geom.setFromPoints(pts);
-         const mat = new THREE.LineBasicMaterial({ color: 0xff0000 });
+
+         // Adjust laser thickness and color based on zoom state
+         const mat = new THREE.LineBasicMaterial({
+            color: isZoomedRef.current ? 0xff4500 : 0xff0000, // brighter orange when zoomed
+            linewidth: isZoomedRef.current ? 3 : 1, // thicker when zoomed
+         });
+
          const line = new THREE.Line(geom, mat);
 
          line.position.copy(cameraRef.current.position);
          line.quaternion.copy(cameraRef.current.quaternion);
-         sceneRef.current.add(line);   
-         
-         
-         const speed = 1.5, maxDist = 300;
+         sceneRef.current.add(line);
+
+         const speed = 7.5,
+            maxDist = 300;
          let travelled = 0;
          const fly = () => {
             travelled += speed;
@@ -112,13 +128,29 @@ const City: React.FC = () => {
                line.position.addScaledVector(dir, speed);
                requestAnimationFrame(fly);
             } else {
+               // Show sniper scope logo at the final position
+               const finalScreenPosition = new THREE.Vector3();
+               finalScreenPosition.copy(line.position);
+               const projected = finalScreenPosition.project(cameraRef.current!);
+
+               const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+               const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
+
+               setSniperScopePosition({ x, y });
+               setIsSniperScopeVisible(true);
+
+               // Hide the sniper scope logo after 2 seconds
+               setTimeout(() => {
+                  setIsSniperScopeVisible(false);
+               }, 1000);
+
                sceneRef.current!.remove(line);
                geom.dispose();
                mat.dispose();
             }
          };
-         fly(); //animating the laser
-      }
+         fly(); // animating the laser
+      };
       const originalZoom = window.devicePixelRatio;
 
       const checkZoom = () => {
@@ -165,13 +197,10 @@ const City: React.FC = () => {
             rendererRef.current.dispose();
             mountRef.current?.removeChild(renderer.domElement);
          }
-         
+
          document.body.style.cursor = 'default';
       };
    }, []);
-
-
-
 
    const generateCity = () => {
       const canvas = canvasRef.current;
@@ -371,26 +400,27 @@ const City: React.FC = () => {
       marginTop: '-30px'
    };
 
-      useEffect(() => {              // whenever isZoomed changes
-         isZoomedRef.current = isZoomed;
-      }, [isZoomed]);
-   
-      useEffect(() => {              // whenever zoomPos changes
-         zoomPosRef.current = zoomPosition;
-      }, [zoomPosition]);
+   useEffect(() => {              // whenever isZoomed changes
+      isZoomedRef.current = isZoomed;
+   }, [isZoomed]);
+
+   useEffect(() => {              // whenever zoomPos changes
+      zoomPosRef.current = zoomPosition;
+   }, [zoomPosition]);
 
    return (
       <div style={wrapperStyle}>
-         <div ref={mountRef} 
-         style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            width: '100%', 
-            height: '100%', 
-            zIndex: 10
-         }} 
-      />
+         <div
+            ref={mountRef}
+            style={{
+               position: 'absolute',
+               top: 0,
+               left: 0,
+               width: '100%',
+               height: '100%',
+               zIndex: 10,
+            }}
+         />
 
          <canvas
             ref={canvasRef}
@@ -409,7 +439,14 @@ const City: React.FC = () => {
             <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" style={{ zIndex: 2 }} />
          ))}
 
-
+         {sniperScopePosition && (
+            <SniperScope
+               src="city/scope.png" 
+               x={sniperScopePosition.x}
+               y={sniperScopePosition.y}
+               visible={isSniperScopeVisible}
+            />
+         )}
 
          {isZoomed && (
             <div
