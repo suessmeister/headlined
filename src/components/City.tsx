@@ -1,3 +1,4 @@
+import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import * as THREE from 'three';
@@ -47,6 +48,8 @@ const City: React.FC = () => {
    const sceneRef = useRef<THREE.Scene | null>(null);
    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
+   const { publicKey, disconnect, sendTransaction, wallet } = useWallet()
+
    // give handle click fresh values
    const isZoomedRef = useRef(false);
    const zoomPosRef = useRef({ x: 0, y: 0 });
@@ -64,6 +67,7 @@ const City: React.FC = () => {
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
 
+ 
       renderer.setClearColor(0x000000, 0);        // RGB = black, alpha = 0  (fully transparent)
       renderer.domElement.style.background = 'transparent';
       renderer.domElement.style.pointerEvents = 'none'; // so clicks reach your own listeners
@@ -83,6 +87,7 @@ const City: React.FC = () => {
       renderLoop();
 
       const handleClick = (e: MouseEvent) => {
+        
          if (!sceneRef.current || !cameraRef.current) return;
 
          const screenX = isZoomedRef.current
@@ -109,8 +114,9 @@ const City: React.FC = () => {
 
          // Adjust laser thickness and color based on zoom state
          const mat = new THREE.LineBasicMaterial({
-            color: isZoomedRef.current ? 0xff4500 : 0xff0000, // brighter orange when zoomed
-            linewidth: isZoomedRef.current ? 3 : 1, // thicker when zoomed
+            // color: isZoomedRef.current ? 0xff4500 : 0xffffff, // brighter orange when zoomed
+            color: 0xff4500,
+            linewidth: isZoomedRef.current ? 10 : 1, // thicker when zoomed
          });
 
          const line = new THREE.Line(geom, mat);
@@ -119,7 +125,7 @@ const City: React.FC = () => {
          line.quaternion.copy(cameraRef.current.quaternion);
          sceneRef.current.add(line);
 
-         const speed = 7.5,
+         const speed = 10.0,
             maxDist = 300;
          let travelled = 0;
          const fly = () => {

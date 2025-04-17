@@ -16,8 +16,15 @@ export function UiLayout({ children, links }: { children: ReactNode; links: { la
       background: 'linear-gradient(to bottom, #87CEEB, #E0F7FA)',
       minHeight: '100vh'
     }}>
-      <div className="absolute top-4 right-4 z-50">
-        <WalletButton />
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+        <Link href="/arsenal">
+          <button className="btn btn-sm btn-arsenal bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600">
+            Arsenal
+          </button>
+        </Link>
+        <div className="scale-90">
+          <WalletButton />
+        </div>
       </div>
       <Suspense
         fallback={

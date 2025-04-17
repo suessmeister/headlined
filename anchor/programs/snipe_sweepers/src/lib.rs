@@ -1,70 +1,185 @@
-#![allow(clippy::result_large_err)]
-
 use anchor_lang::prelude::*;
 
-declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
+//For defining metadata account on metaplex
+use mpl_token_metadata::{
+    instructions::CreateMetadataAccountV3Builder,
+    instructions::CreateMasterEditionV3Builder,
+    types::DataV2,
+    ID as MPL_METADATA_ID,
+    instructions::BurnNftBuilder
+};
+
+// For sending the instruction 
+use anchor_lang::solana_program::{
+    program::invoke_signed,
+    instruction::Instruction,
+    system_program
+};
+
+use anchor_spl::token::{Token, ID as TOKEN_PROGRAM_ID};
+
+
+declare_id!("6X7Dmx74WDrQtTRqaGZykdRvLh9LTCwR9WPQKtoJpNSE"); 
 
 #[program]
-pub mod snipe_sweepers {
+pub mod pokemon {
     use super::*;
 
-  pub fn close(_ctx: Context<CloseSnipeSweepers>) -> Result<()> {
-    Ok(())
-  }
+    pub fn mint(
+        ctx: Context<MintNft>, 
+        metadata_title: String, 
+        metadata_symbol: String, 
+        metadata_uri: String,
 
-  pub fn decrement(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.snipe_sweepers.count = ctx.accounts.snipe_sweepers.count.checked_sub(1).unwrap();
-    Ok(())
-  }
+    ) -> Result<()> {
+        let mint_key = ctx.accounts.mint.key();
 
-  pub fn increment(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.snipe_sweepers.count = ctx.accounts.snipe_sweepers.count.checked_add(1).unwrap();
-    Ok(())
-  }
+        let (metadata_pda, _bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+        ],
+        &MPL_METADATA_ID,
+    );
 
-  pub fn initialize(_ctx: Context<InitializeSnipeSweepers>) -> Result<()> {
-    Ok(())
-  }
+    let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+            b"edition",
+        ],
+        &MPL_METADATA_ID,
+    );
+    
+    let sniper_metadata = DataV2 {
+        name: metadata_title,
+        symbol: metadata_symbol,
+        uri: metadata_uri,
+        seller_fee_basis_points: 0,
+        creators: None,
+        collection: None,
+        uses: None,
+    };
 
-  pub fn set(ctx: Context<Update>, value: u8) -> Result<()> {
-    ctx.accounts.snipe_sweepers.count = value.clone();
+    let acc = ctx.accounts; //for readability
+    let builder = CreateMetadataAccountV3Builder::new()
+        .metadata(metadata_pda)
+        .mint(acc.mint.key())
+        .mint_authority(acc.payer.key())
+        .update_authority(acc.payer.key(), true)
+        .payer(acc.payer.key())
+        .data(sniper_metadata)
+        .is_mutable(true)
+        .instruction();
+
+    invoke_signed(
+    &builder,
+       &[
+        acc.metadata.to_account_info(),
+        acc.mint.to_account_info(),
+        acc.payer.to_account_info(),
+        acc.payer.to_account_info(), // update authority is also payer
+        acc.system_program.to_account_info(),
+        acc.rent.to_account_info(),
+        acc.token_metadata_program.to_account_info(),
+    ],
+    &[], // no signer seeds? unless using PDA mint authority
+)?;
+
+let master_edition_ix = CreateMasterEditionV3Builder::new()
+        .edition(master_edition_pda)
+        .mint(acc.mint.key())
+        .update_authority(acc.payer.key())
+        .mint_authority(acc.payer.key())
+        .payer(acc.payer.key())
+        .metadata(metadata_pda)
+        .max_supply(0)
+        .instruction();
+
+    invoke_signed(
+        &master_edition_ix,
+        &[
+            acc.master_edition.to_account_info(),
+            acc.mint.to_account_info(),
+            acc.payer.to_account_info(),
+            acc.payer.to_account_info(),
+            acc.metadata.to_account_info(),
+            acc.system_program.to_account_info(),
+            acc.token_metadata_program.to_account_info(),
+        ],
+        &[],
+    )?;
+
+
+
     Ok(())
-  }
+    }
+
+
 }
+// do not delete the triple comments --- those are checks used by anchor
+#[derive(Accounts)]
+#[instruction(sniper_name: String)]
+pub struct MintNft<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: mint
+    #[account(mut)]
+    pub mint: UncheckedAccount<'info>,
+
+    /// CHECK: metadata account PDA - we'll derive it later
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+
+    /// CHECK: Metaplex Token Metadata program
+    pub token_metadata_program: UncheckedAccount<'info>,
+
+    /// CHECK: Master Edition account PDA
+    #[account(mut)]
+    pub master_edition: UncheckedAccount<'info>,
+
+    /// CHECK: Metaplex!
+    pub token_program: Program<'info, Token>,
+
+
+
+}
+
+
 
 #[derive(Accounts)]
-pub struct InitializeSnipeSweepers<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
+#[instruction(sniper_name: String)]
+pub struct BurnNft<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>, // NFT holder
 
-  #[account(
-  init,
-  space = 8 + SnipeSweepers::INIT_SPACE,
-  payer = payer
-  )]
-  pub snipe_sweepers: Account<'info, SnipeSweepers>,
-  pub system_program: Program<'info, System>,
-}
-#[derive(Accounts)]
-pub struct CloseSnipeSweepers<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
+    /// CHECK: NFT mint
+    #[account(mut)]
+    pub mint: UncheckedAccount<'info>,
 
-  #[account(
-  mut,
-  close = payer, // close account and return lamports to payer
-  )]
-  pub snipe_sweepers: Account<'info, SnipeSweepers>,
-}
+    /// CHECK: NFT token account (owned by authority)
+    #[account(mut)]
+    pub token_account: UncheckedAccount<'info>,
 
-#[derive(Accounts)]
-pub struct Update<'info> {
-  #[account(mut)]
-  pub snipe_sweepers: Account<'info, SnipeSweepers>,
+    /// CHECK: Metadata PDA
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
+
+    /// CHECK: Master edition PDA
+    #[account(mut)]
+    pub master_edition: UncheckedAccount<'info>,
+
+    /// CHECK: Metaplex Token Metadata Program
+    pub token_metadata_program: UncheckedAccount<'info>,
+
+    /// SPL Token Program
+    pub token_program: Program<'info, Token>,
+
 }
 
-#[account]
-#[derive(InitSpace)]
-pub struct SnipeSweepers {
-  count: u8,
-}
