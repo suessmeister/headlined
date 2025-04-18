@@ -1,0 +1,72 @@
+{
+  "address": "EjVgJCbj4XErtwHZ5DuoYPoDLopKGGaqUEEP2Tk9KZfe",
+  "metadata": {
+    "name": "headlined",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "mint",
+      "discriminator": [
+        51,
+        57,
+        225,
+        47,
+        182,
+        146,
+        137,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "token_metadata_program"
+        },
+        {
+          "name": "master_edition",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "metadata_title",
+          "type": "string"
+        },
+        {
+          "name": "metadata_symbol",
+          "type": "string"
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

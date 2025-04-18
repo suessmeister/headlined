@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-// import { Pokemon } from "../target/types/pokemon";
+import { Headlined } from "../target/types/headlined";
 import {
    createMint,
    getOrCreateAssociatedTokenAccount,
@@ -16,11 +16,10 @@ const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
-
-describe("pokemon", () => {
+describe("snipe_sweeper", () => {
    const provider = anchor.AnchorProvider.env();
    anchor.setProvider(provider);
-   const program = anchor.workspace.Pokemon as Program<Pokemon>;
+   const program = anchor.workspace.Headlined as Program<Headlined>;
 
    it("mints an NFT with metadata and master edition!", async () => {
       const payer = provider.wallet;
@@ -81,10 +80,9 @@ describe("pokemon", () => {
       try {
          const txSignature = await program.methods
             .mint(
-               "cost test charizard2",
-               "PKMN",
-               "https://zahscp6whmnsqquibp2bvmj4toqvjnuk2vrtfb5uo7fgrpfb2v7q.arweave.net/yA8hP9Y7GyhCiAv0GrE8m6FUtorVYzKHtHfKaLyh1X8",
-               "Charizard"
+               "SSG 69.. ver3",
+               "HDLN",
+               "https://wqugnpbct3htljddcnr6b6ycpi6ppkfcob45qahfxi2bsg3swaha.arweave.net/tChmvCKezzWkYxNj4PsCejz3qKJwedgA5bo0GRtysA4"
             )
             .accounts({
                payer: payer.publicKey,

@@ -19,10 +19,10 @@ use anchor_lang::solana_program::{
 use anchor_spl::token::{Token, ID as TOKEN_PROGRAM_ID};
 
 
-declare_id!("6X7Dmx74WDrQtTRqaGZykdRvLh9LTCwR9WPQKtoJpNSE"); 
+declare_id!("EjVgJCbj4XErtwHZ5DuoYPoDLopKGGaqUEEP2Tk9KZfe"); 
 
 #[program]
-pub mod pokemon {
+pub mod headlined {
     use super::*;
 
     pub fn mint(
