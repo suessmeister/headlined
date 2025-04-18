@@ -57,6 +57,17 @@ export type Headlined = {
         {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "collectionMint"
+        },
+        {
+          "name": "collectionMetadata",
+          "writable": true
+        },
+        {
+          "name": "collectionMasterEdition",
+          "writable": true
         }
       ],
       "args": [

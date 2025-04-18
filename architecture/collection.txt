@@ -1,0 +1,16 @@
+Nice diagram showcasing the differences between Collection and Non-Collection 
+NFTS. 
+
+Absolutely Key Notes: 
+
+1. The Verified boolean represents if the NFT is a part of the collection.
+Without this, any user could pretend their NFT is in the collection and 
+thus forge sniper rifles. 
+
+2. On the application, we MUST check this field to be true every time 
+the user selects a weapon in their arsenal. 
+
+3. Utilize the Verify instruction to flip the Token's verified field
+from false to true. On initialization, we'll default to always False.
+Fun Fact: Metaplex uses proof by signature of collection authority 
+to cryptographically prove this NFT belongs to the collection. 

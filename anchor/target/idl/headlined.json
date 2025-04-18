@@ -51,6 +51,17 @@
         {
           "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "collection_mint"
+        },
+        {
+          "name": "collection_metadata",
+          "writable": true
+        },
+        {
+          "name": "collection_master_edition",
+          "writable": true
         }
       ],
       "args": [

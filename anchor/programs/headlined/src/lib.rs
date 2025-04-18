@@ -24,6 +24,8 @@ declare_id!("EjVgJCbj4XErtwHZ5DuoYPoDLopKGGaqUEEP2Tk9KZfe");
 
 #[program]
 pub mod headlined {
+    use mpl_token_metadata::types::Collection;
+
     use super::*;
 
     pub fn mint(
@@ -34,6 +36,7 @@ pub mod headlined {
 
     ) -> Result<()> {
         let mint_key = ctx.accounts.mint.key();
+        let collection_key = ctx.accounts.collection_mint.key();
 
         let (metadata_pda, _bump) = Pubkey::find_program_address(
         &[
@@ -54,12 +57,11 @@ pub mod headlined {
         &MPL_METADATA_ID,
     );
 
-    let (collection_pda, _collection_bump) = Pubkey::find_program_address(
+    let (collection_metadata_pda, _collection_bump) = Pubkey::find_program_address(
         &[
             b"metadata",
             MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-            b"collection",
+            collection_key.as_ref(),
         ],
         &MPL_METADATA_ID,
     );
@@ -68,9 +70,9 @@ pub mod headlined {
         &[
             b"metadata",
             MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-            b"collection",
-            b"master_edition",
+            collection_key.as_ref(),
+            b"edition",
+            
         ],
         &MPL_METADATA_ID,
     );
@@ -82,14 +84,16 @@ pub mod headlined {
         uri: metadata_uri,
         seller_fee_basis_points: 0,
         creators: None,
-        collection: None,
+        collection: {
+            Some(Collection {
+                key: collection_key, // public key of mint of collection mint account!
+                verified: false, // must be set false initially. 
+            })
+        },
         uses: None,
     };
 
     let acc = ctx.accounts; //for readability
-    // let collection_instr = SetAndVerifyCollectionBuilder::new()
-    //     .metadata(metadata_pda)
-    //     .collection_authority(collection_pda)
     
     let metadata_instr = CreateMetadataAccountV3Builder::new()
         .metadata(metadata_pda)
@@ -139,6 +143,16 @@ let master_edition_ix = CreateMasterEditionV3Builder::new()
         &[],
     )?;
 
+let collection_instr = SetAndVerifyCollectionBuilder::new()
+    .metadata(metadata_pda)
+    .collection_authority(acc.payer.key())
+    .payer(acc.payer.key())
+    .collection_mint(collection_key)
+    .update_authority(acc.payer.key())
+    .collection_mint()
+    .collection(collection)
+    .collection_master_edition_account(collection_master_edition_account)
+
 
 
     Ok(())
@@ -174,8 +188,16 @@ pub struct MintNft<'info> {
     /// CHECK: Metaplex!
     pub token_program: Program<'info, Token>,
 
+    /// CHECK: Collection mint
+    pub collection_mint: UncheckedAccount<'info>,
 
+    /// CHECK: Collection metadata PDA
+    #[account(mut)]
+    pub collection_metadata: UncheckedAccount<'info>,
 
+    /// CHECK: Collection master edition PDA
+    #[account(mut)] 
+    pub collection_master_edition: UncheckedAccount<'info>,
 }
 
 
