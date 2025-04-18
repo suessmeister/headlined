@@ -395,7 +395,7 @@ const City: React.FC = () => {
    };
 
    const wrapperStyle: React.CSSProperties = {
-      transform: isZoomed ? 'scale(6)' : 'scale(1)',
+      transform: isZoomed ? 'scale(7)' : 'scale(1)',
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
       transition: 'transform 0.2s ease',
       width: '100vw',
@@ -464,7 +464,7 @@ const City: React.FC = () => {
                   height: 100,
                   borderRadius: '50%',
                   border: '2px solid gray',
-                  boxShadow: '0 0 20px gray',
+                  boxShadow: '0 0 20px red',
                   pointerEvents: 'none',
                   zIndex: 999,
                   display: 'flex',
