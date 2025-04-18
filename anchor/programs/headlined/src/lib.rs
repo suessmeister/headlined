@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 use mpl_token_metadata::{
     instructions::CreateMetadataAccountV3Builder,
     instructions::CreateMasterEditionV3Builder,
+    instructions::SetAndVerifyCollectionBuilder,
     types::DataV2,
     ID as MPL_METADATA_ID,
     instructions::BurnNftBuilder
@@ -52,6 +53,28 @@ pub mod headlined {
         ],
         &MPL_METADATA_ID,
     );
+
+    let (collection_pda, _collection_bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+            b"collection",
+        ],
+        &MPL_METADATA_ID,
+    );
+
+    let (collection_master_ed_pda, _collection_master_ed_bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+            b"collection",
+            b"master_edition",
+        ],
+        &MPL_METADATA_ID,
+    );
+
     
     let sniper_metadata = DataV2 {
         name: metadata_title,
@@ -64,7 +87,11 @@ pub mod headlined {
     };
 
     let acc = ctx.accounts; //for readability
-    let builder = CreateMetadataAccountV3Builder::new()
+    // let collection_instr = SetAndVerifyCollectionBuilder::new()
+    //     .metadata(metadata_pda)
+    //     .collection_authority(collection_pda)
+    
+    let metadata_instr = CreateMetadataAccountV3Builder::new()
         .metadata(metadata_pda)
         .mint(acc.mint.key())
         .mint_authority(acc.payer.key())
@@ -75,7 +102,7 @@ pub mod headlined {
         .instruction();
 
     invoke_signed(
-    &builder,
+    &metadata_instr,
        &[
         acc.metadata.to_account_info(),
         acc.mint.to_account_info(),
