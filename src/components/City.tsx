@@ -41,6 +41,9 @@ const City: React.FC = () => {
    const [isSniperScopeVisible, setIsSniperScopeVisible] = useState(false);
    const [shots, setShots] = useState(0);
    const [hits, setHits] = useState(0);
+   const [isLastShotHit, setIsLastShotHit] = useState(false);
+   const [timeLeft, setTimeLeft] = useState(120);
+   const [isGameOver, setIsGameOver] = useState(false);
 
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
@@ -106,7 +109,8 @@ const City: React.FC = () => {
 
          // For debugging, always register a hit
          console.log('Shot fired at:', { screenX, screenY, isZoomed: isZoomedRef.current });
-         setHits(prev => prev + 1);
+
+         // setHits(prev => prev + 1);
 
          // normalized coordinates for the cursor
          const mouse = new THREE.Vector2(
@@ -152,6 +156,19 @@ const City: React.FC = () => {
 
                console.log('Final shot position:', { x, y, isZoomed: isZoomedRef.current });
                console.log('Current characters:', characterRef.current);
+
+               const hit = characterRef.current.some(character => {
+                  return x >= character.x - 15 && x <= character.x + 15 && y >= character.y - 20 && y <= character.y + 20;
+               });
+
+               if (hit) {
+                  console.log('Hit detected!');
+                  setHits(prev => prev + 1);
+                  setIsLastShotHit(true);
+               } else {
+                  console.log('Miss!');
+                  setIsLastShotHit(false);
+               }
 
                setSniperScopePosition({ x, y });
                setIsSniperScopeVisible(true);
@@ -407,7 +424,7 @@ const City: React.FC = () => {
    };
 
    const wrapperStyle: React.CSSProperties = {
-      transform: isZoomed ? 'scale(7)' : 'scale(1)',
+      transform: isZoomed ? 'scale(3)' : 'scale(1)',
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
       transition: 'transform 0.2s ease',
       width: '100vw',
@@ -430,6 +447,17 @@ const City: React.FC = () => {
       characterRef.current = characters;
    }, [characters]);
 
+   useEffect(() => {
+      if (timeLeft > 0 && !isGameOver) {
+         const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+         }, 1000);
+         return () => clearInterval(timer);
+      } else if (timeLeft === 0) {
+         setIsGameOver(true);
+      }
+   }, [timeLeft, isGameOver]);
+
    return (
       <>
          <div style={{
@@ -442,9 +470,16 @@ const City: React.FC = () => {
             color: 'white',
             fontFamily: 'monospace',
             fontSize: '18px',
-            zIndex: 9999
+            zIndex: 9999,
+            display: 'flex',
+            gap: '20px'
          }}>
-            Shots: {shots} | Hits: {hits} | Accuracy: {shots > 0 ? ((hits / shots) * 100).toFixed(1) : '0'}%
+            <div>
+               Shots: {shots} | Hits: {hits} | Accuracy: {shots > 0 ? ((hits / shots) * 100).toFixed(1) : '0'}%
+            </div>
+            <div style={{ color: '#FFD700' }}>
+               Time: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </div>
          </div>
          <div style={wrapperStyle}>
             <div
@@ -482,6 +517,9 @@ const City: React.FC = () => {
                   x={sniperScopePosition.x}
                   y={sniperScopePosition.y}
                   visible={isSniperScopeVisible}
+                  style={{
+                     filter: isLastShotHit ? 'hue-rotate(0deg) brightness(1.5) saturate(2)' : 'none'
+                  }}
                />
             )}
 
@@ -494,8 +532,8 @@ const City: React.FC = () => {
                      width: 100,
                      height: 100,
                      borderRadius: '50%',
-                     border: '2px solid gray',
-                     boxShadow: '0 0 20px red',
+                     border: `2px solid ${isLastShotHit ? 'red' : 'gray'}`,
+                     boxShadow: isLastShotHit ? '0 0 20px red' : '0 0 20px gray',
                      pointerEvents: 'none',
                      zIndex: 999,
                      display: 'flex',
@@ -509,7 +547,7 @@ const City: React.FC = () => {
                         position: 'absolute',
                         width: '0.2px',
                         height: '100%',
-                        backgroundColor: 'gray',
+                        backgroundColor: isLastShotHit ? 'red' : 'gray',
                      }}
                   />
                   <div
@@ -517,7 +555,7 @@ const City: React.FC = () => {
                         position: 'absolute',
                         width: '100%',
                         height: '0.2px',
-                        backgroundColor: 'gray',
+                        backgroundColor: isLastShotHit ? 'red' : 'gray',
                      }}
                   />
                </div>
