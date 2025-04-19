@@ -52,7 +52,12 @@ export type Headlined = {
           "address": "SysvarRent111111111111111111111111111111111"
         },
         {
-          "name": "tokenMetadataProgram"
+          "name": "tokenMetadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [

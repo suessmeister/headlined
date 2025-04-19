@@ -1,0 +1,29 @@
+{
+   "name": "SSG 69",
+   "symbol": "HDLN",
+   "description": "Sniper Rifle",
+   "image": "https://xy4yehtboxhjzmafvvabvuq56iohaqqmxqy7gwtxmu6mwm7xhnta.arweave.net/vjmCHmF1zpywBa1AGtId8hxwQgy8MfNad2U8yzP3O2Y",
+   "attributes": [
+      {
+         "trait_type": "Scope",
+         "value": "1.7x"
+      },
+      {
+         "trait_type": "Magazine Capacity",
+         "value": "6"
+      },
+      {
+         "trait_type": "Reload Time",
+         "value": "2.4s"
+      }
+   ],
+   "properties": {
+      "files": [
+         {
+            "uri": "https://xy4yehtboxhjzmafvvabvuq56iohaqqmxqy7gwtxmu6mwm7xhnta.arweave.net/vjmCHmF1zpywBa1AGtId8hxwQgy8MfNad2U8yzP3O2Y",
+            "type": "image/png"
+         }
+      ],
+      "category": "image"
+   }
+}

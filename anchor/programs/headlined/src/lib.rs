@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use mpl_token_metadata::{
     instructions::CreateMetadataAccountV3Builder,
     instructions::CreateMasterEditionV3Builder,
-    instructions::SetAndVerifyCollectionBuilder,
+    instructions::VerifySizedCollectionItemBuilder,
     types::DataV2,
     ID as MPL_METADATA_ID,
     instructions::BurnNftBuilder
@@ -82,6 +82,7 @@ pub mod headlined {
             ctx.accounts.collection_metadata.to_account_info(),
             ctx.accounts.collection_mint.to_account_info(),
             ctx.accounts.payer.to_account_info(),
+            ctx.accounts.payer.to_account_info(), // update authority is also payer
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
             ctx.accounts.token_metadata_program.to_account_info(),
@@ -104,6 +105,7 @@ pub mod headlined {
         &[
             ctx.accounts.collection_master_edition.to_account_info(),
             ctx.accounts.collection_mint.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
             ctx.accounts.payer.to_account_info(),
             ctx.accounts.collection_metadata.to_account_info(),
             ctx.accounts.system_program.to_account_info(),
@@ -232,12 +234,11 @@ let master_edition_ix = CreateMasterEditionV3Builder::new()
         &[],
     )?;
 
-let collection_instr = SetAndVerifyCollectionBuilder::new()
+let collection_instr = VerifySizedCollectionItemBuilder::new()
     .metadata(metadata_pda)
     .collection_authority(acc.payer.key())
     .payer(acc.payer.key())
     .collection_mint(collection_key)
-    .update_authority(acc.payer.key())
     .collection(collection_metadata_pda)
     .collection_master_edition_account(collection_master_ed_pda)
     .instruction();
@@ -336,6 +337,7 @@ pub struct BurnNft<'info> {
 
 
 #[derive(Accounts)]
+#[instruction(sniper_name: String)]
 pub struct CreateCollection<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -356,6 +358,10 @@ pub struct CreateCollection<'info> {
     pub rent: Sysvar<'info, Rent>,
 
     /// CHECK: Metaplex Token Metadata program
+    #[account(address = MPL_METADATA_ID)]
     pub token_metadata_program: UncheckedAccount<'info>,
+
+    /// CHECK: SPL Token Program
+    pub token_program: Program<'info, Token>,
 }
 
