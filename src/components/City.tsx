@@ -21,6 +21,7 @@ const SniperScope = styled.img<{ x: number; y: number; visible: boolean }>`
   transition: opacity 1s ease-in-out;
   pointer-events: none;
   z-index: 999;
+  visibility: ${(props) => (props.visible ? 'visible' : 'hidden')};
 `;
 
 const CharacterImg = styled.img<{ x: number; y: number }>`
@@ -38,6 +39,8 @@ const City: React.FC = () => {
    const [isZoomedOut, setIsZoomedOut] = useState(false);
    const [sniperScopePosition, setSniperScopePosition] = useState<{ x: number; y: number } | null>(null);
    const [isSniperScopeVisible, setIsSniperScopeVisible] = useState(false);
+   const [shots, setShots] = useState(0);
+   const [hits, setHits] = useState(0);
 
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
@@ -47,12 +50,14 @@ const City: React.FC = () => {
    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
    const sceneRef = useRef<THREE.Scene | null>(null);
    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+   const characterRef = useRef<Character[]>([]);
 
    const { publicKey, disconnect, sendTransaction, wallet } = useWallet()
 
    // give handle click fresh values
    const isZoomedRef = useRef(false);
    const zoomPosRef = useRef({ x: 0, y: 0 });
+
    useEffect(() => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(
@@ -67,7 +72,7 @@ const City: React.FC = () => {
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
 
- 
+
       renderer.setClearColor(0x000000, 0);        // RGB = black, alpha = 0  (fully transparent)
       renderer.domElement.style.background = 'transparent';
       renderer.domElement.style.pointerEvents = 'none'; // so clicks reach your own listeners
@@ -87,16 +92,21 @@ const City: React.FC = () => {
       renderLoop();
 
       const handleClick = (e: MouseEvent) => {
-        
          if (!sceneRef.current || !cameraRef.current) return;
 
          const screenX = isZoomedRef.current
-            ? zoomPosRef.current.x - 55 + 50 // centering scope on X
+            ? zoomPosRef.current.x - 55 + 50
             : e.clientX;
 
          const screenY = isZoomedRef.current
-            ? zoomPosRef.current.y - 36 + 50 // centering scope on Y
+            ? zoomPosRef.current.y - 36 + 50
             : e.clientY;
+
+         setShots(prev => prev + 1);
+
+         // For debugging, always register a hit
+         console.log('Shot fired at:', { screenX, screenY, isZoomed: isZoomedRef.current });
+         setHits(prev => prev + 1);
 
          // normalized coordinates for the cursor
          const mouse = new THREE.Vector2(
@@ -112,11 +122,9 @@ const City: React.FC = () => {
          const geom = new THREE.BufferGeometry();
          geom.setFromPoints(pts);
 
-         // Adjust laser thickness and color based on zoom state
          const mat = new THREE.LineBasicMaterial({
-            // color: isZoomedRef.current ? 0xff4500 : 0xffffff, // brighter orange when zoomed
             color: 0xff4500,
-            linewidth: isZoomedRef.current ? 10 : 1, // thicker when zoomed
+            linewidth: isZoomedRef.current ? 10 : 1,
          });
 
          const line = new THREE.Line(geom, mat);
@@ -141,6 +149,9 @@ const City: React.FC = () => {
 
                const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
                const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
+
+               console.log('Final shot position:', { x, y, isZoomed: isZoomedRef.current });
+               console.log('Current characters:', characterRef.current);
 
                setSniperScopePosition({ x, y });
                setIsSniperScopeVisible(true);
@@ -389,6 +400,7 @@ const City: React.FC = () => {
                   y,
                   image: '/figures/better_s2.gif',
                });
+               console.log('Added character:', { x, y });
             }
          }
       }
@@ -414,84 +426,104 @@ const City: React.FC = () => {
       zoomPosRef.current = zoomPosition;
    }, [zoomPosition]);
 
+   useEffect(() => {
+      characterRef.current = characters;
+   }, [characters]);
+
    return (
-      <div style={wrapperStyle}>
-         <div
-            ref={mountRef}
-            style={{
-               position: 'absolute',
-               top: 0,
-               left: 0,
-               width: '100%',
-               height: '100%',
-               zIndex: 10,
-            }}
-         />
-
-         <canvas
-            ref={canvasRef}
-            style={{
-               position: 'absolute',
-               top: 0,
-               left: 0,
-               width: '100%',
-               height: '100%',
-               zIndex: 1,
-               cursor: isZoomed ? 'none' : 'default',
-            }}
-         />
-
-         {!isZoomedOut && characters.map((c) => (
-            <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" style={{ zIndex: 2 }} />
-         ))}
-
-         {sniperScopePosition && (
-            <SniperScope
-               src="city/scope.png" 
-               x={sniperScopePosition.x}
-               y={sniperScopePosition.y}
-               visible={isSniperScopeVisible}
-            />
-         )}
-
-         {isZoomed && (
+      <>
+         <div style={{
+            position: 'fixed',
+            top: 20,
+            left: 20,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            color: 'white',
+            fontFamily: 'monospace',
+            fontSize: '18px',
+            zIndex: 9999
+         }}>
+            Shots: {shots} | Hits: {hits} | Accuracy: {shots > 0 ? ((hits / shots) * 100).toFixed(1) : '0'}%
+         </div>
+         <div style={wrapperStyle}>
             <div
+               ref={mountRef}
                style={{
-                  position: 'fixed',
-                  top: zoomPosition.y - 36,
-                  left: zoomPosition.x - 55,
-                  width: 100,
-                  height: 100,
-                  borderRadius: '50%',
-                  border: '2px solid gray',
-                  boxShadow: '0 0 20px red',
-                  pointerEvents: 'none',
-                  zIndex: 999,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  cursor: 'none',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 10,
                }}
-            >
+            />
+
+            <canvas
+               ref={canvasRef}
+               style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 1,
+                  cursor: isZoomed ? 'none' : 'default',
+               }}
+            />
+
+            {!isZoomedOut && characters.map((c) => (
+               <CharacterImg key={c.id} x={c.x} y={c.y} src={c.image} alt="Character" style={{ zIndex: 2 }} />
+            ))}
+
+            {sniperScopePosition && (
+               <SniperScope
+                  src="city/scope.png"
+                  x={sniperScopePosition.x}
+                  y={sniperScopePosition.y}
+                  visible={isSniperScopeVisible}
+               />
+            )}
+
+            {isZoomed && (
                <div
                   style={{
-                     position: 'absolute',
-                     width: '0.2px',
-                     height: '100%',
-                     backgroundColor: 'gray',
+                     position: 'fixed',
+                     top: zoomPosition.y - 36,
+                     left: zoomPosition.x - 55,
+                     width: 100,
+                     height: 100,
+                     borderRadius: '50%',
+                     border: '2px solid gray',
+                     boxShadow: '0 0 20px red',
+                     pointerEvents: 'none',
+                     zIndex: 999,
+                     display: 'flex',
+                     justifyContent: 'center',
+                     alignItems: 'center',
+                     cursor: 'none',
                   }}
-               />
-               <div
-                  style={{
-                     position: 'absolute',
-                     width: '100%',
-                     height: '0.2px',
-                     backgroundColor: 'gray',
-                  }}
-               />
-            </div>
-         )}
-      </div>
+               >
+                  <div
+                     style={{
+                        position: 'absolute',
+                        width: '0.2px',
+                        height: '100%',
+                        backgroundColor: 'gray',
+                     }}
+                  />
+                  <div
+                     style={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '0.2px',
+                        backgroundColor: 'gray',
+                     }}
+                  />
+               </div>
+            )}
+         </div>
+      </>
    );
 };
 
