@@ -14,6 +14,63 @@ export type Headlined = {
   },
   "instructions": [
     {
+      "name": "createCollection",
+      "discriminator": [
+        156,
+        251,
+        92,
+        54,
+        233,
+        2,
+        16,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "collectionMint",
+          "writable": true
+        },
+        {
+          "name": "collectionMetadata",
+          "writable": true
+        },
+        {
+          "name": "collectionMasterEdition",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "tokenMetadataProgram"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "mint",
       "discriminator": [
         51,

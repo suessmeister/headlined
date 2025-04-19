@@ -28,6 +28,95 @@ pub mod headlined {
 
     use super::*;
 
+    pub fn create_collection(
+    ctx: Context<CreateCollection>,
+    title: String,
+    symbol: String,
+    uri: String,
+) -> Result<()> {
+    let mint_key = ctx.accounts.collection_mint.key();
+
+    let (metadata_pda, _bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+        ],
+        &MPL_METADATA_ID,
+    );
+
+    let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            MPL_METADATA_ID.as_ref(),
+            mint_key.as_ref(),
+            b"edition",
+        ],
+        &MPL_METADATA_ID,
+    );
+
+    let data = DataV2 {
+        name: title,
+        symbol,
+        uri,
+        seller_fee_basis_points: 0,
+        creators: None,
+        collection: None,
+        uses: None,
+    };
+
+    let metadata_ix = CreateMetadataAccountV3Builder::new()
+        .metadata(metadata_pda)
+        .mint(ctx.accounts.collection_mint.key())
+        .mint_authority(ctx.accounts.payer.key())
+        .update_authority(ctx.accounts.payer.key(), true)
+        .payer(ctx.accounts.payer.key())
+        .data(data)
+        .is_mutable(true)
+        .collection_details(mpl_token_metadata::types::CollectionDetails::V1 { size: 0 }) // <- marks this as a collection NFT!
+        .instruction();
+
+    invoke_signed(
+        &metadata_ix,
+        &[
+            ctx.accounts.collection_metadata.to_account_info(),
+            ctx.accounts.collection_mint.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
+            ctx.accounts.token_metadata_program.to_account_info(),
+        ],
+        &[],
+    )?;
+
+    let edition_ix = CreateMasterEditionV3Builder::new()
+        .edition(master_edition_pda)
+        .mint(ctx.accounts.collection_mint.key())
+        .update_authority(ctx.accounts.payer.key())
+        .mint_authority(ctx.accounts.payer.key())
+        .payer(ctx.accounts.payer.key())
+        .metadata(metadata_pda)
+        .max_supply(0)
+        .instruction();
+
+    invoke_signed(
+        &edition_ix,
+        &[
+            ctx.accounts.collection_master_edition.to_account_info(),
+            ctx.accounts.collection_mint.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.collection_metadata.to_account_info(),
+            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.token_metadata_program.to_account_info(),
+        ],
+        &[],
+    )?;
+
+    Ok(())
+}
+
+    
+
     pub fn mint(
         ctx: Context<MintNft>, 
         metadata_title: String, 
@@ -149,10 +238,23 @@ let collection_instr = SetAndVerifyCollectionBuilder::new()
     .payer(acc.payer.key())
     .collection_mint(collection_key)
     .update_authority(acc.payer.key())
-    .collection_mint()
-    .collection(collection)
-    .collection_master_edition_account(collection_master_edition_account)
+    .collection(collection_metadata_pda)
+    .collection_master_edition_account(collection_master_ed_pda)
+    .instruction();
 
+invoke_signed(
+    &collection_instr,
+    &[
+        acc.metadata.to_account_info(),
+        acc.payer.to_account_info(),
+        acc.collection_mint.to_account_info(),
+        acc.collection_metadata.to_account_info(),
+        acc.collection_master_edition.to_account_info(),
+        acc.system_program.to_account_info(),
+        acc.token_metadata_program.to_account_info(),
+    ],
+    &[],
+)?;
 
 
     Ok(())
@@ -230,5 +332,30 @@ pub struct BurnNft<'info> {
     /// SPL Token Program
     pub token_program: Program<'info, Token>,
 
+}
+
+
+#[derive(Accounts)]
+pub struct CreateCollection<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: Mint for the collection NFT
+    #[account(mut)]
+    pub collection_mint: UncheckedAccount<'info>,
+
+    /// CHECK: PDA derived metadata
+    #[account(mut)]
+    pub collection_metadata: UncheckedAccount<'info>,
+
+    /// CHECK: Master edition PDA
+    #[account(mut)]
+    pub collection_master_edition: UncheckedAccount<'info>,
+
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+
+    /// CHECK: Metaplex Token Metadata program
+    pub token_metadata_program: UncheckedAccount<'info>,
 }
 
