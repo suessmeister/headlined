@@ -86,7 +86,7 @@ describe("mint NFT into collection", () => {
       // 2. Create Collection NFT
       try {
          await program.methods
-            .createCollection("Collection Testes 1", "TES1", "nana")
+            .createCollection("SSG 69", "COL", "https://tciyah64p6gl4ndz3aqpy7gzxbnhjtv3rqqshfxojmgajpe63xja.arweave.net/mJGAH9x_jL40edgg_HzZuFp0zruMISOW7ksMBLye3dI")
             .accounts({
                payer: payer.publicKey,
                collectionMint,

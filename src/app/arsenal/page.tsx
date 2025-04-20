@@ -97,21 +97,21 @@ export default function ArsenalPage() {
                   <div className="flex space-x-2">
                      <button
                         onClick={() => setActiveTab('shop')}
-                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'shop' ? 'text-white' : 'text-gray-400 hover:text-gray-300'
+                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'shop' ? 'text-white' : 'text-gray-400 hover:text-green-800'
                            }`}
                      >
                         Shop
                      </button>
                      <button
                         onClick={() => setActiveTab('your-guns')}
-                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'your-guns' ? 'text-white' : 'text-gray-400 hover:text-gray-300'
+                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'your-guns' ? 'text-white' : 'text-gray-400 hover:text-green-800'
                            }`}
                      >
                         Your Guns
                      </button>
                      <button
                         onClick={() => setActiveTab('leaderboard')}
-                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'leaderboard' ? 'text-white' : 'text-gray-400 hover:text-gray-300'
+                        className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === 'leaderboard' ? 'text-white' : 'text-gray-400 hover:text-green-800'
                            }`}
                      >
                         Leaderboard
@@ -129,10 +129,10 @@ export default function ArsenalPage() {
             ) : (
                <>
                   {activeTab === 'shop' && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-1 gap-y-8">
                         {sniperData.sniper.map((gun, index) => (
                            <div key={index} className="text-center transform transition-all duration-300 hover:scale-105">
-                              <div className="relative h-[320px] w-[240px] mx-auto bg-gradient-to-br from-green-900 to-green-800 rounded-xl shadow-lg shadow-green-500/10 border border-green-600/20">
+                              <div className="relative h-[400px] w-[300px] mx-auto bg-gradient-to-br from-green-900 to-green-800 rounded-xl shadow-lg shadow-green-500/10 border border-green-600/20">
                                  <div className="absolute inset-2">
                                     <Image
                                        src={`/rifles/${gun.name.toLowerCase().replace(/\s+/g, '_')}.png`}
