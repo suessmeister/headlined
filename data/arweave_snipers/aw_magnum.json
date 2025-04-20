@@ -1,0 +1,29 @@
+{
+   "name": "AW Magnum",
+   "symbol": "AW",
+   "description": "Sniper Rifle",
+   "image": "https://whjejpa3hficbpysyu4u2ptxwowkxs5zxzxvhmbekg2sfcvjwl2a.arweave.net/sdJEvBs5UCC_EsU5TT53s6yry7m-b1OwJFG1IoqpsvQ",
+   "attributes": [
+      {
+         "trait_type": "Scope",
+         "value": "2.2x"
+      },
+      {
+         "trait_type": "Magazine Capacity",
+         "value": "5"
+      },
+      {
+         "trait_type": "Reload Time",
+         "value": "3.2s"
+      }
+   ],
+   "properties": {
+      "files": [
+         {
+            "uri": "https://whjejpa3hficbpysyu4u2ptxwowkxs5zxzxvhmbekg2sfcvjwl2a.arweave.net/sdJEvBs5UCC_EsU5TT53s6yry7m-b1OwJFG1IoqpsvQ",
+            "type": "image/png"
+         }
+      ],
+      "category": "image"
+   }
+}
