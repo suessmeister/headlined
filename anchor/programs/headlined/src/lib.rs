@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 //For defining metadata account on metaplex
 use mpl_token_metadata::{
-    instructions::CreateMetadataAccoun2tV3Builder,
+    instructions::CreateMetadataAccountV3Builder,
     instructions::CreateMasterEditionV3Builder,
     instructions::VerifySizedCollectionItemBuilder,
     types::DataV2,
