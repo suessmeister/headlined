@@ -129,17 +129,20 @@ export default function ArsenalPage() {
             ) : (
                <>
                   {activeTab === 'shop' && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-1 gap-y-8">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {sniperData.sniper.map((gun, index) => (
-                           <div key={index} className="text-center transform transition-all duration-300 hover:scale-105">
-                              <div className="relative h-[400px] w-[300px] mx-auto bg-gradient-to-br from-green-900 to-green-800 rounded-xl shadow-lg shadow-green-500/10 border border-green-600/20">
-                                 <div className="absolute inset-2">
+                           <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                              <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-green-900/90 to-green-800/90 rounded-2xl shadow-lg shadow-green-500/20 border-2 border-green-600/30">
+                                 <div className="absolute inset-4">
                                     <Image
                                        src={`/rifles/${gun.name.toLowerCase().replace(/\s+/g, '_')}.png`}
                                        alt={gun.name}
                                        fill
                                        className="object-contain transition-transform duration-300 hover:scale-110"
                                     />
+                                 </div>
+                                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent rounded-b-2xl">
+                                    <h3 className="text-2xl font-bold text-white">{gun.name}</h3>
                                  </div>
                               </div>
                            </div>
@@ -148,16 +151,16 @@ export default function ArsenalPage() {
                   )}
 
                   {activeTab === 'your-guns' && (
-                     <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border border-gray-700/50">
-                        <p className="text-gray-400 text-xl font-medium">
+                     <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border-2 border-gray-700/50">
+                        <p className="text-2xl text-gray-300 font-medium">
                            Your owned guns will appear here
                         </p>
                      </div>
                   )}
 
                   {activeTab === 'leaderboard' && (
-                     <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border border-gray-700/50">
-                        <p className="text-gray-400 text-xl font-medium">
+                     <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border-2 border-gray-700/50">
+                        <p className="text-2xl text-gray-300 font-medium">
                            Leaderboard coming soon
                         </p>
                      </div>
