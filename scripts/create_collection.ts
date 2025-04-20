@@ -12,6 +12,8 @@ import {
    fetchMetadataFromSeeds,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { PublicKey } from "@solana/web3.js";
+import * as fs from 'fs';
+import * as path from 'path';
 console.log("test...")
 import snipers from '../data/arweave_links.json' with { type: "json" };
 
@@ -28,6 +30,14 @@ const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
    "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
+interface CollectionInfo {
+   name: string;
+   collectionMint: string;
+   collectionMetadata: string;
+   collectionMasterEdition: string;
+}
+
+const collections: CollectionInfo[] = [];
 
 async function createCollections() {
    console.log("Creating Collections...")
@@ -89,6 +99,14 @@ async function createCollections() {
             })
             .signers([payerKeypair])
             .rpc();
+
+         collections.push({
+            name: sniper.name,
+            collectionMint: collectionMint.toBase58(),
+            collectionMetadata: collectionMetadata.toBase58(),
+            collectionMasterEdition: collectionMasterEdition.toBase58()
+         });
+
          console.log("Collection NFT created successfully!");
          console.log("Collection Mint:", collectionMint.toBase58());
          console.log("Collection Metadata:", collectionMetadata.toBase58());
@@ -100,6 +118,10 @@ async function createCollections() {
          }
       }
    }
+
+   const outputPath = path.join(__dirname, '../data/collection_addresses.json');
+   fs.writeFileSync(outputPath, JSON.stringify({ collections }, null, 2));
+   console.log(`Collection addresses saved to ${outputPath}`);
 }
 
 createCollections();
