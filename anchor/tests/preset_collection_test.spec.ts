@@ -36,8 +36,8 @@ describe("mint NFT to collection", () => {
       // Select a collection (e.g., the first one)
 
 
-      const collection = collectionData.collections[3];
-      const gun = gunData.snipers[3];
+      const collection = collectionData.collections[6];
+      const gun = gunData.snipers[6];
       const gunName = gun.name;
       const gunMetadata = gun.metadata_link;
 

@@ -41,7 +41,7 @@ const collections: CollectionInfo[] = [];
 
 async function createCollections() {
    console.log("Creating Collections...")
-   for (const sniper of snipers.sniper) {
+   for (const sniper of snipers.snipers) {
       const collectionMint = await createMint(
          connection,
          payerKeypair,

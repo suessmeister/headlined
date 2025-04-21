@@ -4,8 +4,10 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { UiLayout } from '@/components/ui/ui-layout'
 import { useState, useRef, useEffect } from 'react'
 import sniperData from '../../../backend/guns_nft/data/snipers.json'
+import { Connection, PublicKey } from '@solana/web3.js'
 import Image from 'next/image'
 import arsenalQuotes from '../../../public/quotes/arsenal.json'
+import { getNftsForWallet } from '../utils/helper'
 
 export default function ArsenalPage() {
    const { publicKey } = useWallet()
@@ -14,7 +16,9 @@ export default function ArsenalPage() {
    const tabsRef = useRef<HTMLDivElement>(null)
    const [randomQuote, setRandomQuote] = useState<{ quote: string, author: string } | null>(null)
    const [isRefreshing, setIsRefreshing] = useState(false)
+   const [ownedNFTs, setOwnedNFTs] = useState<any[]>([])
 
+   const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
    const getRandomQuote = () => {
       const quotes = arsenalQuotes.quotes
       const randomIndex = Math.floor(Math.random() * quotes.length)
@@ -43,6 +47,20 @@ export default function ArsenalPage() {
          setSliderPosition(buttonRect.left - containerRect.left - padding)
       }
    }, [activeTab])
+
+   // Fetch owned NFTs that belong to the collection
+   useEffect(() => {
+      async function fetchOwnedNFTs() {
+         if (!publicKey) return
+         try {
+            const nfts = await getNftsForWallet(publicKey, connection)
+            setOwnedNFTs(nfts)
+         } catch (err) {
+            console.error('Error fetching NFTs:', err)
+         }
+      }
+      fetchOwnedNFTs()
+   }, [publicKey])
 
    return (
       <UiLayout links={[]}>
@@ -151,10 +169,32 @@ export default function ArsenalPage() {
                   )}
 
                   {activeTab === 'your-guns' && (
-                     <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border-2 border-gray-700/50">
-                        <p className="text-2xl text-gray-300 font-medium">
-                           Your owned guns will appear here
-                        </p>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {ownedNFTs.length > 0 ? (
+                           ownedNFTs.map((gun, index) => (
+                              <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                                 <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-lg shadow-gray-500/20 border-2 border-gray-600/30">
+                                    <div className="absolute inset-4">
+                                       <Image
+                                          src={`/rifles/${gun.name.toLowerCase().replace(/\s+/g, '_')}.png`}
+                                          alt={gun.name}
+                                          fill
+                                          className="object-contain transition-transform duration-300 hover:scale-110"
+                                       />
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent rounded-b-2xl">
+                                       <h3 className="text-2xl font-bold text-white">{gun.name}</h3>
+                                    </div>
+                                 </div>
+                              </div>
+                           ))
+                        ) : (
+                           <div className="text-center p-12 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border-2 border-gray-700/50">
+                              <p className="text-2xl text-gray-300 font-medium">
+                                 No guns found in your wallet
+                              </p>
+                           </div>
+                        )}
                      </div>
                   )}
 
@@ -170,4 +210,4 @@ export default function ArsenalPage() {
          </div>
       </UiLayout>
    )
-} 
+}
