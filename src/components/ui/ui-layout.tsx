@@ -3,34 +3,71 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as React from 'react'
-import { ReactNode, Suspense, useEffect, useRef } from 'react'
+import { ReactNode, Suspense, useEffect, useRef, useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useWallet } from '@solana/wallet-adapter-react'
 
 import { AccountChecker } from '../account/account-ui'
 import { ClusterChecker, ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
-import { WalletButton } from '../solana/solana-provider'
+import { WalletButton } from '@/components/solana/solana-provider'
 
 export function UiLayout({ children, links }: { children: ReactNode; links: { label: string; path: string }[] }) {
   const pathname = usePathname()
   const isLandingPage = pathname === '/landing'
-  const { publicKey } = useWallet()
+  const router = useRouter()
+  const [showWelcome, setShowWelcome] = useState(false)
+  const { disconnect } = useWallet()
+
+  const handleGetStarted = () => {
+    setShowWelcome(true)
+  }
+
+  const handleEnterProgram = () => {
+    setShowWelcome(false)
+    router.push('/')
+  }
 
   return (
     <div className="h-full relative" style={{
       background: 'linear-gradient(to bottom, #87CEEB, #E0F7FA)',
       minHeight: '100vh'
     }}>
-      {!isLandingPage && (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
-          <Link href="/arsenal">
-            <button className="btn btn-sm btn-arsenal bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600">
-              Arsenal
-            </button>
-          </Link>
-          <div className="scale-90">
+      {showWelcome ? (
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h1 className="text-2xl mb-4">Welcome to Headlined!</h1>
+            <p className="mb-4">Connect your wallet to get started.</p>
             <WalletButton />
           </div>
+        </div>
+      ) : (
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+          {!isLandingPage && (
+            <>
+              {pathname === '/arsenal' ? (
+                <button onClick={() => router.push('/')} className="btn btn-sm bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600">
+                  Go Back
+                </button>
+              ) : (
+                <Link href="/arsenal">
+                  <button onClick={(e) => { e.stopPropagation(); }} className="btn btn-sm btn-arsenal bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600">
+                    Arsenal
+                  </button>
+                </Link>
+              )}
+              <button onClick={() => {
+                disconnect();
+                router.push('/landing');
+              }} style={{ fontFamily: 'Quantico', fontSize: '18px', backgroundColor: 'transparent', color: 'black', border: 'none', cursor: 'pointer' }}>
+                [Disconnect]
+              </button>
+            </>
+          )}
+          {isLandingPage && (
+            <button onClick={handleGetStarted} className="font-bold text-black bg-transparent">
+              [Get Started]
+            </button>
+          )}
         </div>
       )}
       <Suspense
