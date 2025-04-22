@@ -11,7 +11,7 @@ import { getNftsForWallet } from '../utils/helper'
 import { useHeadlinedProgram } from '../utils/anchorClient'
 import toast from 'react-hot-toast'
 import { Keypair } from '@solana/web3.js'
-import { createAssociatedTokenAccountInstruction, createInitializeMint2Instruction, getAssociatedTokenAddress, MintLayout, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { createAssociatedTokenAccountInstruction, createInitializeMint2Instruction, createMintToInstruction, getAssociatedTokenAddress, MintLayout, mintTo, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
 
 
@@ -126,6 +126,15 @@ export default function ArsenalPage() {
       const ata = await getAssociatedTokenAddress(gunMint.publicKey, publicKey)
       const ataIx = createAssociatedTokenAccountInstruction(publicKey, ata, publicKey, gunMint.publicKey)
 
+      const mintToIx = createMintToInstruction(
+         gunMint.publicKey,
+         ata,
+         publicKey,
+         1
+      )
+
+
+
       const [metadataPda, metadataBump] = PublicKey.findProgramAddressSync(
          [Buffer.from('metadata'), MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(), gunMint.publicKey.toBuffer()],
          MPL_TOKEN_METADATA_PROGRAM_ID
@@ -156,7 +165,7 @@ export default function ArsenalPage() {
          })
          .instruction()
 
-      const tx = new Transaction().add(createMintIx, mintIxInit, ataIx, ixMint)
+      const tx = new Transaction().add(createMintIx, mintIxInit, ataIx, mintToIx, ixMint)
       tx.feePayer = publicKey
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
@@ -175,6 +184,7 @@ export default function ArsenalPage() {
             return
          }
 
+         console.log("how about this program id", program.programId.toBase58())
          const signedTx = await signTransaction(tx)
          const sig = await connection.sendRawTransaction(signedTx.serialize())
 

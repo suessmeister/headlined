@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/headlined.json`.
  */
 export type Headlined = {
-  "address": "EjVgJCbj4XErtwHZ5DuoYPoDLopKGGaqUEEP2Tk9KZfe",
+  "address": "9YhZtfHPa9YY13AXr7PhNV1YnWPkqhvd6g4NRTfNNcND",
   "metadata": {
     "name": "headlined",
     "version": "0.1.0",
