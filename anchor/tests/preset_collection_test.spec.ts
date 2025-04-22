@@ -21,7 +21,7 @@ describe("mint NFT to collection", () => {
       // Load collection data from JSON file
       const collectionData = JSON.parse(
          fs.readFileSync(
-            "/home/suess2shiesty/colosseum/headlined2/headlined/public/collection_addresses.json",
+            "/home/suess2shiesty/colosseum/headlined2/headlined/public/data/collection_addresses.json",
             "utf-8"
          )
       );

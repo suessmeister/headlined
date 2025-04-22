@@ -164,6 +164,8 @@ export default function ArsenalPage() {
                   {activeTab === 'shop' && (
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {sniperData.sniper.map((gun, index) => (
+                           //console log gun index
+                           
                            <div key={index} className="transform transition-all duration-300 hover:scale-105">
                               <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-green-900/90 to-green-800/90 rounded-2xl shadow-lg shadow-green-500/20 border-2 border-green-600/30">
                                  <div className="absolute inset-4">

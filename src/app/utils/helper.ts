@@ -9,7 +9,7 @@ export async function getNftsForWallet(walletAddress: PublicKey, connection: Con
          .nfts()
          .findAllByOwner({ owner: walletAddress });
 
-      const json = await fetch ('/collection_addresses.json');
+      const json = await fetch ('/data/collection_addresses.json');
       const collectionData = await json.json();
 
       const collectionMints = collectionData.collections.map(
