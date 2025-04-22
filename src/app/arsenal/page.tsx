@@ -18,6 +18,8 @@ export default function ArsenalPage() {
    const [isRefreshing, setIsRefreshing] = useState(false)
    const [ownedNFTs, setOwnedNFTs] = useState<any[]>([])
 
+   const [activeGun, setActiveGun] = useState<any | null>(null)
+
    const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
    const getRandomQuote = () => {
       const quotes = arsenalQuotes.quotes
@@ -37,6 +39,11 @@ export default function ArsenalPage() {
       }, 200)
    }
 
+   const handleSelectGun = (gun: any) => {
+      setActiveGun(gun)
+      localStorage.setItem('selectedGun', JSON.stringify(gun))
+   }
+
    useEffect(() => {
       if (tabsRef.current) {
          const buttons = tabsRef.current.querySelectorAll('button')
@@ -47,6 +54,14 @@ export default function ArsenalPage() {
          setSliderPosition(buttonRect.left - containerRect.left - padding)
       }
    }, [activeTab])
+
+   useEffect(() => {
+      const savedGun = localStorage.getItem('selectedGun')
+      if (savedGun) {
+         const parsedGun = JSON.parse(savedGun)
+         setActiveGun(parsedGun)
+      }
+   })
 
    // Fetch owned NFTs that belong to the collection
    useEffect(() => {
@@ -172,7 +187,11 @@ export default function ArsenalPage() {
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {ownedNFTs.length > 0 ? (
                            ownedNFTs.map((gun, index) => (
-                              <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                              <div key={index} 
+                              onClick={() => handleSelectGun(gun)}
+                                 className={`transform transition-all duration-300 hover:scale-105 cursor-pointer ${activeGun?.mint === gun.mint ? 'ring-4 ring-green-400' : ''
+                                    }`}
+                              >
                                  <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-lg shadow-gray-500/20 border-2 border-gray-600/30">
                                     <div className="absolute inset-4">
                                        <Image

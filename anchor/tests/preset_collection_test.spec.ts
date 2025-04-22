@@ -21,7 +21,7 @@ describe("mint NFT to collection", () => {
       // Load collection data from JSON file
       const collectionData = JSON.parse(
          fs.readFileSync(
-            "/home/suess2shiesty/colosseum/headlined2/headlined/data/collection_addresses.json",
+            "/home/suess2shiesty/colosseum/headlined2/headlined/public/collection_addresses.json",
             "utf-8"
          )
       );
@@ -34,10 +34,11 @@ describe("mint NFT to collection", () => {
       );
 
       // Select a collection (e.g., the first one)
+      const index = 2;
 
-
-      const collection = collectionData.collections[6];
-      const gun = gunData.snipers[6];
+      const collection = collectionData.collections[index];
+      const symbol = collection.symbol;
+      const gun = gunData.snipers[index];
       const gunName = gun.name;
       const gunMetadata = gun.metadata_link;
 
@@ -112,8 +113,8 @@ describe("mint NFT to collection", () => {
       try {
          await program.methods
             .mint(
-               collectionName,
                gunName,
+               symbol,
                gunMetadata,
             )
             .accounts({

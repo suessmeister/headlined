@@ -2,42 +2,49 @@
    "collections": [
       {
          "name": "SSG 69",
+         "symbol": "S69",
          "collectionMint": "8gCqai8Fmnba4whb6hdEnXofJoa2dw9q4mDaQf6Vqk9f",
          "collectionMetadata": "2rFRYuxqkBNsm9x9d7mAwph391qfBYkGZqgT5xYdbXuP",
          "collectionMasterEdition": "B8Ett7X4Wewkg2bARbiNV3JNqE6bvzXqPGX6b1hrSCYm"
       },
       {
          "name": "SSG 3000",
+         "symbol": "S3000",
          "collectionMint": "ChueKbv32u8Gn89Mk7Jp9kLHGE73oA9BxeWpbicKkgT5",
          "collectionMetadata": "HdjYbSMW2hf3oV9mR5SmaqYPLZ75nGNTzHDJ929kcB6x",
          "collectionMasterEdition": "HQPmiEDWd1VZFQa96UnJU4o9jnoLboobQLGqKFovjQ7g"
       },
       {
          "name": "Sako TRG 42",
+         "symbol": "TRG",
          "collectionMint": "BccwMjQWz8rMfUMhgNYUKVRUesZHkYpTfsgysnhaZdvh",
          "collectionMetadata": "92Z7afTjZjRKELVcLKrURz3Pq5pxDZTQRePfJdyUz2GJ",
          "collectionMasterEdition": "3qHrKKcPL6YnZufyrR1f3rY7w325Tg7HWaek2LD1LXD2"
       },
       {
          "name": "M40A5",
+         "symbol": "M40",
          "collectionMint": "EvzWbKsBPC2wCV2KNJAeUraDJ1pPT16oQuBjLUeiETTc",
          "collectionMetadata": "2WjJ2AS41DGEchpTGkjzvPEHRCHwNXKGqt6DPA5T9P9f",
          "collectionMasterEdition": "2dhiMBCpudDRWVxg6D1aCbgnF5LZN33mdhrLTYPzGysf"
       },
       {
          "name": "Barrett M82",
+         "symbol": "M82",
          "collectionMint": "Ay9u9QXzQbz6YpRs1ov5hXeV7amYWYLMrPMre7QoVtNk",
          "collectionMetadata": "2LTr5kVoGckhLHtU6j7hFKUr7CAzwE3gRUUiwHnt3mCu",
          "collectionMasterEdition": "C1XHN3vScCXDUwsDfEGFKk5k2EMDJTPatQkAy65nwemf"
       },
       {
          "name": "AW Magnum",
+         "symbol": "AWM",
          "collectionMint": "Bgyax4xwvRYBc2Mc9yQZBAtgWzragYjtnGL3NWDf3gJ5",
          "collectionMetadata": "126N6Crjhw55uip81Hje12L51cTTvvmNtfgBbjCHgbML",
          "collectionMasterEdition": "8ofAqtw9LLcvqzTDtYb6KBqUwWrMsRuwpy3NNP1TmRRe"
       },
       {
          "name": "Blaser R93",
+         "symbol": "R93",
          "collectionMint": "9Gjc5vAnrTgjRRJ5cK8b3HnxL38yrean6MsgDJSgGhCR",
          "collectionMetadata": "13DfGB7yePkU6wtG5nxBdfoFDQ7FABJow33fWBsoEMNR",
          "collectionMasterEdition": "AyWL1EEQiWxpAaTqmxcxf8C4CDGotwb3Fecv7bi6C28i"
