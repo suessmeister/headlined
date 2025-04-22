@@ -44,6 +44,7 @@ const City: React.FC = () => {
    const [isLastShotHit, setIsLastShotHit] = useState(false);
    const [timeLeft, setTimeLeft] = useState(120);
    const [isGameOver, setIsGameOver] = useState(false);
+   const [activeGun, setActiveGun] = useState<any | null>(null);
 
    const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
@@ -458,8 +459,36 @@ const City: React.FC = () => {
       }
    }, [timeLeft, isGameOver]);
 
+   useEffect(() => {
+      const savedGun = localStorage.getItem('selectedGun');
+      if (savedGun) {
+         const parsedGun = JSON.parse(savedGun);
+         setActiveGun(parsedGun);
+      }
+   }, []);
+
    return (
       <>
+         <div style={{
+            position: 'fixed',
+            top: 60,  // Adjusted to position below the buttons
+            right: 20,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            padding: '5px 15px',  // Adjusted padding for smaller size
+            borderRadius: '8px',
+            color: 'white',
+            fontFamily: 'monospace',
+            fontSize: '16px',  // Slightly smaller font size
+            zIndex: 9999,
+            display: 'flex',
+            gap: '20px'
+         }}>
+            {activeGun && (
+               <div>
+                  Now Using: {activeGun.name}
+               </div>
+            )}
+         </div>
          <div style={{
             position: 'fixed',
             top: 20,

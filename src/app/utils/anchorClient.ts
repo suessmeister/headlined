@@ -17,7 +17,7 @@ export function useHeadlinedProgram() {
       { commitment: 'confirmed' }
    )
    const program = new Program(idl as Idl, provider)
-   console.log("using program", program.programId.toBase58())
+   // console.log("using program", program.programId.toBase58())
    return { program, provider, wallet }
 }
 

@@ -11,13 +11,13 @@ import { AccountChecker } from '../account/account-ui'
 import { ClusterChecker, ClusterUiSelect, ExplorerLink } from '../cluster/cluster-ui'
 import { WalletButton } from '@/components/solana/solana-provider'
 
-export function UiLayout({ children, links }: { children: ReactNode; links: { label: string; path: string }[] }) {
+export function UiLayout({ children, links }: { children: ReactNode; links: { label: string; path: string } [] }) {
   const pathname = usePathname()
   const isLandingPage = pathname === '/landing'
   const router = useRouter()
   const [showWelcome, setShowWelcome] = useState(false)
   const { disconnect } = useWallet()
-
+  const [activeGun, setActiveGun] = useState<any>(null)
   const handleGetStarted = () => {
     setShowWelcome(true)
   }
@@ -26,6 +26,13 @@ export function UiLayout({ children, links }: { children: ReactNode; links: { la
     setShowWelcome(false)
     router.push('/')
   }
+
+  useEffect(() => {
+    const savedGun = localStorage.getItem('selectedGun')
+    if (savedGun) {
+      setActiveGun(JSON.parse(savedGun))
+    }
+  }, [])
 
   return (
     <div className="h-full relative" style={{
