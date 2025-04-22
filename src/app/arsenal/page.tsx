@@ -4,13 +4,20 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { UiLayout } from '@/components/ui/ui-layout'
 import { useState, useRef, useEffect } from 'react'
 import sniperData from '../../../backend/guns_nft/data/snipers.json'
-import { Connection, PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from '@solana/web3.js'
 import Image from 'next/image'
 import arsenalQuotes from '../../../public/quotes/arsenal.json'
 import { getNftsForWallet } from '../utils/helper'
+import { useHeadlinedProgram } from '../utils/anchorClient'
+import toast from 'react-hot-toast'
+import { Keypair } from '@solana/web3.js'
+import { createAssociatedTokenAccountInstruction, createInitializeMint2Instruction, getAssociatedTokenAddress, MintLayout, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
+
+
 
 export default function ArsenalPage() {
-   const { publicKey } = useWallet()
+   const { wallet, signTransaction, publicKey } = useWallet()
    const [activeTab, setActiveTab] = useState<'shop' | 'your-guns' | 'leaderboard'>('your-guns')
    const [sliderPosition, setSliderPosition] = useState(0)
    const tabsRef = useRef<HTMLDivElement>(null)
@@ -19,6 +26,7 @@ export default function ArsenalPage() {
    const [ownedNFTs, setOwnedNFTs] = useState<any[]>([])
 
    const [activeGun, setActiveGun] = useState<any | null>(null)
+   const { program, provider } = useHeadlinedProgram()
 
    const connection = new Connection('https://api.devnet.solana.com', 'confirmed')
    const getRandomQuote = () => {
@@ -26,6 +34,8 @@ export default function ArsenalPage() {
       const randomIndex = Math.floor(Math.random() * quotes.length)
       return quotes[randomIndex]
    }
+
+   const MPL_TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
    useEffect(() => {
       setRandomQuote(getRandomQuote())
@@ -76,6 +86,114 @@ export default function ArsenalPage() {
       }
       fetchOwnedNFTs()
    }, [publicKey])
+
+
+   async function buyGun(index: number) {
+      if (!publicKey) {
+         toast.error('Connect your wallet to buy a gun')
+         return
+      }
+
+      console.log(program.programId.toBase58())
+      const collections = await fetch('/data/collection_addresses.json') //convert to json
+      const guns = await fetch('/data/arweave_links.json')
+
+      const collectionData = await collections.json()
+      const gunData = await guns.json()
+
+      const collection = collectionData.collections[index]
+      const gun = gunData.snipers[index]
+
+      console.log(collection)
+      console.log(gun)
+
+      const collectionMint = new PublicKey(collection.collectionMint)
+      const collectionMetadata = new PublicKey(collection.collectionMetadata)
+      const collectionMasterEdition = new PublicKey(collection.collectionMasterEdition)
+
+
+      const gunMint = Keypair.generate()
+      const lamports = await connection.getMinimumBalanceForRentExemption(MintLayout.span)
+      const createMintIx = SystemProgram.createAccount({
+         fromPubkey: publicKey,
+         newAccountPubkey: gunMint.publicKey,
+         space: MintLayout.span,
+         lamports,
+         programId: TOKEN_PROGRAM_ID
+      })
+
+      const mintIxInit = createInitializeMint2Instruction(gunMint.publicKey, 0, publicKey, publicKey, TOKEN_PROGRAM_ID)
+      const ata = await getAssociatedTokenAddress(gunMint.publicKey, publicKey)
+      const ataIx = createAssociatedTokenAccountInstruction(publicKey, ata, publicKey, gunMint.publicKey)
+
+      const [metadataPda, metadataBump] = PublicKey.findProgramAddressSync(
+         [Buffer.from('metadata'), MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(), gunMint.publicKey.toBuffer()],
+         MPL_TOKEN_METADATA_PROGRAM_ID
+      )
+
+      const [masterEditionPda, masterEditionBump] = PublicKey.findProgramAddressSync(
+         [Buffer.from('metadata'), MPL_TOKEN_METADATA_PROGRAM_ID.toBuffer(), gunMint.publicKey.toBuffer(), Buffer.from('edition')],
+         MPL_TOKEN_METADATA_PROGRAM_ID
+      )
+
+      console.log(metadataPda.toBase58())
+      console.log(masterEditionPda.toBase58())
+
+      const ixMint = await program.methods
+         .mint(gun.name, collection.symbol, gun.metadata_link)
+         .accounts({
+            payer: publicKey,
+            mint: gunMint.publicKey,
+            metadata: metadataPda,
+            masterEdition: masterEditionPda,
+            collectionMint: collectionMint,
+            collectionMasterEdition: collectionMasterEdition,
+            collectionMetadata: collectionMetadata,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+            tokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+         })
+         .instruction()
+
+      const tx = new Transaction().add(createMintIx, mintIxInit, ataIx, ixMint)
+      tx.feePayer = publicKey
+      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized')
+      // Sign with local mint keypair
+      tx.partialSign(gunMint)
+
+      try {
+         // Make sure adapter supports signing
+         if (!wallet?.adapter || !('sendTransaction' in wallet.adapter)) {
+            toast.error("Connected wallet can't send transactions")
+            return
+         }
+         if (!signTransaction) {
+            toast.error('Wallet does not support signing transactions directly')
+            return
+         }
+
+         const signedTx = await signTransaction(tx)
+         const sig = await connection.sendRawTransaction(signedTx.serialize())
+
+         await connection.confirmTransaction(
+            { signature: sig, blockhash, lastValidBlockHeight },
+            'confirmed'
+         )
+
+         toast.success(`Gun purchased: ${gun.name} (${sig.slice(0, 8)}…)`)
+       
+      } catch (err: any) {
+         console.error('🚨 Transaction failed', err?.logs ?? err)
+         toast.error('Gun purchase failed – see console for details')
+      }
+
+
+
+
+   }
 
    return (
       <UiLayout links={[]}>
@@ -164,9 +282,7 @@ export default function ArsenalPage() {
                   {activeTab === 'shop' && (
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {sniperData.sniper.map((gun, index) => (
-                           //console log gun index
-                           
-                           <div key={index} className="transform transition-all duration-300 hover:scale-105">
+                           <div key={index} className="transform transition-all duration-300 hover:scale-105" onClick={() => buyGun(index)}>
                               <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-green-900/90 to-green-800/90 rounded-2xl shadow-lg shadow-green-500/20 border-2 border-green-600/30">
                                  <div className="absolute inset-4">
                                     <Image
@@ -189,8 +305,8 @@ export default function ArsenalPage() {
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {ownedNFTs.length > 0 ? (
                            ownedNFTs.map((gun, index) => (
-                              <div key={index} 
-                              onClick={() => handleSelectGun(gun)}
+                              <div key={index}
+                                 onClick={() => handleSelectGun(gun)}
                                  className={`transform transition-all duration-300 hover:scale-105 cursor-pointer ${activeGun?.mint === gun.mint ? 'ring-4 ring-green-400' : ''
                                     }`}
                               >
