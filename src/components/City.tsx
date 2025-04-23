@@ -2,7 +2,8 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import * as THREE from 'three';
-import { useSniperHandlers } from './handlers';
+import { useSniperHandlers } from './handlers/sniper_handler';
+import { useZoomHandlers } from './handlers/zoom_handler';
 
 export interface Character {
    id: number;
@@ -78,6 +79,11 @@ const City: React.FC = () => {
       zoomPosRef
    });
 
+   useZoomHandlers({
+      setIsZoomed,
+      setZoomPosition,
+   });
+
    useEffect(() => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(
@@ -123,37 +129,12 @@ const City: React.FC = () => {
       // Check zoom periodically
       const zoomCheckInterval = setInterval(checkZoom, 100);
 
-      const handleKeyDown = (e: KeyboardEvent) => {
-         if (e.ctrlKey) {
-            setIsZoomed(true);
-            document.body.style.cursor = 'none';
-         }
-      };
-
-      const handleKeyUp = (e: KeyboardEvent) => {
-         if (!e.ctrlKey) {
-            setIsZoomed(false);
-            document.body.style.cursor = 'default';
-         }
-      };
-
-      const handleMouseMove = (e: MouseEvent) => {
-         setZoomPosition({ x: e.clientX, y: e.clientY });
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      window.addEventListener('keyup', handleKeyUp);
-      window.addEventListener('mousemove', handleMouseMove);
-      // window.addEventListener('click', handleClick);
+   
 
       generateCity();
 
       return () => {
          clearInterval(zoomCheckInterval);
-         window.removeEventListener('keydown', handleKeyDown);
-         window.removeEventListener('keyup', handleKeyUp);
-         window.removeEventListener('mousemove', handleMouseMove);
-         // window.removeEventListener('click', handleClick);
          if (rendererRef.current) {
             rendererRef.current.dispose();
             mountRef.current?.removeChild(renderer.domElement);

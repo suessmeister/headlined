@@ -1,7 +1,7 @@
 // hooks/useSniperHandlers.ts
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { Character } from './City';
+import { Character } from '../City';
 
 export function useSniperHandlers({
    sceneRef,
@@ -111,3 +111,5 @@ export function useSniperHandlers({
       };
    }, []);
 }
+
+
