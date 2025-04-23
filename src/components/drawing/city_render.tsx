@@ -203,7 +203,7 @@ const drawWindows = (
           y,
           image: "/figures/better_s2.gif",
         });
-        console.log("Added character:", { x, y });
+        // console.log("Added character:", { x, y });
       }
     }
   }

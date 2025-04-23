@@ -6,6 +6,7 @@ import { useSniperHandlers } from "./handlers/sniper_handler";
 import { useZoomHandlers } from "./handlers/zoom_handler";
 import { generateCity } from "./drawing/city_render";
 
+
 export interface Character {
   id: number;
   x: number;
@@ -187,6 +188,11 @@ const City: React.FC = () => {
       setActiveGun(parsedGun);
     }
   }, []);
+
+  const [matchSeed, setMatchSeed] = useState<string | null>(null);
+
+
+
 
   return (
     <>

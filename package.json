@@ -37,9 +37,11 @@
     "react-zoomable": "^0.0.1",
     "react-zoomable-ui": "^0.11.0",
     "seedrandom": "^3.0.5",
+    "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.17",
     "three": "^0.175.0",
-    "three.js": "^0.77.1"
+    "three.js": "^0.77.1",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.6",
@@ -48,6 +50,8 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/seedrandom": "^3.0.8",
+    "@types/socket.io": "^3.0.1",
+    "@types/socket.io-client": "^1.4.36",
     "@types/three": "^0.175.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.24",
