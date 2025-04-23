@@ -1,0 +1,9 @@
+4/23 Began Implementing Multiplayer Functionality on the Game Itself.
+Let's understand the architecture a bit, because it is kind of confusing.
+
+src/pages/api/socket.ts: Backend 
+- Runs a NextJS API Route to prevent dependency conflicts with NodeJS
+- Starts a Socket.io server on first request
+- When 2 people connect, a random seed is generated and "hello world" commences.
+- messages relayed
+- <SocketInit />
