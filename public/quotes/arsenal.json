@@ -1,24 +1,20 @@
 {
-   "quotes": [
-      {
-         "quote": "Before all else, be armed.",
-         "author": "Niccolò Machiavelli"
-      }, 
-      {
-         "quote": "A well-armed man is a gentleman.",
-         "author": "Thomas Jefferson"
-      },
-      {
-         "quote": "The best defense is a good offense.",
-         "author": "Sun Tzu"
-      },
-      {
-         "quote": "A gun in the hand is better than a foot in the mouth.",
-         "author": "Clint Eastwood"
-      }
-    
-      
-      
-
-   ]
+  "quotes": [
+    {
+      "quote": "Before all else, be armed.",
+      "author": "Niccolò Machiavelli"
+    },
+    {
+      "quote": "A well-armed man is a gentleman.",
+      "author": "Thomas Jefferson"
+    },
+    {
+      "quote": "The best defense is a good offense.",
+      "author": "Sun Tzu"
+    },
+    {
+      "quote": "A gun in the hand is better than a foot in the mouth.",
+      "author": "Clint Eastwood"
+    }
+  ]
 }

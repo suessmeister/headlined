@@ -1,29 +1,29 @@
 {
-   "name": "Sako TRG 42",
-   "symbol": "ST42",
-   "description": "Sniper Rifle",
-   "image": "https://rgefwpbtauv6eopscl3chncc6qyccav2h23j42otf36wofeepwxq.arweave.net/iYhbPDMFK-I58hL2I7RC9DAhAro-tp5p0y79ZxSEfa8",
-   "attributes": [
+  "name": "Sako TRG 42",
+  "symbol": "ST42",
+  "description": "Sniper Rifle",
+  "image": "https://rgefwpbtauv6eopscl3chncc6qyccav2h23j42otf36wofeepwxq.arweave.net/iYhbPDMFK-I58hL2I7RC9DAhAro-tp5p0y79ZxSEfa8",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "2.0x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "7"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "2.6s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "2.0x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "7"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "2.6s"
+        "uri": "https://rgefwpbtauv6eopscl3chncc6qyccav2h23j42otf36wofeepwxq.arweave.net/iYhbPDMFK-I58hL2I7RC9DAhAro-tp5p0y79ZxSEfa8",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://rgefwpbtauv6eopscl3chncc6qyccav2h23j42otf36wofeepwxq.arweave.net/iYhbPDMFK-I58hL2I7RC9DAhAro-tp5p0y79ZxSEfa8",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }

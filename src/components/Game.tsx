@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import City from './City';
+import React, { useState } from "react";
+import styled from "styled-components";
+import City from "./City";
 
 const GameContainer = styled.div`
   display: flex;
@@ -12,23 +12,23 @@ const GameContainer = styled.div`
 const ScoreContainer = styled.div`
   font-size: 24px;
   margin-bottom: 20px;
-  color: #2C3E50;
+  color: #2c3e50;
 `;
 
 const Game: React.FC = () => {
-   const [score, setScore] = useState(0);
-   const [shots, setShots] = useState(0);
+  const [score, setScore] = useState(0);
+  const [shots, setShots] = useState(0);
 
-   const handleSniperClick = (sniperId: number) => {
-      setScore(prev => prev + 100);
-      setShots(prev => prev + 1);
-   };
+  const handleSniperClick = (sniperId: number) => {
+    setScore((prev) => prev + 100);
+    setShots((prev) => prev + 1);
+  };
 
-   return (
-      <GameContainer>
-         <City />
-      </GameContainer>
-   );
+  return (
+    <GameContainer>
+      <City />
+    </GameContainer>
+  );
 };
 
-export default Game; 
+export default Game;

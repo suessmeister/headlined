@@ -9,16 +9,7 @@
   "instructions": [
     {
       "name": "create_collection",
-      "discriminator": [
-        156,
-        251,
-        92,
-        54,
-        233,
-        2,
-        16,
-        82
-      ],
+      "discriminator": [156, 251, 92, 54, 233, 2, 16, 82],
       "accounts": [
         {
           "name": "payer",
@@ -71,16 +62,7 @@
     },
     {
       "name": "mint",
-      "discriminator": [
-        51,
-        57,
-        225,
-        47,
-        182,
-        146,
-        137,
-        166
-      ],
+      "discriminator": [51, 57, 225, 47, 182, 146, 137, 166],
       "accounts": [
         {
           "name": "payer",

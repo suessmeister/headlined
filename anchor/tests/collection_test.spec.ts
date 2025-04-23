@@ -59,7 +59,6 @@
 //          1
 //       );
 
-
 //       // Derive PDAs for collection
 //       const [collectionMetadata] = anchor.web3.PublicKey.findProgramAddressSync(
 //          [
@@ -103,14 +102,12 @@
 //          console.log("Collection Master Edition:", collectionMasterEdition.toBase58());
 //       }
 
- 
 //       catch (error) {
 //          console.error("Error creating collection NFT:", error);
 //          if ((error as any).logs) {
 //             console.error("Transaction logs:", (error as any)?.logs);
 //          }
 //       }
-
 
 //       // 3. Mint Child NFT into collection
 //       const childMint = await createMint(
@@ -188,7 +185,6 @@
 //                console.error("Transaction logs:", (error as any)?.logs);
 //             }
 //          }
-
 
 //       // // 4. Fetch and verify metadata
 //       // const metadata = await fetchMetadataFromSeeds(

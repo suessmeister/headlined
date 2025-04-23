@@ -1,29 +1,29 @@
 {
-   "name": "M40A5",
-   "symbol": "M40",
-   "description": "Sniper Rifle",
-   "image": "https://oi7zc4r4p2ntkteup6htqevyt7guqy5eaxjnjyxkjcw6imlwfsnq.arweave.net/cj-Rcjx-mzVMlH-POBK4n81IY6QF0tTi6kit5DF2LJs",
-   "attributes": [
+  "name": "M40A5",
+  "symbol": "M40",
+  "description": "Sniper Rifle",
+  "image": "https://oi7zc4r4p2ntkteup6htqevyt7guqy5eaxjnjyxkjcw6imlwfsnq.arweave.net/cj-Rcjx-mzVMlH-POBK4n81IY6QF0tTi6kit5DF2LJs",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "1.5x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "5"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "2.5s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "1.5x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "5"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "2.5s"
+        "uri": "https://oi7zc4r4p2ntkteup6htqevyt7guqy5eaxjnjyxkjcw6imlwfsnq.arweave.net/cj-Rcjx-mzVMlH-POBK4n81IY6QF0tTi6kit5DF2LJs",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://oi7zc4r4p2ntkteup6htqevyt7guqy5eaxjnjyxkjcw6imlwfsnq.arweave.net/cj-Rcjx-mzVMlH-POBK4n81IY6QF0tTi6kit5DF2LJs",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }

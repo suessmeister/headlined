@@ -1,29 +1,29 @@
 {
-   "name": "SSG 69",
-   "symbol": "S69",
-   "description": "Sniper Rifle",
-   "image": "https://ng4zosyskdk5slkwm22jslf5ahgecefnqlc5z37lkdkxyzmjvaia.arweave.net/abmXSxJQ1dktVma0mSy9AcxBEK2Cxdzv61DVfGWJqBA",
-   "attributes": [
+  "name": "SSG 69",
+  "symbol": "S69",
+  "description": "Sniper Rifle",
+  "image": "https://ng4zosyskdk5slkwm22jslf5ahgecefnqlc5z37lkdkxyzmjvaia.arweave.net/abmXSxJQ1dktVma0mSy9AcxBEK2Cxdzv61DVfGWJqBA",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "1.6x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "10"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "2.2s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "1.6x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "10"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "2.2s"
+        "uri": "https://ng4zosyskdk5slkwm22jslf5ahgecefnqlc5z37lkdkxyzmjvaia.arweave.net/abmXSxJQ1dktVma0mSy9AcxBEK2Cxdzv61DVfGWJqBA",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://ng4zosyskdk5slkwm22jslf5ahgecefnqlc5z37lkdkxyzmjvaia.arweave.net/abmXSxJQ1dktVma0mSy9AcxBEK2Cxdzv61DVfGWJqBA",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }

@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useWallet } from '@solana/wallet-adapter-react'
-import { WalletButton } from '../solana/solana-provider'
-import { AppHero, ellipsify } from '../ui/ui-layout'
-import { ExplorerLink } from '../cluster/cluster-ui'
-import { useSnipeSweepersProgram } from './snipe_sweepers-data-access'
-import { SnipeSweepersCreate, SnipeSweepersList } from './snipe_sweepers-ui'
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletButton } from "../solana/solana-provider";
+import { AppHero, ellipsify } from "../ui/ui-layout";
+import { ExplorerLink } from "../cluster/cluster-ui";
+import { useSnipeSweepersProgram } from "./snipe_sweepers-data-access";
+import { SnipeSweepersCreate, SnipeSweepersList } from "./snipe_sweepers-ui";
 
 export default function SnipeSweepersFeature() {
-  const { publicKey } = useWallet()
-  const { programId } = useSnipeSweepersProgram()
+  const { publicKey } = useWallet();
+  const { programId } = useSnipeSweepersProgram();
 
   return publicKey ? (
     <div>
@@ -20,7 +20,10 @@ export default function SnipeSweepersFeature() {
         }
       >
         <p className="mb-6">
-          <ExplorerLink path={`account/${programId}`} label={ellipsify(programId.toString())} />
+          <ExplorerLink
+            path={`account/${programId}`}
+            label={ellipsify(programId.toString())}
+          />
         </p>
         <SnipeSweepersCreate />
       </AppHero>
@@ -34,5 +37,5 @@ export default function SnipeSweepersFeature() {
         </div>
       </div>
     </div>
-  )
+  );
 }

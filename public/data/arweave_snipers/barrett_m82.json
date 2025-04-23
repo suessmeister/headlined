@@ -1,29 +1,29 @@
 {
-   "name": "Barrett M82",
-   "symbol": "M82",
-   "description": "Sniper Rifle",
-   "image": "https://f6g34evejmpr2f6zy3fukemrtg3jgo42hv4sqdhqo4w5sepirzzq.arweave.net/L42-EqRLHx0X2cbLRRGRmbaTO5o9eSgM8Hct2RHojnM",
-   "attributes": [
+  "name": "Barrett M82",
+  "symbol": "M82",
+  "description": "Sniper Rifle",
+  "image": "https://f6g34evejmpr2f6zy3fukemrtg3jgo42hv4sqdhqo4w5sepirzzq.arweave.net/L42-EqRLHx0X2cbLRRGRmbaTO5o9eSgM8Hct2RHojnM",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "2.0x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "10"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "3.5s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "2.0x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "10"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "3.5s"
+        "uri": "https://f6g34evejmpr2f6zy3fukemrtg3jgo42hv4sqdhqo4w5sepirzzq.arweave.net/L42-EqRLHx0X2cbLRRGRmbaTO5o9eSgM8Hct2RHojnM",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://f6g34evejmpr2f6zy3fukemrtg3jgo42hv4sqdhqo4w5sepirzzq.arweave.net/L42-EqRLHx0X2cbLRRGRmbaTO5o9eSgM8Hct2RHojnM",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }

@@ -1,29 +1,29 @@
 {
-   "name": "SSG 3000",
-   "symbol": "S3000",
-   "description": "Sniper Rifle",
-   "image": "https://5zqzc6y2af7c4lotumpylgfgxkpeafiejonelbo3co66piuc4l3a.arweave.net/7mGRexoBfi4t06MfhZimup5AFQRLmkWF2xO956KC4vY",
-   "attributes": [
+  "name": "SSG 3000",
+  "symbol": "S3000",
+  "description": "Sniper Rifle",
+  "image": "https://5zqzc6y2af7c4lotumpylgfgxkpeafiejonelbo3co66piuc4l3a.arweave.net/7mGRexoBfi4t06MfhZimup5AFQRLmkWF2xO956KC4vY",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "1.7x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "6"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "2.4s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "1.7x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "6"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "2.4s"
+        "uri": "https://5zqzc6y2af7c4lotumpylgfgxkpeafiejonelbo3co66piuc4l3a.arweave.net/7mGRexoBfi4t06MfhZimup5AFQRLmkWF2xO956KC4vY",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://5zqzc6y2af7c4lotumpylgfgxkpeafiejonelbo3co66piuc4l3a.arweave.net/7mGRexoBfi4t06MfhZimup5AFQRLmkWF2xO956KC4vY",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }

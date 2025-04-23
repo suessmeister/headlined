@@ -74,7 +74,6 @@
 //          TOKEN_METADATA_PROGRAM_ID
 //       );
 
-
 //       console.log("your master edition pda is", masterEditionPDA)
 
 //       // 6. Send transaction through Anchor

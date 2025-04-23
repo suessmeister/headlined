@@ -1,29 +1,29 @@
 {
-   "name": "Blaser R93",
-   "symbol": "R93",
-   "description": "Sniper Rifle",
-   "image": "https://6mbim3bkexbs4yfsauyfkuv6mj3tc5rbrapeor3nqhg7czpjanna.arweave.net/8wKGbColwy5gsgUwVVK-YncxdiGIHkdHbYHN8WXpA1o",
-   "attributes": [
+  "name": "Blaser R93",
+  "symbol": "R93",
+  "description": "Sniper Rifle",
+  "image": "https://6mbim3bkexbs4yfsauyfkuv6mj3tc5rbrapeor3nqhg7czpjanna.arweave.net/8wKGbColwy5gsgUwVVK-YncxdiGIHkdHbYHN8WXpA1o",
+  "attributes": [
+    {
+      "trait_type": "Scope",
+      "value": "2.5x"
+    },
+    {
+      "trait_type": "Magazine Capacity",
+      "value": "5"
+    },
+    {
+      "trait_type": "Reload Time",
+      "value": "2.8s"
+    }
+  ],
+  "properties": {
+    "files": [
       {
-         "trait_type": "Scope",
-         "value": "2.5x"
-      },
-      {
-         "trait_type": "Magazine Capacity",
-         "value": "5"
-      },
-      {
-         "trait_type": "Reload Time",
-         "value": "2.8s"
+        "uri": "https://6mbim3bkexbs4yfsauyfkuv6mj3tc5rbrapeor3nqhg7czpjanna.arweave.net/8wKGbColwy5gsgUwVVK-YncxdiGIHkdHbYHN8WXpA1o",
+        "type": "image/png"
       }
-   ],
-   "properties": {
-      "files": [
-         {
-            "uri": "https://6mbim3bkexbs4yfsauyfkuv6mj3tc5rbrapeor3nqhg7czpjanna.arweave.net/8wKGbColwy5gsgUwVVK-YncxdiGIHkdHbYHN8WXpA1o",
-            "type": "image/png"
-         }
-      ],
-      "category": "image"
-   }
+    ],
+    "category": "image"
+  }
 }
