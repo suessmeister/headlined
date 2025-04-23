@@ -2,8 +2,9 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import * as THREE from 'three';
+import { useSniperHandlers } from './handlers';
 
-interface Character {
+export interface Character {
    id: number;
    x: number;
    y: number;
@@ -62,6 +63,21 @@ const City: React.FC = () => {
    const isZoomedRef = useRef(false);
    const zoomPosRef = useRef({ x: 0, y: 0 });
 
+
+
+   useSniperHandlers({
+      sceneRef,
+      cameraRef,
+      setShots,
+      setHits,
+      setIsLastShotHit,
+      setSniperScopePosition,
+      setIsSniperScopeVisible,
+      characterRef,
+      isZoomedRef,
+      zoomPosRef
+   });
+
    useEffect(() => {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(
@@ -95,97 +111,7 @@ const City: React.FC = () => {
       };
       renderLoop();
 
-      const handleClick = (e: MouseEvent) => {
-         if (!sceneRef.current || !cameraRef.current) return;
 
-         const screenX = isZoomedRef.current
-            ? zoomPosRef.current.x - 55 + 50
-            : e.clientX;
-
-         const screenY = isZoomedRef.current
-            ? zoomPosRef.current.y - 36 + 50
-            : e.clientY;
-
-         setShots(prev => prev + 1);
-
-         // For debugging, always register a hit
-         console.log('Shot fired at:', { screenX, screenY, isZoomed: isZoomedRef.current });
-
-         // setHits(prev => prev + 1);
-
-         // normalized coordinates for the cursor
-         const mouse = new THREE.Vector2(
-            (screenX / window.innerWidth) * 2 - 1,
-            -(screenY / window.innerHeight) * 2 + 1
-         );
-         const raycaster = new THREE.Raycaster();
-         raycaster.setFromCamera(mouse, cameraRef.current);
-         const dir = raycaster.ray.direction.clone().normalize();
-
-         // creating the laser
-         const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)];
-         const geom = new THREE.BufferGeometry();
-         geom.setFromPoints(pts);
-
-         const mat = new THREE.LineBasicMaterial({
-            color: 0xff4500,
-            linewidth: isZoomedRef.current ? 10 : 1,
-         });
-
-         const line = new THREE.Line(geom, mat);
-
-         line.position.copy(cameraRef.current.position);
-         line.quaternion.copy(cameraRef.current.quaternion);
-         sceneRef.current.add(line);
-
-         const speed = 10.0,
-            maxDist = 300;
-         let travelled = 0;
-         const fly = () => {
-            travelled += speed;
-            if (travelled < maxDist) {
-               line.position.addScaledVector(dir, speed);
-               requestAnimationFrame(fly);
-            } else {
-               // Show sniper scope logo at the final position
-               const finalScreenPosition = new THREE.Vector3();
-               finalScreenPosition.copy(line.position);
-               const projected = finalScreenPosition.project(cameraRef.current!);
-
-               const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
-               const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
-
-               console.log('Final shot position:', { x, y, isZoomed: isZoomedRef.current });
-               console.log('Current characters:', characterRef.current);
-
-               const hit = characterRef.current.some(character => {
-                  return x >= character.x - 15 && x <= character.x + 15 && y >= character.y - 20 && y <= character.y + 20;
-               });
-
-               if (hit) {
-                  console.log('Hit detected!');
-                  setHits(prev => prev + 1);
-                  setIsLastShotHit(true);
-               } else {
-                  console.log('Miss!');
-                  setIsLastShotHit(false);
-               }
-
-               setSniperScopePosition({ x, y });
-               setIsSniperScopeVisible(true);
-
-               // Hide the sniper scope logo after 2 seconds
-               setTimeout(() => {
-                  setIsSniperScopeVisible(false);
-               }, 1000);
-
-               sceneRef.current!.remove(line);
-               geom.dispose();
-               mat.dispose();
-            }
-         };
-         fly(); // animating the laser
-      };
       const originalZoom = window.devicePixelRatio;
 
       const checkZoom = () => {
@@ -218,7 +144,7 @@ const City: React.FC = () => {
       window.addEventListener('keydown', handleKeyDown);
       window.addEventListener('keyup', handleKeyUp);
       window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('click', handleClick);
+      // window.addEventListener('click', handleClick);
 
       generateCity();
 
@@ -227,7 +153,7 @@ const City: React.FC = () => {
          window.removeEventListener('keydown', handleKeyDown);
          window.removeEventListener('keyup', handleKeyUp);
          window.removeEventListener('mousemove', handleMouseMove);
-         window.removeEventListener('click', handleClick);
+         // window.removeEventListener('click', handleClick);
          if (rendererRef.current) {
             rendererRef.current.dispose();
             mountRef.current?.removeChild(renderer.domElement);
