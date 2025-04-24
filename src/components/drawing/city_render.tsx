@@ -196,9 +196,9 @@ const drawWindows = (
       ctx.fillStyle = isLit ? "#FFD700" : "#2C3E50";
       ctx.fillRect(x, y, windowWidth, windowHeight);
 
-      if (isLit && Math.random() < CHARACTER_PROBABILITY) {
+      if (isLit && rng() < CHARACTER_PROBABILITY) {
         newCharacters.push({
-          id: Date.now() + Math.random(),
+          id: Date.now() + rng(),
           x,
           y,
           image: "/figures/better_s2.gif",

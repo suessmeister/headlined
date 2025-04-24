@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Character } from "../City";
+import {getSocket} from "../../app/utils/socket";
 
 export function useSniperHandlers({
   sceneRef,
@@ -76,7 +77,7 @@ export function useSniperHandlers({
           const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
           const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
 
-          const hit = characterRef.current.some((character) => {
+          const hitCharacter = characterRef.current.find((character) => {
             return (
               x >= character.x - 15 &&
               x <= character.x + 15 &&
@@ -85,9 +86,15 @@ export function useSniperHandlers({
             );
           });
 
-          if (hit) {
+          if (hitCharacter) {
             setHits((prev) => prev + 1);
             setIsLastShotHit(true);
+            const socket = getSocket();
+            socket.emit("shot", {
+              characterId: hitCharacter.id,
+              by: socket.id,
+            });
+        
           } else {
             setIsLastShotHit(false);
           }

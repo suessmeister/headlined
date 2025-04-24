@@ -1,6 +1,7 @@
 // server/api/socket.ts
 import { Server } from "socket.io";
 import type { NextApiRequest } from "next";
+import { Socket } from "socket.io-client";
 
 const SocketHandler = (req: NextApiRequest, res: any) => {
    if (res.socket.server.io) {
@@ -11,6 +12,7 @@ const SocketHandler = (req: NextApiRequest, res: any) => {
    const io = new Server(res.socket.server, {
       path: "/api/socket",
    });
+   
 
    res.socket.server.io = io;
 

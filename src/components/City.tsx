@@ -5,6 +5,8 @@ import * as THREE from "three";
 import { useSniperHandlers } from "./handlers/sniper_handler";
 import { useZoomHandlers } from "./handlers/zoom_handler";
 import { generateCity } from "./drawing/city_render";
+import { io } from "socket.io-client";
+import {getSocket} from  "../app/utils/socket";
 
 
 export interface Character {
@@ -63,6 +65,11 @@ const City: React.FC = () => {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const characterRef = useRef<Character[]>([]);
 
+
+  const [flashMessage, setFlashMessage] = useState<string | null>(null);
+  const [waiting, setWaiting] = useState(true);
+
+
   const { publicKey, disconnect, sendTransaction, wallet } = useWallet();
 
   // give handle click fresh values
@@ -86,6 +93,48 @@ const City: React.FC = () => {
     setIsZoomed,
     setZoomPosition,
   });
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    console.log("🔌 Connecting to socket...");
+    
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+    });
+
+    socket.on("start", ({ seed }: { seed: string }) => {
+      setWaiting(false);
+      console.log("🎮 Match started with seed:", seed);
+      setMatchSeed(seed);
+
+      if (canvasRef.current) {
+        console.log("🏙️ Generating city...");
+        generateCity(canvasRef.current, setCharacters, seed);
+      } else {
+        console.warn("⚠️ canvasRef not ready!");
+      }
+    });
+
+    socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
+      console.log("💥 Kill received:", characterId, "by", by);
+      setCharacters((prev) => prev.filter((c) => c.id !== characterId));
+      setFlashMessage(`Player ${by.slice(0, 4)}... just hit an enemy!`);
+      setTimeout(() => setFlashMessage(null), 2000);
+
+      if (by === socket.id) {
+        console.log("🎯 It was YOUR shot!");
+        setHits((prev) => prev + 1);
+      }
+    });
+
+    return () => {
+      // socket.disconnect();
+      // console.log("🔌 Socket disconnected");
+    };
+  }, []);
+
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -130,8 +179,7 @@ const City: React.FC = () => {
     // Check zoom periodically
     const zoomCheckInterval = setInterval(checkZoom, 100);
 
-    const seed = "test123"
-    generateCity(canvasRef.current!, setCharacters, seed);
+
 
     return () => {
       clearInterval(zoomCheckInterval);
@@ -195,7 +243,39 @@ const City: React.FC = () => {
 
 
   return (
+    
     <>
+
+      {waiting && (
+        <div style={{
+          position: "absolute",
+          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          fontSize: 24, color: "#fff", fontFamily: "monospace",
+        }}>
+          Waiting for opponent...
+        </div>
+      )}
+
+      {flashMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            width: "100%",
+            textAlign: "center",
+            padding: "10px",
+            backgroundColor: "rgba(255, 0, 0, 0.8)",
+            color: "white",
+            fontSize: "18px",
+            fontFamily: "monospace",
+            zIndex: 9999,
+            animation: "fadeInOut 2s ease-in-out",
+          }}
+        >
+          {flashMessage}
+        </div>
+      )}
+
       <div
         style={{
           position: "fixed",
