@@ -5,9 +5,12 @@ import { Socket } from "socket.io-client";
 
 const SocketHandler = (req: NextApiRequest, res: any) => {
    if (res.socket.server.io) {
-      res.end();
+      console.log("🟡 Socket.io already initialized.");
       return;
    }
+
+   console.log("🆕 Initializing new Socket.io server...");
+
 
    const io = new Server(res.socket.server, {
       path: "/api/socket",
@@ -17,6 +20,7 @@ const SocketHandler = (req: NextApiRequest, res: any) => {
    res.socket.server.io = io;
 
    const queue: any[] = [];
+
 
    io.on("connection", (socket) => {
       console.log("Socket connected:", socket.id);
@@ -28,18 +32,42 @@ const SocketHandler = (req: NextApiRequest, res: any) => {
          const matchId = `match-${seed}`;
 
          const players = [p1, p2];
+         let timeLeft = 120;
+         let timerInterval: NodeJS.Timeout | null = null;
+
+         console.log(`time left: ${timeLeft}`);
+
+
+         timerInterval = setInterval(() => {
+            console.log(`Time left: ${timeLeft}`);
+            timeLeft--;
+
+            players.forEach((player) => {
+               player.emit("timer", { timeLeft });
+            });
+
+            if (timeLeft <= 0) {
+               if (timerInterval !== null) {
+                  clearInterval(timerInterval);
+               }
+               console.log(`Match ended: ${matchId}`);
+            }
+         }, 1000);
+
          for (let i = 0; i < 2; i++) {
             players[i].emit("start", { matchId, seed, playerIndex: i });
+            console.log("test")
+
             players[i].on("shot", (msg: any) => {
                players[1 - i].emit("shot", msg);
             });
          }
 
          console.log(`Match started: ${matchId}`);
+
+         
       }
    });
-
-   res.end();
 };
 
 export default SocketHandler;

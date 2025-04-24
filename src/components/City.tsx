@@ -117,6 +117,13 @@ const City: React.FC = () => {
       }
     });
 
+    socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
+      setTimeLeft(timeLeft);
+      if (timeLeft <= 0) {
+        setIsGameOver(true);
+      }
+    });
+    
     socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
       console.log("💥 Kill received:", characterId, "by", by);
       setCharacters((prev) => prev.filter((c) => c.id !== characterId));
@@ -218,16 +225,7 @@ const City: React.FC = () => {
     characterRef.current = characters;
   }, [characters]);
 
-  useEffect(() => {
-    if (timeLeft > 0 && !isGameOver) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0) {
-      setIsGameOver(true);
-    }
-  }, [timeLeft, isGameOver]);
+
 
   useEffect(() => {
     const savedGun = localStorage.getItem("selectedGun");
