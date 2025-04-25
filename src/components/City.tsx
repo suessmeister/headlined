@@ -9,6 +9,7 @@ import { generateCity } from "./drawing/city_render";
 import { io } from "socket.io-client";
 import {getSocket} from  "../app/utils/socket";
 import { useRouter } from "next/navigation";
+import FlippingTimer from "./handlers/timer_handler";
 
 
 export interface Character {
@@ -376,14 +377,13 @@ const City: React.FC = () => {
               </span>
             </div>
 
-            <div style={{ color: "#FFD700", fontWeight: "bold" }}>
-              Time:{" "}
+           
+            
               <span>
-                {Math.floor(timeLeft / 60)}:
-                {(timeLeft % 60).toString().padStart(2, "0")}
+                <FlippingTimer remainingTime={timeLeft} />
               </span>
             </div>
-          </div>
+  
 
           {/* Second row: enemy stats */}
           <div
