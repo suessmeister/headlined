@@ -79,7 +79,7 @@ const City: React.FC = () => {
 
   // Tracking Enemy States! 
   const [enemyHits, setEnemyHits] = useState(0);
-  const [enemyShots, setEnemyShots] = useState(0);
+ 
 
   const router = useRouter();
 
@@ -107,6 +107,33 @@ const City: React.FC = () => {
     setIsZoomed,
     setZoomPosition,
   });
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    // remove any old shot-listeners so we're never doubled-up
+    socket.off("shot");
+
+    // now register exactly one
+    socket.on("shot", ({ characterId, by }) => {
+      console.log("💥 Kill received:", characterId, "by", by);
+
+      setCharacters((prev) => prev.filter((c) => c.id !== characterId));
+      setFlashMessage(`Player ${by.slice(0, 4)}... just hit an enemy!`);
+      setTimeout(() => setFlashMessage(null), 2000);
+
+      if (by === socket.id) {
+        setHits((h) => h + 1);
+      } else {
+        setEnemyHits((h) => h + 1);
+      }
+    });
+
+    return () => {
+      socket.off("shot");
+    };
+  }, []);
+
 
   useEffect(() => {
     const socket = getSocket();
@@ -147,22 +174,7 @@ const City: React.FC = () => {
     });
 
     
-    socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
-      console.log("💥 Kill received:", characterId, "by", by);
-      setCharacters((prev) => prev.filter((c) => c.id !== characterId));
-      setFlashMessage(`Player ${by.slice(0, 4)}... just hit an enemy!`);
-      setTimeout(() => setFlashMessage(null), 2000);
-
-      if (by === socket.id) {
-        console.log("🎯 It was YOUR shot!");
-        setHits((prev) => prev + 1);
-      } else {
-        setEnemyHits((prev) => prev + 1);
-      }
-
-      // Optional: count every visible enemy as a shot
-      setEnemyShots((prev) => prev + 1);
-    });
+    
 
 
     return () => {
@@ -322,22 +334,7 @@ const City: React.FC = () => {
       >
         {activeGun && <div>Now Using: {activeGun.name}</div>}
       </div>
-      <div
-        style={{
-          position: "fixed",
-          top: 20,
-          left: 20,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          padding: "10px 20px",
-          borderRadius: "8px",
-          color: "white",
-          fontFamily: "monospace",
-          fontSize: "18px",
-          zIndex: 9999,
-          display: "flex",
-          gap: "20px",
-        }}
-      >
+      <div>
         {/* Stats container */}
         <div
           style={{
@@ -398,25 +395,14 @@ const City: React.FC = () => {
               textShadow: "0 0 2px black",
             }}
           >
-            Enemy Accuracy:{" "}
-            <span style={{ color: "red" }}>
-              {enemyShots > 0
-                ? ((enemyHits / enemyShots) * 100).toFixed(1) + "%"
-                : "0%"}
-            </span>{" "}
-            | Hits:{" "}
+            
+            Enemy Hits:{" "}
             <span style={{ color: "red" }}>
               {enemyHits}
             </span>
           </div>
 
         </div>
-
-
-
-
-
-
       </div>
       <div style={wrapperStyle}>
         <div
