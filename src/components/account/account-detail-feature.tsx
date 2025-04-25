@@ -17,7 +17,7 @@ import {
 export default function AccountDetailFeature() {
   const params = useParams();
   const address = useMemo(() => {
-    if (!params.address) {
+    if (!params || !params.address) {
       return;
     }
     try {
