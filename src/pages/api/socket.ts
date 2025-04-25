@@ -6,7 +6,7 @@ import { Socket } from "socket.io-client";
 const SocketHandler = (req: NextApiRequest, res: any) => {
    if (res.socket.server.io) {
       console.log("🟡 Socket.io already initialized.");
-      return;
+      return res.end();
    }
 
    console.log("🆕 Initializing new Socket.io server...");
