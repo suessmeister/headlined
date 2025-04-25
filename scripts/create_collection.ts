@@ -15,7 +15,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
 import * as path from "path";
 console.log("test...");
-import snipers from "../data/arweave_links.json" with { type: "json" };
+import snipers from "../public/data/arweave_links.json" with { type: "json" };
 
 const provider = anchor.AnchorProvider.env();
 anchor.setProvider(provider);
