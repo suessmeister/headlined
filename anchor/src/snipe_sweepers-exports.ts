@@ -1,15 +1,15 @@
 // Here we export some useful types and functions for interacting with the Anchor program.
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { Cluster, PublicKey } from "@solana/web3.js";
-import SnipeSweepersIDL from "../target/idl/snipe_sweepers.json";
-import type { SnipeSweepers } from "../target/types/snipe_sweepers";
+import headlinedIDL from "../target/idl/headlined.json";
+import type { Headlined } from "../target/types/headlined.ts";
 
 // Re-export the generated IDL and type
-export { SnipeSweepers, SnipeSweepersIDL };
+export { Headlined, headlinedIDL };
 
 // The programId is imported from the program IDL.
 export const SNIPE_SWEEPERS_PROGRAM_ID = new PublicKey(
-  SnipeSweepersIDL.address,
+  headlinedIDL.address,
 );
 
 // This is a helper function to get the SnipeSweepers Anchor program.
@@ -19,9 +19,9 @@ export function getSnipeSweepersProgram(
 ) {
   return new Program(
     {
-      ...SnipeSweepersIDL,
-      address: address ? address.toBase58() : SnipeSweepersIDL.address,
-    } as SnipeSweepers,
+      ...headlinedIDL,
+      address: address ? address.toBase58() : headlinedIDL.address,
+    } as Headlined,
     provider,
   );
 }
