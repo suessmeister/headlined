@@ -75,6 +75,7 @@ const City: React.FC = () => {
 
   const { publicKey, disconnect, sendTransaction, wallet } = useWallet();
   const [matchSeed, setMatchSeed] = useState<string | null>(null);
+  const [flash, setFlash] = useState<"hit" | "miss" | null>(null);
 
   // Tracking Enemy States! 
   const [enemyHits, setEnemyHits] = useState(0);
@@ -155,8 +156,14 @@ const City: React.FC = () => {
       if (by === socket.id) {
         console.log("🎯 It was YOUR shot!");
         setHits((prev) => prev + 1);
+      } else {
+        setEnemyHits((prev) => prev + 1);
       }
+
+      // Optional: count every visible enemy as a shot
+      setEnemyShots((prev) => prev + 1);
     });
+
 
     return () => {
       // socket.disconnect();
@@ -221,6 +228,12 @@ const City: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setFlash(isLastShotHit ? "hit" : "miss");
+    const timer = setTimeout(() => setFlash(null), 500);
+    return () => clearTimeout(timer);
+  }, [shots, isLastShotHit]);
+
   const wrapperStyle: React.CSSProperties = {
     transform: isZoomed ? "scale(5)" : "scale(1)",
     transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
@@ -256,11 +269,6 @@ const City: React.FC = () => {
       setActiveGun(parsedGun);
     }
   }, []);
-
-
-
-
-
 
   return (
     
@@ -330,14 +338,85 @@ const City: React.FC = () => {
           gap: "20px",
         }}
       >
-        <div>
-          Shots: {shots} | Hits: {hits} | Accuracy:{" "}
-          {shots > 0 ? ((hits / shots) * 100).toFixed(1) : "0"}%
+        {/* Stats container */}
+        <div
+          style={{
+            position: "fixed",
+            top: 20,
+            left: 20,
+            zIndex: 9999,
+            backgroundColor: "rgba(255, 255, 255, 0.15)",
+            padding: "8px 14px",
+            borderRadius: "6px",
+          }}
+        >
+          {/* First row: player stats + timer */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+              fontFamily: "monospace",
+              fontSize: "16px",
+              color: "white",
+              textShadow: "0 0 3px black",
+            }}
+          >
+            <div>
+              Shots:{" "}
+              <span style={{ color: "black"}}>
+                {shots}
+              </span>{" "}
+              | Hits:{" "}
+              <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>
+                {hits}
+              </span>{" "}
+              | Accuracy:{" "}
+              <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>
+                {shots > 0
+                  ? ((hits / shots) * 100).toFixed(1) + "%"
+                  : "0%"}
+              </span>
+            </div>
+
+            <div style={{ color: "#FFD700", fontWeight: "bold" }}>
+              Time:{" "}
+              <span>
+                {Math.floor(timeLeft / 60)}:
+                {(timeLeft % 60).toString().padStart(2, "0")}
+              </span>
+            </div>
+          </div>
+
+          {/* Second row: enemy stats */}
+          <div
+            style={{
+              marginTop: "6px",
+              fontFamily: "monospace",
+              fontSize: "14px",
+              color: "white",            // labels are white
+              textShadow: "0 0 2px black",
+            }}
+          >
+            Enemy Accuracy:{" "}
+            <span style={{ color: "red" }}>
+              {enemyShots > 0
+                ? ((enemyHits / enemyShots) * 100).toFixed(1) + "%"
+                : "0%"}
+            </span>{" "}
+            | Hits:{" "}
+            <span style={{ color: "red" }}>
+              {enemyHits}
+            </span>
+          </div>
+
         </div>
-        <div style={{ color: "#FFD700" }}>
-          Time: {Math.floor(timeLeft / 60)}:
-          {(timeLeft % 60).toString().padStart(2, "0")}
-        </div>
+
+
+
+
+
+
       </div>
       <div style={wrapperStyle}>
         <div

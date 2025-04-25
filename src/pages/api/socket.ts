@@ -32,7 +32,7 @@ const SocketHandler = (req: NextApiRequest, res: any) => {
          const matchId = `match-${seed}`;
 
          const players = [p1, p2];
-         let timeLeft = 15;
+         let timeLeft = 120;
          let timerInterval: NodeJS.Timeout | null = null;
 
          console.log(`time left: ${timeLeft}`);
