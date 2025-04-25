@@ -1,3 +1,4 @@
+
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
@@ -7,6 +8,7 @@ import { useZoomHandlers } from "./handlers/zoom_handler";
 import { generateCity } from "./drawing/city_render";
 import { io } from "socket.io-client";
 import {getSocket} from  "../app/utils/socket";
+import { useRouter } from "next/navigation";
 
 
 export interface Character {
@@ -68,9 +70,20 @@ const City: React.FC = () => {
 
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(true);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
 
   const { publicKey, disconnect, sendTransaction, wallet } = useWallet();
+  const [matchSeed, setMatchSeed] = useState<string | null>(null);
+
+  // Tracking Enemy States! 
+  const [enemyHits, setEnemyHits] = useState(0);
+  const [enemyShots, setEnemyShots] = useState(0);
+
+  const router = useRouter();
+
+  
+
 
   // give handle click fresh values
   const isZoomedRef = useRef(false);
@@ -121,8 +134,17 @@ const City: React.FC = () => {
       setTimeLeft(timeLeft);
       if (timeLeft <= 0) {
         setIsGameOver(true);
+
+        // End game logic
+        socket.disconnect();
+        console.log("🛑 Game over. Socket disconnected.");
+
+        setTimeout(() => {
+          router.push("/game_over"); // redirect to your desired page
+        }, 1500); // small delay for UX polish
       }
     });
+
     
     socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
       console.log("💥 Kill received:", characterId, "by", by);
@@ -235,7 +257,7 @@ const City: React.FC = () => {
     }
   }, []);
 
-  const [matchSeed, setMatchSeed] = useState<string | null>(null);
+
 
 
 
