@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ReactQueryProvider>
           <ClusterProvider>
             <SolanaProvider>
-              <SocketInit /> {/* 👈 moved useEffect here */}
+             
               <UiLayout links={links}>{children}</UiLayout>
             </SolanaProvider>
           </ClusterProvider>

@@ -31,6 +31,6 @@
     "**/*.spec.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "server_backend/index.js"  ],
   "exclude": ["node_modules"]
 }
