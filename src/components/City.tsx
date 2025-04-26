@@ -7,9 +7,49 @@ import { useSniperHandlers } from "./handlers/sniper_handler";
 import { useZoomHandlers } from "./handlers/zoom_handler";
 import { generateCity } from "./drawing/city_render";
 import { io } from "socket.io-client";
-import {getSocket} from  "../app/utils/socket";
+import { getSocket } from "../app/utils/socket";
 import { useRouter } from "next/navigation";
 import FlippingTimer from "./handlers/timer_handler";
+
+const gun_metadata = {
+  "AW Magnum": {
+    scope: "2.2",
+    capacity: "5",
+    reload: "3.2"
+  },
+  "Barrett M82": {
+    scope: "2.0",
+    capacity: "10",
+    reload: "3.5"
+  },
+  "Blaser R93": {
+    scope: "2.5",
+    capacity: "5",
+    reload: "2.8"
+  },
+  "M40A5": {
+    scope: "1.5",
+    capacity: "5",
+    reload: "2.5"
+  },
+  "Sako TRG 42": {
+    scope: "2.0",
+    capacity: "7",
+    reload: "2.6"
+  },
+  "SSG 69": {
+    scope: "1.6",
+    capacity: "10",
+    reload: "2.2"
+  },
+  "SSG 3000": {
+    scope: "1.7",
+    capacity: "6",
+    reload: "2.4"
+  }
+
+};
+
 
 
 export interface Character {
@@ -80,11 +120,18 @@ const City: React.FC = () => {
 
   // Tracking Enemy States! 
   const [enemyHits, setEnemyHits] = useState(0);
- 
+
+
+  const [ammo, setAmmo] = useState<number>(0);
+  const [maxAmmo, setMaxAmmo] = useState<number>(0);
+  const [isReloading, setIsReloading] = useState(false);
+  const [showReloading, setShowReloading] = useState(false);
+  const [canZoom, setCanZoom] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
 
   const router = useRouter();
 
-  
+
 
 
   // give handle click fresh values
@@ -102,11 +149,15 @@ const City: React.FC = () => {
     characterRef,
     isZoomedRef,
     zoomPosRef,
+    setAmmo,
+    ammo,
+    isReloading,
   });
 
   useZoomHandlers({
     setIsZoomed,
     setZoomPosition,
+    canZoom,
   });
 
   useEffect(() => {
@@ -140,7 +191,7 @@ const City: React.FC = () => {
     const socket = getSocket();
 
     console.log("🔌 Connecting to socket...");
-    
+
 
     socket.on("connect", () => {
       console.log("✅ Socket connected:", socket.id);
@@ -148,6 +199,7 @@ const City: React.FC = () => {
 
     socket.on("start", ({ seed }: { seed: string }) => {
       setWaiting(false);
+      setGameStarted(true);
       console.log("🎮 Match started with seed:", seed);
       setMatchSeed(seed);
 
@@ -174,8 +226,8 @@ const City: React.FC = () => {
       }
     });
 
-    
-    
+
+
 
 
     return () => {
@@ -278,13 +330,39 @@ const City: React.FC = () => {
   useEffect(() => {
     const savedGun = localStorage.getItem("selectedGun");
     if (savedGun) {
-      const parsedGun = JSON.parse(savedGun);
+      const parsedGun: { name: keyof typeof gun_metadata } = JSON.parse(savedGun);
       setActiveGun(parsedGun);
+      setAmmo(Number(gun_metadata[parsedGun.name].capacity));
+      setMaxAmmo(Number(gun_metadata[parsedGun.name].capacity));
+      setIsReloading(false);
+
+    } else { // using the default sniper rifle
+      setAmmo(4);
+      setMaxAmmo(4);
     }
   }, []);
 
+  useEffect(() => {
+    if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
+      setIsReloading(true);
+      console.log("Reloading...");
+      setCanZoom(false);
+      setIsZoomed(false);
+      setShowReloading(true);
+      document.body.style.cursor = "default"; 
+      setTimeout(() => {
+        setAmmo(maxAmmo);
+        setIsReloading(false);
+        setShowReloading(false);
+        console.log("Reloaded!");
+        setCanZoom(true);
+      }, 3000); // 3 seconds reload time
+    }
+  }, [ammo, isReloading, maxAmmo, gameStarted]);
+
+
   return (
-    
+
     <>
 
       {waiting && (
@@ -362,7 +440,7 @@ const City: React.FC = () => {
           >
             <div>
               Shots:{" "}
-              <span style={{ color: "black"}}>
+              <span style={{ color: "black" }}>
                 {shots}
               </span>{" "}
               | Hits:{" "}
@@ -377,13 +455,13 @@ const City: React.FC = () => {
               </span>
             </div>
 
-           
-            
-              <span>
-                <FlippingTimer remainingTime={timeLeft} />
-              </span>
-            </div>
-  
+
+
+            <span>
+              <FlippingTimer remainingTime={timeLeft} />
+            </span>
+          </div>
+
 
           {/* Second row: enemy stats */}
           <div
@@ -395,7 +473,7 @@ const City: React.FC = () => {
               textShadow: "0 0 2px black",
             }}
           >
-            
+
             Enemy Hits:{" "}
             <span style={{ color: "red" }}>
               {enemyHits}
@@ -444,7 +522,7 @@ const City: React.FC = () => {
 
         {sniperScopePosition && (
           <SniperScope
-            src="city/scope.png"
+            src="city/default_scope.png"
             x={sniperScopePosition.x}
             y={sniperScopePosition.y}
             visible={isSniperScopeVisible}
@@ -492,10 +570,46 @@ const City: React.FC = () => {
               }}
             />
           </div>
+
+
+
         )}
+
+        {(isReloading || isZoomed) && (
+          <div
+            style={{
+              position: "fixed",
+              top: isReloading ? "50%" : `${zoomPosition.y + 50}px`,
+              left: isReloading ? "50%" : `${zoomPosition.x - 20}px`,
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              padding: "4px 8px",
+              borderRadius: "6px",
+              color: isReloading ? "orange" : "white",
+              fontSize: isReloading ? "24px" : "12px",   
+              fontFamily: "monospace",
+              textShadow: "0 0 5px black",
+              zIndex: 1000,
+              pointerEvents: "none",
+            }}
+          >
+            {isReloading ? "Reloading..." : `Ammo: ${ammo}`}
+          </div>
+        )}
+
+
+
       </div>
     </>
   );
 };
 
 export default City;
+
+
+{/* <style jsx global>{`
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+`}</style> */}

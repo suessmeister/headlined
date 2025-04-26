@@ -80,6 +80,7 @@ export default function ArsenalPage() {
   const handleSelectGun = (gun: any) => {
     setActiveGun(gun);
     localStorage.setItem("selectedGun", JSON.stringify(gun));
+    
   };
 
   useEffect(() => {

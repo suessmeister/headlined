@@ -3,15 +3,17 @@ import { useEffect } from "react";
 export function useZoomHandlers({
   setIsZoomed,
   setZoomPosition,
+  canZoom,
 }: {
   setIsZoomed: React.Dispatch<React.SetStateAction<boolean>>;
   setZoomPosition: React.Dispatch<
     React.SetStateAction<{ x: number; y: number }>
   >;
+  canZoom: boolean;
 }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey) {
+      if (e.ctrlKey && canZoom) {
         setIsZoomed(true);
         document.body.style.cursor = "none";
       }
@@ -38,5 +40,5 @@ export function useZoomHandlers({
       window.removeEventListener("mousemove", handleMouseMove);
       document.body.style.cursor = "default";
     };
-  }, []);
+  }, [setIsZoomed, setZoomPosition, canZoom]);
 }

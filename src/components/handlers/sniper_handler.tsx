@@ -15,6 +15,9 @@ export function useSniperHandlers({
   characterRef,
   isZoomedRef,
   zoomPosRef,
+  setAmmo,
+  ammo,
+  isReloading
 }: {
   sceneRef: React.MutableRefObject<THREE.Scene | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -28,11 +31,21 @@ export function useSniperHandlers({
   characterRef: React.MutableRefObject<Character[]>;
   isZoomedRef: React.MutableRefObject<boolean>;
   zoomPosRef: React.MutableRefObject<{ x: number; y: number }>;
+  setAmmo: React.Dispatch<React.SetStateAction<number>>;
+  ammo: number;
+  isReloading: boolean;
 }) {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!sceneRef.current || !cameraRef.current) return;
 
+      if (!isReloading && ammo > 0) {
+        setAmmo((prev: number) => prev - 1);
+      } else {
+        return;
+      }
+
+      
       const screenX = isZoomedRef.current
         ? zoomPosRef.current.x - 55 + 50
         : e.clientX;
@@ -118,5 +131,5 @@ export function useSniperHandlers({
     return () => {
       window.removeEventListener("click", handleClick);
     };
-  }, []);
+  }, [ammo, isReloading, sceneRef, cameraRef, setShots, setHits, setIsLastShotHit, setSniperScopePosition, setIsSniperScopeVisible, characterRef, isZoomedRef, zoomPosRef, setAmmo]);
 }
