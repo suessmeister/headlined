@@ -6,7 +6,7 @@ let socket: Socket | null = null;
 export function getSocket(): Socket {
    if (!socket) {
       if (typeof window !== "undefined") {
-         socket = io("http://localhost:4000");
+         socket = io("https://headlinedbackend-production.up.railway.app/");
       } else {
          console.warn("Attempted to connect socket on server.");
       }
