@@ -13,7 +13,8 @@ export function useZoomHandlers({
 }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && canZoom) {
+      if (!canZoom) return;
+      if (e.ctrlKey) {
         setIsZoomed(true);
         document.body.style.cursor = "none";
       }
@@ -27,6 +28,7 @@ export function useZoomHandlers({
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!canZoom) return;
       setZoomPosition({ x: e.clientX, y: e.clientY });
     };
 

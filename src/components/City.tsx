@@ -570,32 +570,59 @@ const City: React.FC = () => {
               }}
             />
           </div>
-
-
-
         )}
 
         {(isReloading || isZoomed) && (
           <div
             style={{
               position: "fixed",
-              top: isReloading ? "50%" : `${zoomPosition.y + 50}px`,
-              left: isReloading ? "50%" : `${zoomPosition.x - 20}px`,
+              top: isReloading ? "50%" : `${zoomPosition.y}px`,
+              left: isReloading ? "50%" : `${zoomPosition.x + 30}px`,
               transform: "translate(-50%, -50%)",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              padding: "4px 8px",
-              borderRadius: "6px",
-              color: isReloading ? "orange" : "white",
-              fontSize: isReloading ? "24px" : "12px",   
+              backgroundColor: "rgba(0, 0, 0, 0.4)",
+              padding: "2px",
+              borderRadius: "2px",
+              color: "white",
               fontFamily: "monospace",
-              textShadow: "0 0 5px black",
+              textShadow: "0 0 4px black",
               zIndex: 1000,
               pointerEvents: "none",
+              display: "flex",
+              flexDirection: isReloading ? "row" : "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "50px", // 👈 Fixed total height
+              width: "15px",  // 👈 Fixed total width
             }}
           >
-            {isReloading ? "Reloading..." : `Ammo: ${ammo}`}
+            {isReloading ? (
+              <span style={{ fontSize: "22px", color: "orange" }}>Reloading...</span>
+            ) : (
+              <>
+                {Array.from({ length: maxAmmo }).map((_, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      flex: 1, // 👈 Each bullet dynamically shrinks to fit
+                      width: "70%", // a bit narrower than full width
+                      backgroundColor: index < ammo ? "white" : "rgba(255, 255, 255, 0.2)",
+                      borderRadius: "1px",
+                      margin: "1px 0", // small vertical gap
+                      transition: "background-color 0.3s",
+                    }}
+                  />
+                ))}
+              </>
+            )}
           </div>
         )}
+
+
+
+
+        
+
+
 
 
 
