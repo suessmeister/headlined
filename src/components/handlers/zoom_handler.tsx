@@ -21,6 +21,7 @@ export function useZoomHandlers({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (!canZoom) return;
       if (!e.ctrlKey) {
         setIsZoomed(false);
         document.body.style.cursor = "default";
