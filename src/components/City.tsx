@@ -11,6 +11,12 @@ import { getSocket } from "../app/utils/socket";
 import { useRouter } from "next/navigation";
 import FlippingTimer from "./handlers/timer_handler";
 
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+
+
+
+
 const gun_metadata = {
   "AW Magnum": {
     scope: "2.2",
@@ -126,17 +132,19 @@ const City: React.FC = () => {
   const [maxAmmo, setMaxAmmo] = useState<number>(0);
   const [isReloading, setIsReloading] = useState(false);
   const [showReloading, setShowReloading] = useState(false);
-  const [canZoom, setCanZoom] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
 
+  const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(null);
+
   const router = useRouter();
-
-
-
 
   // give handle click fresh values
   const isZoomedRef = useRef(false);
   const zoomPosRef = useRef({ x: 0, y: 0 });
+  const reloadStartTimeRef = useRef<number>(0);
+  
+
+
 
   useSniperHandlers({
     sceneRef,
@@ -157,8 +165,46 @@ const City: React.FC = () => {
   useZoomHandlers({
     setIsZoomed,
     setZoomPosition,
-    canZoom,
   });
+
+
+  useEffect(() => {
+    if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
+      const reloadDuration = activeGun
+        ? parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].reload)
+        : 10; // fallback if no activeGun
+
+      setIsReloading(true);
+      setIsZoomed(false);
+      setShowReloading(true);
+      document.body.style.cursor = "default";
+      setReloadSecondsLeft(reloadDuration);
+      console.log("Reloading...");
+
+      const start = performance.now();
+
+      const updateTimer = (now: number) => {
+        const elapsed = (now - start) / 1000; // ms -> s
+        const remaining = Math.max(reloadDuration - elapsed, 0);
+        setReloadSecondsLeft(remaining);
+
+        if (remaining > 0) {
+          requestAnimationFrame(updateTimer);
+        } else {
+          setAmmo(maxAmmo);
+          setIsReloading(false);
+          setShowReloading(false);
+          setReloadSecondsLeft(null);
+          console.log("Reloaded!");
+        }
+      };
+
+      requestAnimationFrame(updateTimer);
+    }
+  }, [ammo, isReloading, maxAmmo, gameStarted, activeGun]);
+
+
+
 
   useEffect(() => {
     const socket = getSocket();
@@ -226,7 +272,7 @@ const City: React.FC = () => {
       }
     });
 
-
+    
 
 
 
@@ -280,7 +326,9 @@ const City: React.FC = () => {
     // Check zoom periodically
     const zoomCheckInterval = setInterval(checkZoom, 100);
 
-
+    const reloadTimeSec = activeGun
+      ? parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].reload)
+      : 3;
 
     return () => {
       clearInterval(zoomCheckInterval);
@@ -346,7 +394,6 @@ const City: React.FC = () => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
       setIsReloading(true);
       console.log("Reloading...");
-      setCanZoom(false);
       setIsZoomed(false);
       setShowReloading(true);
       document.body.style.cursor = "default"; 
@@ -355,170 +402,132 @@ const City: React.FC = () => {
         setIsReloading(false);
         setShowReloading(false);
         console.log("Reloaded!");
-        setCanZoom(true);
       }, 3000); // 3 seconds reload time
     }
   }, [ammo, isReloading, maxAmmo, gameStarted]);
 
 
   return (
-
     <>
-
       {waiting && (
         <div style={{
           position: "absolute",
-          top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-          fontSize: 24, color: "#fff", fontFamily: "monospace",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: 24,
+          color: "#fff",
+          fontFamily: "monospace",
         }}>
           Waiting for opponent...
         </div>
       )}
 
       {flashMessage && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            width: "100%",
-            textAlign: "center",
-            padding: "10px",
-            backgroundColor: "rgba(255, 0, 0, 0.8)",
-            color: "white",
-            fontSize: "18px",
-            fontFamily: "monospace",
-            zIndex: 9999,
-            animation: "fadeInOut 2s ease-in-out",
-          }}
-        >
+        <div style={{
+          position: "fixed",
+          top: 0,
+          width: "100%",
+          textAlign: "center",
+          padding: "10px",
+          backgroundColor: "rgba(255, 0, 0, 0.8)",
+          color: "white",
+          fontSize: "18px",
+          fontFamily: "monospace",
+          zIndex: 9999,
+          animation: "fadeInOut 2s ease-in-out",
+        }}>
           {flashMessage}
         </div>
       )}
 
-      <div
-        style={{
-          position: "fixed",
-          top: 60, // Adjusted to position below the buttons
-          right: 20,
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          padding: "5px 15px", // Adjusted padding for smaller size
-          borderRadius: "8px",
-          color: "white",
-          fontFamily: "monospace",
-          fontSize: "16px", // Slightly smaller font size
-          zIndex: 9999,
-          display: "flex",
-          gap: "20px",
-        }}
-      >
+      <div style={{
+        position: "fixed",
+        top: 60,
+        right: 20,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        padding: "5px 15px",
+        borderRadius: "8px",
+        color: "white",
+        fontFamily: "monospace",
+        fontSize: "16px",
+        zIndex: 9999,
+        display: "flex",
+        gap: "20px",
+      }}>
         {activeGun && <div>Now Using: {activeGun.name}</div>}
       </div>
-      <div>
-        {/* Stats container */}
-        <div
-          style={{
-            position: "fixed",
-            top: 20,
-            left: 20,
-            zIndex: 9999,
-            backgroundColor: "rgba(255, 255, 255, 0.15)",
-            padding: "8px 14px",
-            borderRadius: "6px",
-          }}
-        >
-          {/* First row: player stats + timer */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "14px",
-              fontFamily: "monospace",
-              fontSize: "16px",
-              color: "white",
-              textShadow: "0 0 3px black",
-            }}
-          >
-            <div>
-              Shots:{" "}
-              <span style={{ color: "black" }}>
-                {shots}
-              </span>{" "}
-              | Hits:{" "}
-              <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>
-                {hits}
-              </span>{" "}
-              | Accuracy:{" "}
-              <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>
-                {shots > 0
-                  ? ((hits / shots) * 100).toFixed(1) + "%"
-                  : "0%"}
-              </span>
-            </div>
 
-
-
-            <span>
-              <FlippingTimer remainingTime={timeLeft} />
+      <div style={{
+        position: "fixed",
+        top: 20,
+        left: 20,
+        zIndex: 9999,
+        backgroundColor: "rgba(255, 255, 255, 0.15)",
+        padding: "8px 14px",
+        borderRadius: "6px",
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          fontFamily: "monospace",
+          fontSize: "16px",
+          color: "white",
+          textShadow: "0 0 3px black",
+        }}>
+          <div>
+            Shots: <span style={{ color: "black" }}>{shots}</span> | Hits: <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>{hits}</span> | Accuracy: <span style={{ color: flash === "hit" ? "lightgreen" : "black" }}>
+              {shots > 0 ? ((hits / shots) * 100).toFixed(1) + "%" : "0%"}
             </span>
           </div>
 
+          <span>
+            <FlippingTimer remainingTime={timeLeft} />
+          </span>
+        </div>
 
-          {/* Second row: enemy stats */}
-          <div
-            style={{
-              marginTop: "6px",
-              fontFamily: "monospace",
-              fontSize: "14px",
-              color: "white",            // labels are white
-              textShadow: "0 0 2px black",
-            }}
-          >
-
-            Enemy Hits:{" "}
-            <span style={{ color: "red" }}>
-              {enemyHits}
-            </span>
-          </div>
-
+        <div style={{
+          marginTop: "6px",
+          fontFamily: "monospace",
+          fontSize: "14px",
+          color: "white",
+          textShadow: "0 0 2px black",
+        }}>
+          Enemy Hits: <span style={{ color: "red" }}>{enemyHits}</span>
         </div>
       </div>
+
       <div style={wrapperStyle}>
-        <div
-          ref={mountRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 10,
-          }}
-        />
+        <div ref={mountRef} style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 10,
+        }} />
 
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 1,
-            cursor: isZoomed ? "none" : "default",
-          }}
-        />
+        <canvas ref={canvasRef} style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 1,
+          cursor: isZoomed ? "none" : "default",
+        }} />
 
-        {!isZoomedOut &&
-          characters.map((c) => (
-            <CharacterImg
-              key={c.id}
-              x={c.x}
-              y={c.y}
-              src={c.image}
-              alt="Character"
-              style={{ zIndex: 2 }}
-            />
-          ))}
+        {!isZoomedOut && characters.map((c) => (
+          <CharacterImg
+            key={c.id}
+            x={c.x}
+            y={c.y}
+            src={c.image}
+            alt="Character"
+            style={{ zIndex: 2 }}
+          />
+        ))}
 
         {sniperScopePosition && (
           <SniperScope
@@ -535,108 +544,157 @@ const City: React.FC = () => {
         )}
 
         {isZoomed && (
-          <div
-            style={{
-              position: "fixed",
-              top: zoomPosition.y - 36,
-              left: zoomPosition.x - 55,
-              width: 100,
-              height: 100,
-              borderRadius: "50%",
-              border: `2px solid ${isLastShotHit ? "red" : "gray"}`,
-              boxShadow: isLastShotHit ? "0 0 20px red" : "0 0 20px gray",
-              pointerEvents: "none",
-              zIndex: 999,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              cursor: "none",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                width: "0.2px",
-                height: "100%",
-                backgroundColor: isLastShotHit ? "red" : "gray",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                width: "100%",
-                height: "0.2px",
-                backgroundColor: isLastShotHit ? "red" : "gray",
-              }}
-            />
+          <div style={{
+            position: "fixed",
+            top: zoomPosition.y - 36,
+            left: zoomPosition.x - 55,
+            width: 100,
+            height: 100,
+            borderRadius: "50%",
+            border: `2px solid ${isLastShotHit ? "red" : "gray"}`,
+            boxShadow: isLastShotHit ? "0 0 20px red" : "0 0 20px gray",
+            pointerEvents: "none",
+            zIndex: 999,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "none",
+          }}>
+            <div style={{
+              position: "absolute",
+              width: "0.2px",
+              height: "100%",
+              backgroundColor: isLastShotHit ? "red" : "gray",
+            }} />
+            <div style={{
+              position: "absolute",
+              width: "100%",
+              height: "0.2px",
+              backgroundColor: isLastShotHit ? "red" : "gray",
+            }} />
           </div>
         )}
 
-        {(isReloading || isZoomed) && (
-          <div
-            style={{
-              position: "fixed",
-              top: isReloading ? "50%" : `${zoomPosition.y}px`,
-              left: isReloading ? "50%" : `${zoomPosition.x + 30}px`,
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "rgba(0, 0, 0, 0.4)",
-              padding: "2px",
-              borderRadius: "2px",
-              color: "white",
-              fontFamily: "monospace",
-              textShadow: "0 0 4px black",
-              zIndex: 1000,
-              pointerEvents: "none",
-              display: "flex",
-              flexDirection: isReloading ? "row" : "column",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "50px", // 👈 Fixed total height
-              width: "15px",  // 👈 Fixed total width
-            }}
-          >
-            {isReloading ? (
-              <span style={{ fontSize: "22px", color: "orange" }}>Reloading...</span>
+        {/* 🔥 NEW: Reload Timer showing ONLY in one place */}
+        {isReloading && reloadSecondsLeft !== null && (
+          <>
+            {isZoomed ? (
+              <div style={{
+                position: "fixed",
+                top: `${zoomPosition.y}px`,
+                left: `${zoomPosition.x}px`,
+                transform: "translate(-50%, -50%)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                padding: "12px 20px",
+                borderRadius: "12px",
+                zIndex: 1000,
+                pointerEvents: "none",
+              }}>
+                <div style={{
+                  color: "gold",
+                  fontSize: "28px",
+                  fontFamily: "monospace",
+                  marginBottom: "8px",
+                  textShadow: "0 0 6px black",
+                }}>
+                  Reloading...
+                </div>
+                <div style={{
+                  color: "gold",
+                  fontSize: "36px",
+                  fontFamily: "monospace",
+                  textShadow: "0 0 8px black",
+                }}>
+                  {reloadSecondsLeft.toFixed(1)}
+                </div>
+              </div>
             ) : (
-              <>
-                {Array.from({ length: maxAmmo }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      flex: 1, // 👈 Each bullet dynamically shrinks to fit
-                      width: "70%", // a bit narrower than full width
-                      backgroundColor: index < ammo ? "white" : "rgba(255, 255, 255, 0.2)",
-                      borderRadius: "1px",
-                      margin: "1px 0", // small vertical gap
-                      transition: "background-color 0.3s",
-                    }}
-                  />
-                ))}
-              </>
+              <div style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
+                padding: "16px 24px",
+                borderRadius: "14px",
+                zIndex: 1000,
+                pointerEvents: "none",
+              }}>
+                <div style={{
+                  color: "gold",
+                  fontSize: "32px",
+                  fontFamily: "monospace",
+                  marginBottom: "8px",
+                  textShadow: "0 0 6px black",
+                }}>
+                  Reloading...
+                </div>
+                <div style={{
+                  color: "gold",
+                  fontSize: "42px",
+                  fontFamily: "monospace",
+                  textShadow: "0 0 8px black",
+                }}>
+                  {reloadSecondsLeft.toFixed(1)}
+                </div>
+              </div>
             )}
-          </div>
+          </>
         )}
 
-
-
-
-        
-
-
-
-
-
+        {/* Ammo Bar (vertical bullets) */}
+        {!isReloading && isZoomed && (
+          <div style={{
+            position: "fixed",
+            top: zoomPosition.y,
+            left: zoomPosition.x + 30,
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            padding: "2px",
+            borderRadius: "2px",
+            color: "white",
+            fontFamily: "monospace",
+            textShadow: "0 0 4px black",
+            zIndex: 1000,
+            pointerEvents: "none",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "50px",
+            width: "15px",
+          }}>
+            {Array.from({ length: maxAmmo }).map((_, index) => (
+              <div
+                key={index}
+                style={{
+                  flex: 1,
+                  width: "70%",
+                  backgroundColor: index < ammo ? "white" : "rgba(255, 255, 255, 0.2)",
+                  borderRadius: "1px",
+                  margin: "1px 0",
+                  transition: "background-color 0.3s",
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
+
 };
 
 export default City;
 
 
-{/* <style jsx global>{`
-@keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-`}</style> */}
+
+
