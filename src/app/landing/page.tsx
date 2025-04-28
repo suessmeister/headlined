@@ -1,24 +1,46 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WalletButton } from "@/components/solana/solana-provider";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-
 export default function LandingPage() {
   const [showWelcome, setShowWelcome] = useState(false);
-  const router = useRouter();
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+
   const { publicKey } = useWallet();
+  const router = useRouter();
 
-  const handleGetStarted = () => {
-    setShowWelcome(true);
-  };
+  const handleGetStarted = () => setShowWelcome(true);
+  const handleEnterProgram = () => router.push("/");
 
-  const handleEnterProgram = () => {
-    router.push("/");
-  };
+  /* ──────────────────────────────────────────────────────────
+     Keep our local flag in sync with the wallet state
+  ────────────────────────────────────────────────────────────*/
+  useEffect(() => {
+    setWalletConnected(!!publicKey);
+  }, [publicKey]);
+
+  /* ──────────────────────────────────────────────────────────
+     If the user *was* connected but now isn’t, reset everything
+     so they must hit “Get Started” again.
+  ────────────────────────────────────────────────────────────*/
+  useEffect(() => {
+    if (!publicKey && walletConnected) {
+      // Wallet just disconnected
+      setConsentGiven(false);
+      setShowWelcome(false);
+      setWalletConnected(false);
+
+      /* Optional: uncomment if you’d rather force-refresh the route
+         instead of only resetting local state.
+         router.replace("/landing");
+      */
+    }
+  }, [publicKey, walletConnected]);
 
   return (
     <div className="relative w-full h-screen">
@@ -29,26 +51,9 @@ export default function LandingPage() {
         className="object-cover z-0"
         priority
       />
-      {showWelcome ? (
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h1 className="text-2xl mb-4">Welcome to Headlined!</h1>
-            <p className="mb-4">Connect your wallet to get started.</p>
-            <WalletButton />
-            {publicKey && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEnterProgram();
-                }}
-                className="mt-4 btn btn-lg bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Enter
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
+
+      {/* “Get Started” button */}
+      {!showWelcome && (
         <div className="absolute top-4 right-4 z-50">
           <button
             onClick={(e) => {
@@ -61,7 +66,53 @@ export default function LandingPage() {
           </button>
         </div>
       )}
+
+      {/* Welcome / wallet-connect modal */}
+      {showWelcome && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="bg-white/20 backdrop-blur-lg border border-white/30 p-10 rounded-3xl shadow-2xl text-center animate-fadeInUp w-[90%] max-w-md">
+            <h1 className="text-4xl font-extrabold text-white mb-6 tracking-wide">
+              Welcome to Headlined!
+            </h1>
+            <p className="text-lg text-white/80 mb-8">
+              You'll need a Solana wallet to access the platform. Please connect one now. 
+            </p>
+
+            <div className="mb-6">
+              <WalletButton />
+            </div>
+
+            {/* Consent checkbox + “Enter” only after wallet connects */}
+            {walletConnected && (
+              <div className="flex flex-col items-center space-y-4">
+                <label className="flex items-center text-white space-x-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={consentGiven}
+                    onChange={(e) => setConsentGiven(e.target.checked)}
+                    className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 rounded focus:ring-green-400 focus:ring-2"
+                  />
+                  <span>I agree to be put on the waitlist for beta access.</span>
+                </label>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (consentGiven) handleEnterProgram();
+                  }}
+                  disabled={!consentGiven}
+                  className={`px-8 py-4 ${consentGiven
+                      ? "bg-gradient-to-br from-green-400 to-blue-600 hover:from-green-500 hover:to-blue-700"
+                      : "bg-gray-400 cursor-not-allowed"
+                    } text-white font-bold rounded-2xl text-xl shadow-lg hover:shadow-2xl transition-all duration-300`}
+                >
+                  Enter the Platform
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

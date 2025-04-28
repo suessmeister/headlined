@@ -101,14 +101,7 @@ export function UiLayout({
               </button>
             </>
           )}
-          {isLandingPage && (
-            <button
-              onClick={handleGetStarted}
-              className="font-bold text-black bg-transparent"
-            >
-              [Get Started]
-            </button>
-          )}
+      
         </div>
       )}
       <Suspense
