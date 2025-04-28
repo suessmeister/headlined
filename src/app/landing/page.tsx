@@ -75,7 +75,8 @@ export default function LandingPage() {
               Welcome to Headlined!
             </h1>
             <p className="text-lg text-white/80 mb-8">
-              You'll need a Solana wallet to access the platform. Please connect one now. 
+              You&apos;ll need a Solana wallet to access the platform. Please connect one now.
+
             </p>
 
             <div className="mb-6">
