@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WalletButton } from "@/components/solana/solana-provider";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { supabase } from "../utils/supabaseClient";
+
 
 export default function LandingPage() {
   const [showWelcome, setShowWelcome] = useState(false);
@@ -15,7 +17,49 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleGetStarted = () => setShowWelcome(true);
-  const handleEnterProgram = () => router.push("/");
+  const handleEnterProgram = async () => {
+    if (!publicKey) return;
+
+    const walletAddress = publicKey.toBase58();
+
+    // 1. Check if the address already exists
+    const { data, error: fetchError } = await supabase
+      .from('waitlist')
+      .select('address')
+      .eq('address', walletAddress)
+      .single(); // Only expect 0 or 1 record
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error checking waitlist:', fetchError);
+      return;
+    }
+
+    if (data) {
+      // Already on waitlist — just allow them to proceed
+      router.push("/");
+      return;
+    }
+
+    // 2. Insert if not found
+    const { error: insertError } = await supabase
+      .from('waitlist')
+      .insert([
+        {
+          address: walletAddress,
+          signed_up_at: new Date().toISOString(),
+        },
+      ]);
+
+    if (insertError) {
+      console.error('Error inserting into waitlist:', insertError);
+      return;
+    }
+
+    // 3. Success
+    router.push("/");
+  };
+
+
 
   /* ──────────────────────────────────────────────────────────
      Keep our local flag in sync with the wallet state
