@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { WalletButton } from "@/components/solana/solana-provider";
 import { useWallet } from "@solana/wallet-adapter-react";
 
+
 export default function LandingPage() {
   const [showWelcome, setShowWelcome] = useState(false);
   const router = useRouter();
@@ -63,3 +64,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

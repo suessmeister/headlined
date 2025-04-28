@@ -38,13 +38,13 @@ export default function Page() {
     <>
       <Game />
 
-      {!publicKey && (
+      {/* {!publicKey && (
         <div className="text-center mb-8 p-4 bg-yellow-400/20 rounded-lg">
           <p className="text-yellow-300 text-lg">
             Connect your wallet to start collecting Pokémon NFTs!
           </p>
         </div>
-      )}
+      )} */}
     </>
   );
 }
