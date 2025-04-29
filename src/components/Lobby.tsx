@@ -152,16 +152,16 @@ const Lobby: React.FC = () => {
 
       localStorage.removeItem("matchSeed");
       localStorage.removeItem("matchId");
-      
+
       setIsMatchmakingOpen(true);
 
       socket.emit("join_matchmaking", { walletAddress: publicKey.toString() });
 
-      socket.on("start", ({ matchId, seed }: { matchId: string, seed: string }) => {
-         console.log("🎯 Match found!", matchId, seed);
+      socket.on("start", ({ roomId, seed }: { roomId: string, seed: string }) => {
+         console.log("🎯 Match found!", roomId, seed);
          localStorage.setItem("matchSeed", seed);
-         localStorage.setItem("matchId", matchId);
-         router.push(`/city/${matchId}`);
+         localStorage.setItem("matchId", roomId);
+         router.push(`/city/${roomId}`);
       });
 
       socket.on("waiting", ({ message }: { message: string }) => {
