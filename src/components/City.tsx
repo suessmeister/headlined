@@ -14,7 +14,9 @@ import FlippingTimer from "./handlers/timer_handler";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-
+interface CityProps {
+  matchId: string;
+}
 
 
 const gun_metadata = {
@@ -88,7 +90,7 @@ const CharacterImg = styled.img<{ x: number; y: number }>`
   pointer-events: none;
 `;
 
-const City: React.FC = () => {
+const City: React.FC<CityProps> = ({ matchId }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isZoomedOut, setIsZoomedOut] = useState(false);
@@ -116,7 +118,7 @@ const City: React.FC = () => {
 
 
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
-  const [waiting, setWaiting] = useState(true);
+  // const [waiting, setWaiting] = useState(true);
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
 
@@ -179,7 +181,7 @@ const City: React.FC = () => {
       setShowReloading(true);
       document.body.style.cursor = "default";
       setReloadSecondsLeft(reloadDuration);
-      console.log("Reloading...");
+      // console.log("Reloading...");
 
       const start = performance.now();
 
@@ -195,7 +197,7 @@ const City: React.FC = () => {
           setIsReloading(false);
           setShowReloading(false);
           setReloadSecondsLeft(null);
-          console.log("Reloaded!");
+          // console.log("Reloaded!");
         }
       };
 
@@ -205,19 +207,47 @@ const City: React.FC = () => {
 
 
 
-
   useEffect(() => {
     const socket = getSocket();
 
-    // remove any old shot-listeners so we're never doubled-up
-    socket.off("shot");
+    if (!socket.connected) socket.connect();
 
-    // now register exactly one
-    socket.on("shot", ({ characterId, by }) => {
+    const seed = localStorage.getItem("matchSeed");
+    const matchId = localStorage.getItem("matchId");
+
+    if (seed && matchId && !gameStarted) {
+      console.log("🎮 Resuming match with cached data:", matchId, seed);
+      setMatchSeed(seed);
+      setGameStarted(true);
+
+      if (canvasRef.current) {
+        generateCity(canvasRef.current, setCharacters, seed);
+      }
+    }
+
+    socket.on("start", ({ matchId, seed }: { matchId: string; seed: string }) => {
+      console.log("🎮 Match started (from socket):", seed);
+      setMatchSeed(seed);
+      setGameStarted(true);
+
+      if (canvasRef.current) {
+        generateCity(canvasRef.current, setCharacters, seed);
+      }
+    });
+
+    socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
+      setTimeLeft(timeLeft);
+      if (timeLeft <= 0) {
+        setIsGameOver(true);
+        socket.disconnect();
+        setTimeout(() => router.push("/game_over"), 1500);
+      }
+    });
+
+    socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
       console.log("💥 Kill received:", characterId, "by", by);
-
       setCharacters((prev) => prev.filter((c) => c.id !== characterId));
-      setFlashMessage(`Player ${by.slice(0, 4)}... just hit an enemy!`);
+      setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
       setTimeout(() => setFlashMessage(null), 2000);
 
       if (by === socket.id) {
@@ -228,60 +258,18 @@ const City: React.FC = () => {
     });
 
     return () => {
+      socket.off("start");
+      socket.off("timer");
       socket.off("shot");
     };
   }, []);
 
 
-  useEffect(() => {
-    const socket = getSocket();
 
-    console.log("🔌 Connecting to socket...");
+  // ⬅ include router so ESLint is happy
 
 
-    socket.on("connect", () => {
-      console.log("✅ Socket connected:", socket.id);
-    });
-
-    socket.on("start", ({ seed }: { seed: string }) => {
-      setWaiting(false);
-      setGameStarted(true);
-      console.log("🎮 Match started with seed:", seed);
-      setMatchSeed(seed);
-
-      if (canvasRef.current) {
-        console.log("🏙️ Generating city...");
-        generateCity(canvasRef.current, setCharacters, seed);
-      } else {
-        console.warn("⚠️ canvasRef not ready!");
-      }
-    });
-
-    socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
-      setTimeLeft(timeLeft);
-      if (timeLeft <= 0) {
-        setIsGameOver(true);
-
-        // End game logic
-        socket.disconnect();
-        console.log("🛑 Game over. Socket disconnected.");
-
-        setTimeout(() => {
-          router.push("/game_over"); // redirect to your desired page
-        }, 1500); // small delay for UX polish
-      }
-    });
-
-    
-
-
-
-    return () => {
-      // socket.disconnect();
-      // console.log("🔌 Socket disconnected");
-    };
-  }, []);
-
+  
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -393,7 +381,7 @@ const City: React.FC = () => {
   useEffect(() => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
       setIsReloading(true);
-      console.log("Reloading...");
+      // console.log("Reloading...");
       setIsZoomed(false);
       setShowReloading(true);
       document.body.style.cursor = "default"; 
@@ -401,7 +389,7 @@ const City: React.FC = () => {
         setAmmo(maxAmmo);
         setIsReloading(false);
         setShowReloading(false);
-        console.log("Reloaded!");
+        // console.log("Reloaded!");
       }, 3000); // 3 seconds reload time
     }
   }, [ammo, isReloading, maxAmmo, gameStarted]);
@@ -409,20 +397,6 @@ const City: React.FC = () => {
 
   return (
     <>
-      {waiting && (
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontSize: 24,
-          color: "#fff",
-          fontFamily: "monospace",
-        }}>
-          Waiting for opponent...
-        </div>
-      )}
-
       {flashMessage && (
         <div style={{
           position: "fixed",

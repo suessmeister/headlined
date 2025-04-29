@@ -26,7 +26,7 @@ const Game: React.FC = () => {
 
   return (
     <GameContainer>
-      <City />
+      <City matchId="123" />
     </GameContainer>
   );
 };

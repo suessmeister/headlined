@@ -6,6 +6,7 @@ import { useState } from "react";
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, clusterApiUrl, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEffect } from "react";
+import Lobby from "@/components/Lobby";
 
 export default function Page() {
   // basic setup shit
@@ -36,7 +37,8 @@ export default function Page() {
 
   return (
     <>
-      <Game />
+      {/* <Game /> */}
+      <Lobby />
 
       {/* {!publicKey && (
         <div className="text-center mb-8 p-4 bg-yellow-400/20 rounded-lg">
