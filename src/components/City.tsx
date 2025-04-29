@@ -13,6 +13,8 @@ import FlippingTimer from "./handlers/timer_handler";
 
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { useCallback } from "react";
+import { FlyingBalloon } from "./drawing/flying_balloon";
 
 interface CityProps {
   matchId: string;
@@ -115,7 +117,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const characterRef = useRef<Character[]>([]);
-
+  const balloonRef = useRef<{ id: number; x: number; y: number; size: number }[]>([]);
 
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
   // const [waiting, setWaiting] = useState(true);
@@ -144,7 +146,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const isZoomedRef = useRef(false);
   const zoomPosRef = useRef({ x: 0, y: 0 });
   const reloadStartTimeRef = useRef<number>(0);
-  
+
 
 
 
@@ -162,6 +164,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     setAmmo,
     ammo,
     isReloading,
+    balloonRef
   });
 
   useZoomHandlers({
@@ -264,12 +267,45 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     };
   }, []);
 
+  const [balloons, setBalloons] = useState<
+    { id: number; startY: number; duration: number; size: number }[]
+  >([]);
+
+  /* helper to purge after animation */
+  const removeBalloon = useCallback((id: number) => {
+    setBalloons((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
+  useEffect(() => {
+    const spawn = () => {
+      const id = Date.now();
+      const startY = Math.random() * window.innerHeight * 0.1 + 50;
+      const duration = 12 + Math.random() * 5;
+      const size = 80 + Math.random() * 25;
+
+      setBalloons((prev) => [...prev, { id, startY, duration, size }]);
+
+      // 💥 Add to the tracking ref
+      balloonRef.current.push({
+        id,
+        x: window.innerWidth + 150, // start off-screen right
+        y: startY,
+        size,
+      });
+
+      // 🔁 Schedule next spawn
+      const nextDelay = 8000 + Math.random() * 8000;
+      setTimeout(spawn, nextDelay);
+    };
+
+    spawn();
+  }, []);
 
 
   // ⬅ include router so ESLint is happy
 
 
-  
+
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -384,7 +420,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       // console.log("Reloading...");
       setIsZoomed(false);
       setShowReloading(true);
-      document.body.style.cursor = "default"; 
+      document.body.style.cursor = "default";
       setTimeout(() => {
         setAmmo(maxAmmo);
         setIsReloading(false);
@@ -502,6 +538,17 @@ const City: React.FC<CityProps> = ({ matchId }) => {
             style={{ zIndex: 2 }}
           />
         ))}
+
+        <>
+          {balloons.map((b) => (
+            <FlyingBalloon
+              key={b.id}
+              {...b}
+              onFinish={removeBalloon}
+              balloonRef={balloonRef}
+            />
+          ))}
+        </>
 
         {sniperScopePosition && (
           <SniperScope
