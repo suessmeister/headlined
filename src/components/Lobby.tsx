@@ -13,6 +13,8 @@ import FlippingTimer from "./handlers/timer_handler";
 
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { useCallback } from "react";
+import { FlyingBalloon } from "./drawing/flying_balloon";
 
 
 
@@ -114,6 +116,7 @@ const Lobby: React.FC = () => {
    const sceneRef = useRef<THREE.Scene | null>(null);
    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
    const characterRef = useRef<Character[]>([]);
+   const balloonRef = useRef<{ id: number; x: number; y: number; size: number }[]>([]);
 
 
    const [flashMessage, setFlashMessage] = useState<string | null>(null);
@@ -175,6 +178,40 @@ const Lobby: React.FC = () => {
       });
    };
 
+   const [balloons, setBalloons] = useState<
+      { id: number; startY: number; duration: number; size: number }[]
+   >([]);
+
+   /* helper to purge after animation */
+   const removeBalloon = useCallback((id: number) => {
+      setBalloons((prev) => prev.filter((b) => b.id !== id));
+   }, []);
+
+   useEffect(() => {
+      const spawn = () => {
+         const id = Date.now();
+         const startY = Math.random() * window.innerHeight * 0.1 + 50;
+         const duration = 12 + Math.random() * 5;
+         const size = 80 + Math.random() * 25;
+
+         setBalloons((prev) => [...prev, { id, startY, duration, size }]);
+
+         // 💥 Add to the tracking ref
+         balloonRef.current.push({
+            id,
+            x: window.innerWidth + 150, // start off-screen right
+            y: startY,
+            size,
+         });
+
+         // 🔁 Schedule next spawn
+         const nextDelay = 8000 + Math.random() * 8000;
+         setTimeout(spawn, nextDelay);
+      };
+
+      spawn();
+   }, []);
+
 
 
    useSniperHandlers({
@@ -191,6 +228,7 @@ const Lobby: React.FC = () => {
       setAmmo,
       ammo,
       isReloading,
+      balloonRef
    });
 
    useZoomHandlers({
@@ -479,6 +517,17 @@ const Lobby: React.FC = () => {
                </div>
             )}
 
+            <>
+               {balloons.map((b) => (
+                  <FlyingBalloon
+                     key={b.id}
+                     {...b}
+                     onFinish={removeBalloon}
+                     balloonRef={balloonRef}
+                  />
+               ))}
+            </>
+
 
             <canvas ref={canvasRef} style={{
                position: "absolute",
@@ -486,7 +535,7 @@ const Lobby: React.FC = () => {
                left: 0,
                width: "100%",
                height: "100%",
-               zIndex: 1,
+               zIndex: 0,
                cursor: isZoomed ? "none" : "default",
             }} />
 

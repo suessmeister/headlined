@@ -33,6 +33,7 @@
     "@types/styled-components": "^5.1.34",
     "cookies-next": "^4.3.0",
     "daisyui": "^4.12.24",
+    "framer-motion": "^12.9.2",
     "jotai": "^2.12.1",
     "next": "14.2.24",
     "push": "^0.1.1",

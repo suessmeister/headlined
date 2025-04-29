@@ -17,7 +17,8 @@ export function useSniperHandlers({
   zoomPosRef,
   setAmmo,
   ammo,
-  isReloading
+  isReloading,
+  balloonRef
 }: {
   sceneRef: React.MutableRefObject<THREE.Scene | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -34,6 +35,7 @@ export function useSniperHandlers({
   setAmmo: React.Dispatch<React.SetStateAction<number>>;
   ammo: number;
   isReloading: boolean;
+  balloonRef: React.MutableRefObject<{id: number, x: number, y: number, size: number}[]>;
 }) {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -46,12 +48,20 @@ export function useSniperHandlers({
       }
 
       
-      const screenX = isZoomedRef.current
-        ? zoomPosRef.current.x - 55 + 50
-        : e.clientX;
-      const screenY = isZoomedRef.current
-        ? zoomPosRef.current.y - 36 + 50
-        : e.clientY;
+      let screenX: number;
+      let screenY: number;
+
+      if (isZoomedRef.current) {
+        screenX = zoomPosRef.current.x - 55 + 50;
+        screenY = zoomPosRef.current.y - 36 + 50;
+      } else {
+        const jitterX = (Math.random() - 0.5) * 100; // up to ±40px
+        const jitterY = (Math.random() - 0.5) * 100;
+        screenX = e.clientX + jitterX;
+        screenY = e.clientY + jitterY;
+
+      }
+
 
       setShots((prev) => prev + 1);
 
@@ -99,12 +109,21 @@ export function useSniperHandlers({
             );
           });
 
-          if (hitCharacter) {
+          const hitBalloon = balloonRef.current.find((b) => {
+            return (
+              x >= b.x - b.size / 2 &&
+              x <= b.x + b.size / 2 &&
+              y >= b.y - b.size / 2 &&
+              y <= b.y + b.size / 2
+            );
+          });
+
+          if (hitCharacter || hitBalloon) {
             setHits((prev) => prev + 1);
             setIsLastShotHit(true);
             const socket = getSocket();
             socket.emit("shot", {
-              characterId: hitCharacter.id,
+              characterId: hitCharacter ? hitCharacter.id : null,
               by: socket.id,
             });
         
