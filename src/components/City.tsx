@@ -505,7 +505,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
         {sniperScopePosition && (
           <SniperScope
-            src="city/default_scope.png"
+            src="default_scope.png"
             x={sniperScopePosition.x}
             y={sniperScopePosition.y}
             visible={isSniperScopeVisible}
