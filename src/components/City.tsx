@@ -225,7 +225,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       }
     }
 
-    socket.on("start", ({ matchId, seed }: { matchId: string; seed: string }) => {
+    socket.on("start", ({ roomId, seed }: { roomId: string, seed: string }) => {
       console.log("🎮 Match started (from socket):", seed);
       setMatchSeed(seed);
       setGameStarted(true);
