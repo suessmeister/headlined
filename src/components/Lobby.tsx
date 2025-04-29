@@ -150,6 +150,9 @@ const Lobby: React.FC = () => {
          return;
       }
 
+      localStorage.removeItem("matchSeed");
+      localStorage.removeItem("matchId");
+      
       setIsMatchmakingOpen(true);
 
       socket.emit("join_matchmaking", { walletAddress: publicKey.toString() });
