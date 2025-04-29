@@ -1,7 +1,6 @@
 "use client";
 import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardFeature from "@/components/dashboard/dashboard-feature";
-import Game from "@/components/Game";
 import { useState } from "react";
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, clusterApiUrl, LAMPORTS_PER_SOL } from "@solana/web3.js";
