@@ -117,7 +117,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const characterRef = useRef<Character[]>([]);
-  const balloonRef = useRef<{ id: number; x: number; y: number; size: number }[]>([]);
+  const balloonRef = useRef<{ id: number; x: number; y: number; size: number, isHit: boolean }[]>([]);
 
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
   // const [waiting, setWaiting] = useState(true);
@@ -291,6 +291,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         x: window.innerWidth + 150, // start off-screen right
         y: startY,
         size,
+        isHit: false,
       });
 
       // 🔁 Schedule next spawn

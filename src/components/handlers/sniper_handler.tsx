@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Character } from "../City";
-import {getSocket} from "../../app/utils/socket";
+import { getSocket } from "../../app/utils/socket";
 
 export function useSniperHandlers({
   sceneRef,
@@ -35,8 +35,10 @@ export function useSniperHandlers({
   setAmmo: React.Dispatch<React.SetStateAction<number>>;
   ammo: number;
   isReloading: boolean;
-  balloonRef: React.MutableRefObject<{id: number, x: number, y: number, size: number}[]>;
+  balloonRef: React.MutableRefObject<{ id: number, x: number, y: number, size: number, isHit: boolean }[]>;
 }) {
+
+  
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!sceneRef.current || !cameraRef.current) return;
@@ -47,13 +49,13 @@ export function useSniperHandlers({
         return;
       }
 
-      
+
       let screenX: number;
       let screenY: number;
 
       if (isZoomedRef.current) {
-        screenX = zoomPosRef.current.x - 55 + 50;
-        screenY = zoomPosRef.current.y - 36 + 50;
+        screenX = zoomPosRef.current.x - 5;
+        screenY = zoomPosRef.current.y + 14;
       } else {
         const jitterX = (Math.random() - 0.5) * 100; // up to ±40px
         const jitterY = (Math.random() - 0.5) * 100;
@@ -110,13 +112,65 @@ export function useSniperHandlers({
           });
 
           const hitBalloon = balloonRef.current.find((b) => {
-            return (
-              x >= b.x - b.size / 2 &&
-              x <= b.x + b.size / 2 &&
-              y >= b.y - b.size / 2 &&
-              y <= b.y + b.size / 2
-            );
+            const el = document.getElementById(`balloon-hitbox-${b.id}`);
+            if (!el) return false;
+
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const radius = rect.width / 2;
+
+            const dx = x - centerX;
+            const dy = y - centerY;
+
+            return dx * dx + dy * dy <= radius * radius;
           });
+
+          if (hitBalloon) {
+            setHits((prev) => prev + 1);
+            setIsLastShotHit(true);
+
+            const index = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
+            if (index !== -1) {
+              balloonRef.current[index].isHit = true; // 💥 crash it!
+            }
+
+            const socket = getSocket();
+            socket.emit("shot", {
+              characterId: hitCharacter ? hitCharacter.id : null,
+              by: socket.id,
+            });
+          }
+
+
+
+
+
+          // const dot = document.createElement("div");
+          // dot.style.cssText = `
+          //   position: absolute;
+          //   width: 12px;
+          //   height: 12px;
+          //   border-radius: 50%;
+          //   background: red;
+          //   top: ${y - 6}px;
+          //   left: ${x - 6}px;
+          //   z-index: 9999;
+          //   pointer-events: none;
+          // `;
+          // document.body.appendChild(dot);
+          // setTimeout(() => dot.remove(), 1000);
+
+
+
+
+          // console.log("🎯 Shot landed at screen coords:", adjustedX.toFixed(2), adjustedY.toFixed(2));
+          // console.log("🎈 Checking balloons for hit...");
+          // balloonRef.current.forEach((b) => {
+          //   console.log(
+          //     `Balloon ${b.id}: center=(${b.x.toFixed(2)}, ${b.y.toFixed(2)}), size=${b.size}`
+          //   );
+          // });
 
           if (hitCharacter || hitBalloon) {
             setHits((prev) => prev + 1);
@@ -126,7 +180,7 @@ export function useSniperHandlers({
               characterId: hitCharacter ? hitCharacter.id : null,
               by: socket.id,
             });
-        
+
           } else {
             setIsLastShotHit(false);
           }

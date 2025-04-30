@@ -116,7 +116,7 @@ const Lobby: React.FC = () => {
    const sceneRef = useRef<THREE.Scene | null>(null);
    const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
    const characterRef = useRef<Character[]>([]);
-   const balloonRef = useRef<{ id: number; x: number; y: number; size: number }[]>([]);
+   const balloonRef = useRef<{ id: number; x: number; y: number; size: number, isHit: boolean }[]>([]);
 
 
    const [flashMessage, setFlashMessage] = useState<string | null>(null);
@@ -191,7 +191,7 @@ const Lobby: React.FC = () => {
       const spawn = () => {
          const id = Date.now();
          const startY = Math.random() * window.innerHeight * 0.1 + 50;
-         const duration = 12 + Math.random() * 5;
+         const duration = 15 + Math.random() * 5;
          const size = 80 + Math.random() * 25;
 
          setBalloons((prev) => [...prev, { id, startY, duration, size }]);
@@ -202,6 +202,7 @@ const Lobby: React.FC = () => {
             x: window.innerWidth + 150, // start off-screen right
             y: startY,
             size,
+            isHit: false,
          });
 
          // 🔁 Schedule next spawn
