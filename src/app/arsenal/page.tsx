@@ -232,6 +232,12 @@ export default function ArsenalPage() {
         MPL_TOKEN_METADATA_PROGRAM_ID,
       );
 
+    const [collectionAuthorityPda, _collectionAuthorityBump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("collection_authority"), program.programId.toBuffer()],
+      program.programId,
+    );
+
+    console.log("Collection Authority PDA:", collectionAuthorityPda.toBase58());
     console.log(metadataPda.toBase58());
     console.log(masterEditionPda.toBase58());
 
@@ -249,7 +255,14 @@ export default function ArsenalPage() {
         tokenProgram: TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
         tokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
+        collectionAuthority: collectionAuthorityPda,
       })
+      .remainingAccounts([
+       {
+        pubkey: collectionAuthorityPda
+        , isSigner: false, isWritable: false,
+       }
+      ])
       .instruction();
 
     const tx = new Transaction().add(

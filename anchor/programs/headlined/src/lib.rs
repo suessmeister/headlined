@@ -2,25 +2,19 @@ use anchor_lang::prelude::*;
 
 //For defining metadata account on metaplex
 use mpl_token_metadata::{
-    instructions::CreateMetadataAccountV3Builder,
-    instructions::CreateMasterEditionV3Builder,
-    instructions::VerifySizedCollectionItemBuilder,
-    types::DataV2,
-    ID as MPL_METADATA_ID,
-    instructions::BurnNftBuilder
+    instructions::BurnNftBuilder, instructions::CreateMasterEditionV3Builder,
+    instructions::CreateMetadataAccountV3Builder, instructions::VerifySizedCollectionItemBuilder,
+    types::DataV2, ID as MPL_METADATA_ID,
 };
 
-// For sending the instruction 
+// For sending the instruction
 use anchor_lang::solana_program::{
-    program::invoke_signed,
-    instruction::Instruction,
-    system_program
+    instruction::Instruction, program::invoke_signed, system_program,
 };
 
 use anchor_spl::token::{Token, ID as TOKEN_PROGRAM_ID};
 
-
-declare_id!("9YhZtfHPa9YY13AXr7PhNV1YnWPkqhvd6g4NRTfNNcND"); 
+declare_id!("9YhZtfHPa9YY13AXr7PhNV1YnWPkqhvd6g4NRTfNNcND");
 
 #[program]
 pub mod headlined {
@@ -29,239 +23,238 @@ pub mod headlined {
     use super::*;
 
     pub fn create_collection(
-    ctx: Context<CreateCollection>,
-    title: String,
-    symbol: String,
-    uri: String,
-) -> Result<()> {
-    let mint_key = ctx.accounts.collection_mint.key();
+        ctx: Context<CreateCollection>,
+        title: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        let mint_key = ctx.accounts.collection_mint.key();
 
-    let (metadata_pda, _bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-        ],
-        &MPL_METADATA_ID,
-    );
+        let (metadata_pda, _bump) = Pubkey::find_program_address(
+            &[b"metadata", MPL_METADATA_ID.as_ref(), mint_key.as_ref()],
+            &MPL_METADATA_ID,
+        );
 
-    let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-            b"edition",
-        ],
-        &MPL_METADATA_ID,
-    );
+        let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                MPL_METADATA_ID.as_ref(),
+                mint_key.as_ref(),
+                b"edition",
+            ],
+            &MPL_METADATA_ID,
+        );
 
-    let data = DataV2 {
-        name: title,
-        symbol,
-        uri,
-        seller_fee_basis_points: 0,
-        creators: None,
-        collection: None,
-        uses: None,
-    };
+        let data = DataV2 {
+            name: title,
+            symbol,
+            uri,
+            seller_fee_basis_points: 0,
+            creators: None,
+            collection: None,
+            uses: None,
+        };
 
-    let metadata_ix = CreateMetadataAccountV3Builder::new()
-        .metadata(metadata_pda)
-        .mint(ctx.accounts.collection_mint.key())
-        .mint_authority(ctx.accounts.payer.key())
-        .update_authority(ctx.accounts.payer.key(), true)
-        .payer(ctx.accounts.payer.key())
-        .data(data)
-        .is_mutable(true)
-        .collection_details(mpl_token_metadata::types::CollectionDetails::V1 { size: 0 }) // <- marks this as a collection NFT!
-        .instruction();
+        let metadata_ix = CreateMetadataAccountV3Builder::new()
+            .metadata(metadata_pda)
+            .mint(ctx.accounts.collection_mint.key())
+            .mint_authority(ctx.accounts.payer.key())
+            .update_authority(ctx.accounts.payer.key(), true)
+            .payer(ctx.accounts.payer.key())
+            .data(data)
+            .is_mutable(true)
+            .collection_details(mpl_token_metadata::types::CollectionDetails::V1 { size: 0 }) // <- marks this as a collection NFT!
+            .instruction();
 
-    invoke_signed(
-        &metadata_ix,
-        &[
-            ctx.accounts.collection_metadata.to_account_info(),
-            ctx.accounts.collection_mint.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
-            ctx.accounts.payer.to_account_info(), // update authority is also payer
-            ctx.accounts.system_program.to_account_info(),
-            ctx.accounts.rent.to_account_info(),
-            ctx.accounts.token_metadata_program.to_account_info(),
-        ],
-        &[],
-    )?;
+        invoke_signed(
+            &metadata_ix,
+            &[
+                ctx.accounts.collection_metadata.to_account_info(),
+                ctx.accounts.collection_mint.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.payer.to_account_info(), // update authority is also payer
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+                ctx.accounts.token_metadata_program.to_account_info(),
+            ],
+            &[],
+        )?;
 
-    let edition_ix = CreateMasterEditionV3Builder::new()
-        .edition(master_edition_pda)
-        .mint(ctx.accounts.collection_mint.key())
-        .update_authority(ctx.accounts.payer.key())
-        .mint_authority(ctx.accounts.payer.key())
-        .payer(ctx.accounts.payer.key())
-        .metadata(metadata_pda)
-        .max_supply(0)
-        .instruction();
+        let edition_ix = CreateMasterEditionV3Builder::new()
+            .edition(master_edition_pda)
+            .mint(ctx.accounts.collection_mint.key())
+            .update_authority(ctx.accounts.payer.key())
+            .mint_authority(ctx.accounts.payer.key())
+            .payer(ctx.accounts.payer.key())
+            .metadata(metadata_pda)
+            .max_supply(0)
+            .instruction();
 
-    invoke_signed(
-        &edition_ix,
-        &[
-            ctx.accounts.collection_master_edition.to_account_info(),
-            ctx.accounts.collection_mint.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
-            ctx.accounts.collection_metadata.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
-            ctx.accounts.token_metadata_program.to_account_info(),
-        ],
-        &[],
-    )?;
+        invoke_signed(
+            &edition_ix,
+            &[
+                ctx.accounts.collection_master_edition.to_account_info(),
+                ctx.accounts.collection_mint.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                ctx.accounts.collection_metadata.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.token_metadata_program.to_account_info(),
+            ],
+            &[],
+        )?;
 
-    Ok(())
-}
-
-    
+        Ok(())
+    }
 
     pub fn mint(
-        ctx: Context<MintNft>, 
-        metadata_title: String, 
-        metadata_symbol: String, 
+        ctx: Context<MintNft>,
+        metadata_title: String,
+        metadata_symbol: String,
         metadata_uri: String,
-
     ) -> Result<()> {
+        let bump = ctx.bumps.collection_authority;
+        let seeds = &[b"collection_authority", ctx.program_id.as_ref(), &[bump]];
+
         let mint_key = ctx.accounts.mint.key();
         let collection_key = ctx.accounts.collection_mint.key();
 
         let (metadata_pda, _bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-        ],
-        &MPL_METADATA_ID,
-    );
+            &[b"metadata", MPL_METADATA_ID.as_ref(), mint_key.as_ref()],
+            &MPL_METADATA_ID,
+        );
 
-    let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            mint_key.as_ref(),
-            b"edition",
-        ],
-        &MPL_METADATA_ID,
-    );
+        let (master_edition_pda, _edition_bump) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                MPL_METADATA_ID.as_ref(),
+                mint_key.as_ref(),
+                b"edition",
+            ],
+            &MPL_METADATA_ID,
+        );
 
-    let (collection_metadata_pda, _collection_bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            collection_key.as_ref(),
-        ],
-        &MPL_METADATA_ID,
-    );
+        let (collection_metadata_pda, _collection_bump) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                MPL_METADATA_ID.as_ref(),
+                collection_key.as_ref(),
+            ],
+            &MPL_METADATA_ID,
+        );
 
-    let (collection_master_ed_pda, _collection_master_ed_bump) = Pubkey::find_program_address(
-        &[
-            b"metadata",
-            MPL_METADATA_ID.as_ref(),
-            collection_key.as_ref(),
-            b"edition",
-            
-        ],
-        &MPL_METADATA_ID,
-    );
+        let (collection_master_ed_pda, _collection_master_ed_bump) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                MPL_METADATA_ID.as_ref(),
+                collection_key.as_ref(),
+                b"edition",
+            ],
+            &MPL_METADATA_ID,
+        );
 
-    
-    let sniper_metadata = DataV2 {
-        name: metadata_title,
-        symbol: metadata_symbol,
-        uri: metadata_uri,
-        seller_fee_basis_points: 0,
-        creators: None,
-        collection: {
-            Some(Collection {
-                key: collection_key, // public key of mint of collection mint account!
-                verified: false, // must be set false initially. 
-            })
-        },
-        uses: None,
-    };
+        let (collection_authority, _collection_authority_bump) = Pubkey::find_program_address(
+            &[b"collection_authority", &crate::ID.to_bytes()],
+            &crate::ID,
+        );
+        msg!(
+            "📌 Derived collection authority PDA: {}",
+            collection_authority
+        );
 
-    let acc = ctx.accounts; //for readability
-    
-    let metadata_instr = CreateMetadataAccountV3Builder::new()
-        .metadata(metadata_pda)
-        .mint(acc.mint.key())
-        .mint_authority(acc.payer.key())
-        .update_authority(acc.payer.key(), true)
-        .payer(acc.payer.key())
-        .data(sniper_metadata)
-        .is_mutable(true)
-        .instruction();
+        let sniper_metadata = DataV2 {
+            name: metadata_title,
+            symbol: metadata_symbol,
+            uri: metadata_uri,
+            seller_fee_basis_points: 0,
+            creators: None,
+            collection: {
+                Some(Collection {
+                    key: collection_key, // public key of mint of collection mint account!
+                    verified: false,     // must be set false initially.
+                })
+            },
+            uses: None,
+        };
 
-    invoke_signed(
-    &metadata_instr,
-       &[
-        acc.metadata.to_account_info(),
-        acc.mint.to_account_info(),
-        acc.payer.to_account_info(),
-        acc.payer.to_account_info(), // update authority is also payer
-        acc.system_program.to_account_info(),
-        acc.rent.to_account_info(),
-        acc.token_metadata_program.to_account_info(),
-    ],
-    &[], // no signer seeds? unless using PDA mint authority
-)?;
+        let acc = ctx.accounts; //for readability
+        msg!("about to create metadata");
 
-let master_edition_ix = CreateMasterEditionV3Builder::new()
-        .edition(master_edition_pda)
-        .mint(acc.mint.key())
-        .update_authority(acc.payer.key())
-        .mint_authority(acc.payer.key())
-        .payer(acc.payer.key())
-        .metadata(metadata_pda)
-        .max_supply(0)
-        .instruction();
+        let metadata_instr = CreateMetadataAccountV3Builder::new()
+            .metadata(metadata_pda)
+            .mint(acc.mint.key())
+            .mint_authority(acc.payer.key())
+            .update_authority(collection_authority, true)
+            .payer(acc.payer.key())
+            .data(sniper_metadata)
+            .is_mutable(true)
+            .instruction();
 
-    invoke_signed(
-        &master_edition_ix,
-        &[
-            acc.master_edition.to_account_info(),
-            acc.mint.to_account_info(),
-            acc.payer.to_account_info(),
-            acc.payer.to_account_info(),
-            acc.metadata.to_account_info(),
-            acc.system_program.to_account_info(),
-            acc.token_metadata_program.to_account_info(),
-        ],
-        &[],
-    )?;
+        invoke_signed(
+            &metadata_instr,
+            &[
+                acc.metadata.to_account_info(),
+                acc.mint.to_account_info(),
+                acc.payer.to_account_info(),
+                acc.collection_authority.to_account_info(), // update authority is also payer
+                acc.system_program.to_account_info(),
+                acc.rent.to_account_info(),
+                acc.token_metadata_program.to_account_info(),
+            ],
+            &[seeds], // no signer seeds? unless using PDA mint authority
+        )?;
 
-let collection_instr = VerifySizedCollectionItemBuilder::new()
-    .metadata(metadata_pda)
-    .collection_authority(acc.payer.key())
-    .payer(acc.payer.key())
-    .collection_mint(collection_key)
-    .collection(collection_metadata_pda)
-    .collection_master_edition_account(collection_master_ed_pda)
-    .instruction();
+        msg!("📌 Derived metadata PDA: {}", metadata_pda);
+        let master_edition_ix = CreateMasterEditionV3Builder::new()
+            .edition(master_edition_pda)
+            .mint(acc.mint.key())
+            .update_authority(collection_authority)
+            .mint_authority(acc.payer.key())
+            .payer(acc.payer.key())
+            .metadata(metadata_pda)
+            .max_supply(0)
+            .instruction();
 
-invoke_signed(
-    &collection_instr,
-    &[
-        acc.metadata.to_account_info(),
-        acc.payer.to_account_info(),
-        acc.collection_mint.to_account_info(),
-        acc.collection_metadata.to_account_info(),
-        acc.collection_master_edition.to_account_info(),
-        acc.system_program.to_account_info(),
-        acc.token_metadata_program.to_account_info(),
-    ],
-    &[],
-)?;
+        invoke_signed(
+            &master_edition_ix,
+            &[
+                acc.master_edition.to_account_info(),
+                acc.mint.to_account_info(),
+                acc.payer.to_account_info(),
+                acc.collection_authority.to_account_info(),
+                acc.metadata.to_account_info(),
+                acc.system_program.to_account_info(),
+                acc.token_metadata_program.to_account_info(),
+            ],
+            &[seeds],
+        )?;
 
+        let collection_instr = VerifySizedCollectionItemBuilder::new()
+            .metadata(metadata_pda)
+            .collection_authority(acc.collection_authority.key())
+            .payer(acc.payer.key())
+            .collection_mint(collection_key)
+            .collection(collection_metadata_pda)
+            .collection_master_edition_account(collection_master_ed_pda)
+            .instruction();
 
-    Ok(())
+        invoke_signed(
+            &collection_instr,
+            &[
+                acc.metadata.to_account_info(),
+                acc.payer.to_account_info(),
+                acc.collection_mint.to_account_info(),
+                acc.collection_metadata.to_account_info(),
+                acc.collection_master_edition.to_account_info(),
+                acc.system_program.to_account_info(),
+                acc.token_metadata_program.to_account_info(),
+                acc.collection_authority.to_account_info(),
+            ],
+            &[seeds],
+        )?;
+
+        Ok(())
     }
-
-
 }
 // do not delete the triple comments --- those are checks used by anchor
 #[derive(Accounts)]
@@ -299,11 +292,13 @@ pub struct MintNft<'info> {
     pub collection_metadata: UncheckedAccount<'info>,
 
     /// CHECK: Collection master edition PDA
-    #[account(mut)] 
+    #[account(mut)]
     pub collection_master_edition: UncheckedAccount<'info>,
+
+    /// CHECK: PDA collection authority signer
+    #[account(seeds = [b"collection_authority", crate::ID.as_ref()], bump)]
+    pub collection_authority: UncheckedAccount<'info>,
 }
-
-
 
 #[derive(Accounts)]
 #[instruction(sniper_name: String)]
@@ -332,9 +327,7 @@ pub struct BurnNft<'info> {
 
     /// SPL Token Program
     pub token_program: Program<'info, Token>,
-
 }
-
 
 #[derive(Accounts)]
 #[instruction(sniper_name: String)]
@@ -364,4 +357,3 @@ pub struct CreateCollection<'info> {
     /// CHECK: SPL Token Program
     pub token_program: Program<'info, Token>,
 }
-

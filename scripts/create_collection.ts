@@ -10,6 +10,7 @@ import {
 import {
   MPL_TOKEN_METADATA_PROGRAM_ID,
   fetchMetadataFromSeeds,
+  findCollectionAuthorityRecordPda,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { PublicKey } from "@solana/web3.js";
 import * as fs from "fs";
@@ -39,6 +40,9 @@ interface CollectionInfo {
 const collections: CollectionInfo[] = [];
 
 async function createCollections() {
+
+
+
   console.log("Creating Collections...");
   for (const sniper of snipers.snipers) {
     const collectionMint = await createMint(
@@ -85,6 +89,16 @@ async function createCollections() {
         TOKEN_METADATA_PROGRAM_ID,
       );
 
+    const [collectionAuthorityPda, _collectionAuthorityBump] =
+      PublicKey.findProgramAddressSync(
+        [Buffer.from("collection_authority"), new PublicKey(anchor.workspace.Headlined.programId).toBuffer()],
+        new PublicKey(anchor.workspace.Headlined.programId)
+      );
+      console.log(
+        "Collection Authority PDA:",
+        collectionAuthorityPda.toBase58(),
+      );
+
     try {
       await program.methods
         .createCollection(sniper.name, "COL", sniper.collection_link)
@@ -93,9 +107,19 @@ async function createCollections() {
           collectionMint,
           collectionMetadata,
           collectionMasterEdition,
+          collectionAuthority: collectionAuthorityPda,
           tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
           tokenProgram: TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+          systemProgram: anchor.web3.SystemProgram.programId,
         })
+        .remainingAccounts([
+          {
+            pubkey: collectionAuthorityPda,
+            isWritable: false,
+            isSigner: false,
+          }
+        ])
         .signers([payerKeypair])
         .rpc();
 
