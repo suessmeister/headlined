@@ -471,7 +471,7 @@ const Lobby: React.FC = () => {
                         transition: "all 0.2s ease",
                      }}
                   >
-                     Matchmaking
+                     Join Live Match
                   </button>
                ) : (
                   <div
