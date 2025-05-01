@@ -65,6 +65,10 @@ export interface Character {
    x: number;
    y: number;
    image: string;
+   isSniper?: boolean;
+   phase?: "warmup" | "dark" | "aggressive";
+   nextPhase?: number;
+   laserCooldown?: number;
 }
 
 // Sniper scope logo styled component
@@ -212,6 +216,171 @@ const Lobby: React.FC = () => {
 
       spawn();
    }, []);
+
+   useEffect(() => {
+      console.log("TICKED ");
+      let raf: number;
+
+      const tick = () => {
+
+         // setCharacters(prev => {
+         //    const sniper = prev.find(c => c.isSniper);
+         //    if (sniper) {
+         //       console.log("🚨 Live sniper:", {
+         //          id: sniper.id,
+         //          phase: sniper.phase,
+         //          nextPhase: sniper.nextPhase,
+         //       });
+         //    }
+         //    return prev;
+         // });
+
+         const now = Date.now();
+
+         setCharacters(prev =>
+            prev.map(c => {
+               if (!c.isSniper) return c;
+               if (!c.phase) return c;                      // always need a phase
+               if (c.phase !== "aggressive" && !c.nextPhase) return c;
+
+               // phase changes
+               if (c.nextPhase && now >= c.nextPhase) {
+                  if (c.phase === "warmup") {
+                     return { ...c, phase: "dark", image: "", nextPhase: now + 5000 };
+                  }
+                  if (c.phase === "dark") {
+                     return {
+                        ...c,
+                        phase: "aggressive",
+                        image: "/figures/evil_sniper_2.png",
+                        laserCooldown: now + 700 + Math.random() * 800,
+                        nextPhase: undefined,
+                     };
+                  }
+               }
+
+               // laser fire every cooldown
+               if (
+                  c.phase === "aggressive" &&
+                  now >= (c.laserCooldown ?? 0)
+               ) {
+                  console.log(`💥 Sniper ${c.id} firing laser`);
+                  fireLaser(c);
+                  return { ...c, laserCooldown: now + 2000 + Math.random() * 1200 };
+               }
+
+               return c;
+            })
+         );
+
+
+         raf = requestAnimationFrame(tick);
+      };
+
+      raf = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(raf);
+   }, []);
+
+
+   
+   // ─── LASER: character ➜ camera ──────────────────────────────────────────────
+   const fireLaser = (c: Character) => {
+      if (!sceneRef.current || !cameraRef.current) return;
+
+      const cam = cameraRef.current;
+      const scene = sceneRef.current;
+
+      // 1️⃣ Convert screen to NDC
+      const ndc = new THREE.Vector2(
+         (c.x / window.innerWidth) * 2 - 1,
+         -(c.y / window.innerHeight) * 2 + 1
+      );
+
+      // 2️⃣ Ray from screen position
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(ndc, cam);
+      const ray = raycaster.ray;
+
+      // 3️⃣ Origin of the laser
+      const origin = ray.origin.clone().add(ray.direction.clone().multiplyScalar(40));
+
+      // 4️⃣ Direction to camera
+      // 4️⃣ Direction to camera (with randomized offset for misses)
+      let target = cam.position.clone();
+
+      // Add a chance to miss — 30%
+      if (Math.random() < 0.8) {
+         const missOffset = new THREE.Vector3(
+            (Math.random() - 0.5) * 2,  // ±5 units X
+            (Math.random() - 0.5) * 2,   // ±4 units Y
+            (Math.random() - 0.5) * 2    // ±2.5 units Z (optional)
+         );
+         target.add(missOffset);
+      }
+
+      const dir = target.clone().sub(origin).normalize();
+      const fullLength = origin.distanceTo(target);
+
+      // 5️⃣ Create cylinder with full length (we’ll scale it up)
+      const radius = 0.05;
+      const geom = new THREE.CylinderGeometry(radius, radius, fullLength, 8, 1, true);
+      const mat = new THREE.MeshBasicMaterial({
+         color: 0xff0000,
+         transparent: true,
+         opacity: 1,
+         side: THREE.DoubleSide,
+         depthWrite: false,
+      });
+      const beam = new THREE.Mesh(geom, mat);
+
+      // Align beam from Y-up → dir
+      const up = new THREE.Vector3(0, 1, 0);
+      const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
+      beam.quaternion.copy(quat);
+
+      // Start at origin
+      beam.position.copy(origin);
+      scene.add(beam);
+
+      const growDuration = 800; // total grow time in ms
+      const growStart = performance.now();
+
+      const grow = (now: number) => {
+         const elapsed = now - growStart;
+         const t = Math.min(elapsed / growDuration, 1); // normalized [0,1]
+
+         beam.scale.set(1, t, 1);
+         beam.position.copy(origin).add(dir.clone().multiplyScalar((fullLength * t) / 2));
+
+         if (t < 1) {
+            requestAnimationFrame(grow);
+         } else {
+            // Once fully grown, lock to final position and start fade
+            beam.scale.set(1, 1, 1);
+            beam.position.copy(origin).add(dir.clone().multiplyScalar(fullLength / 2));
+            requestAnimationFrame(fade);
+         }
+      };
+      requestAnimationFrame(grow);
+
+      // 7️⃣ Fade out after full growth
+      const startFade = performance.now();
+      const fade = (t: number) => {
+         const alpha = 1 - (t - startFade) / 400;
+         mat.opacity = Math.max(alpha, 0);
+         if (alpha > 0) requestAnimationFrame(fade);
+         else {
+            scene.remove(beam);
+            geom.dispose();
+            mat.dispose();
+         }
+      };
+
+      requestAnimationFrame(grow);
+   };
+
+
+
 
 
 
@@ -383,7 +552,7 @@ const Lobby: React.FC = () => {
    }, []);
 
 
-   
+
 
 
    return (
@@ -486,11 +655,11 @@ const Lobby: React.FC = () => {
                      Waiting for match...
                   </div>
                )}
-   
-              
-               </div>
+
+
             </div>
-        
+         </div>
+
          <div style={wrapperStyle}>
             <div ref={mountRef} style={{
                position: "absolute",
@@ -541,15 +710,22 @@ const Lobby: React.FC = () => {
             }} />
 
             {!isZoomedOut && characters.map((c) => (
-               <CharacterImg
-                  key={c.id}
-                  x={c.x}
-                  y={c.y}
-                  src={c.image}
-                  alt="Character"
-                  style={{ zIndex: 2 }}
-               />
+               c.image && ( // ✅ skip if image is ""
+                  <CharacterImg
+                     key={c.id}
+                     x={c.x}
+                     y={c.y}
+                     src={c.image}
+                     alt="Character"
+                     style={{
+                        zIndex: 2,
+                        filter: c.isSniper ? "drop-shadow(0 0 5px red)" : "none",
+                     }}
+                  />
+               )
             ))}
+
+
 
             {sniperScopePosition && (
                <SniperScope

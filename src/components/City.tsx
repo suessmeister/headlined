@@ -67,6 +67,10 @@ export interface Character {
   x: number;
   y: number;
   image: string;
+  isSniper?: boolean;
+  phase?: "warmup" | "dark" | "aggressive";
+  nextPhase?: number;
+  laserCooldown?: number;
 }
 
 // Sniper scope logo styled component

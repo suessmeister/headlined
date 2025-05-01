@@ -197,14 +197,26 @@ const drawWindows = (
       ctx.fillRect(x, y, windowWidth, windowHeight);
 
       if (isLit && rng() < CHARACTER_PROBABILITY) {
+        const isSniper = rng() < 0.4;
+
+        // Only add sniper if inside visible window
+        const isOnScreen = x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight;
+
+        if (isSniper && !isOnScreen) return;
+
+        const now = Date.now();
         newCharacters.push({
-          id: Date.now() + rng(),
+          id: now + rng(),
           x,
-          y,
-          image: "/figures/better_s2.gif",
+          y: isSniper ? y + 5 : y,
+          image: isSniper ? "/figures/evil_sniper.png" : "/figures/better_s2.gif",
+          isSniper,
+          phase: isSniper ? "warmup" : undefined,
+          nextPhase: isSniper ? now + 5_000 : undefined,
         });
-        // console.log("Added character:", { x, y });
       }
+
+
     }
   }
 };
