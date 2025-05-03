@@ -29,6 +29,7 @@ import {
 } from "@solana/spl-token";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { Dialog } from "@headlessui/react";
+import { useRouter } from "next/navigation";
 // import { FaceFrownIcon } from '@heroicons/react/24/outline'
 
 export default function ArsenalPage() {
@@ -94,6 +95,13 @@ export default function ArsenalPage() {
       setSliderPosition(buttonRect.left - containerRect.left - padding);
     }
   }, [activeTab]);
+  
+  const router = useRouter();
+  useEffect(() => {
+    if (!publicKey) {
+      router.push("/landing");
+    }
+  }, [publicKey, router]);
 
   useEffect(() => {
     console.log("Active Gun:", activeGun);

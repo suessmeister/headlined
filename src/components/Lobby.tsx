@@ -209,6 +209,13 @@ const Lobby: React.FC = () => {
   const removeBalloon = useCallback((id: number) => {
     setBalloons((prev) => prev.filter((b) => b.id !== id));
   }, []);
+  
+  useEffect(() => {
+    if (!publicKey) {
+      router.push("/landing");
+    }
+  }, [publicKey, router]);
+
 
   useEffect(() => {
     const spawn = () => {
