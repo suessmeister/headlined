@@ -33,6 +33,11 @@ const DARK_STAGGER_MS = 3000;
 let nextDarkOrder = 0; // global variable to track the order of dark phases
 
 const gun_metadata = {
+  "Default Sniper": {
+    scope: "1.5",
+    capacity: "3",
+    reload: "1.5"
+  },
   "AW Magnum": {
     scope: "2.2",
     capacity: "5",
@@ -440,17 +445,26 @@ const Lobby: React.FC = () => {
 
   useEffect(() => {
     const savedGun = localStorage.getItem("selectedGun");
+
     if (savedGun) {
-      const parsedGun: { name: keyof typeof gun_metadata } =
-        JSON.parse(savedGun);
+      const parsedGun: { name: keyof typeof gun_metadata } = JSON.parse(savedGun);
       setActiveGun(parsedGun);
       const capacity = Number(gun_metadata[parsedGun.name].capacity);
       setAmmo(capacity);
       setMaxAmmo(capacity);
-      setIsReloading(false);
+    } else {
+      // 👇 Fallback to "Default Sniper"
+      const fallback: { name: keyof typeof gun_metadata } = { name: "Default Sniper" };
+      localStorage.setItem("selectedGun", JSON.stringify(fallback));
+      setActiveGun(fallback);
+      setAmmo(Number(gun_metadata[fallback.name].capacity));
+      setMaxAmmo(Number(gun_metadata[fallback.name].capacity));
     }
+
+    setIsReloading(false);
     initGun.current = true;
   }, []);
+
 
   useEffect(() => {
     if (!initGun.current || ammo === null || isReloading || ammo > 0) return;

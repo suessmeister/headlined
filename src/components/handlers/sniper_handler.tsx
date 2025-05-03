@@ -97,7 +97,7 @@ export function useSniperHandlers({
 
       const tracer = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
-        new THREE.LineBasicMaterial({ color: 0xff4500 })
+        new THREE.LineBasicMaterial({ color: 0x39FF14 })
       );
       tracer.position.copy(cameraRef.current.position);
       tracer.quaternion.copy(cameraRef.current.quaternion);
