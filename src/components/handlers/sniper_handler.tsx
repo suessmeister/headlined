@@ -108,14 +108,43 @@ export function useSniperHandlers({
           const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
           const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
 
-          const hitCharacter = characterRef.current.find((character) => {
+          // const hitCharacter = characterRef.current.find((character) => {
+          //   return (
+          //     x >= character.x - 15 &&
+          //     x <= character.x + 15 &&
+          //     y >= character.y - 20 &&
+          //     y <= character.y + 20
+          //   );
+          // });
+
+          const hitCharacter = characterRef.current.find((c) => {
+            if (!c.isSniper) return false;
+
+            const el = document.getElementById(`sniper-hitbox-${c.id}`);
+            if (!el) {
+              console.warn(`❌ No hitbox element for sniper #${c.id}`);
+              return false;
+            }
+
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const radius = rect.width / 2;
+
+            console.log(`🎯 Sniper #${c.id} hitbox center: x=${centerX.toFixed(1)}, y=${centerY.toFixed(1)} | radius=${radius.toFixed(1)}`);
+            console.log(`🧨 Shot landed at: x=${x.toFixed(1)}, y=${y.toFixed(1)}`);
+
+            const adjustedX = x - 8.4;
+            const adjustedY = y + 22.7
             return (
-              x >= character.x - 15 &&
-              x <= character.x + 15 &&
-              y >= character.y - 20 &&
-              y <= character.y + 20
+              adjustedX >= centerX - radius &&
+              adjustedX <= centerX + radius &&
+              adjustedY >= centerY - radius &&
+              adjustedY <= centerY + radius
             );
+
           });
+
 
           const hitBalloon = balloonRef.current.find((b) => {
             const el = document.getElementById(`balloon-hitbox-${b.id}`);
@@ -140,7 +169,7 @@ export function useSniperHandlers({
               (b) => b.id === hitBalloon.id,
             );
             if (index !== -1) {
-              balloonRef.current[index].isHit = true; // 💥 crash it!
+              balloonRef.current[index].isHit = true; // crash it!
             }
 
             const socket = getSocket();
@@ -151,7 +180,7 @@ export function useSniperHandlers({
           }
 
           if (hitCharacter || hitBalloon) {
-            setHits((prev) => prev + 1);
+            setHits((prev) => prev + 1); // Balloons count as 2 hits. 
             setIsLastShotHit(true);
             const socket = getSocket();
             socket.emit("shot", {

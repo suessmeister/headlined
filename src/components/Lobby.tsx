@@ -23,6 +23,7 @@ import {
   AmmoBar,
   ReloadTimer,
 } from "./ui/game_ui";
+import EnemySnipers from "./drawing/enemy_snipers";
 
 const DARK_STAGGER_MS = 3000;
 let nextDarkOrder = 0; // global variable to track the order of dark phases
@@ -74,6 +75,7 @@ export interface Character {
   phase?: "warmup" | "dark" | "aggressive";
   nextPhase?: number;
   laserCooldown?: number;
+  isHit?: boolean;
 }
 
 // Sniper scope logo styled component
@@ -773,24 +775,13 @@ const Lobby: React.FC = () => {
           }}
         />
 
-        {!isZoomedOut &&
-          characters.map(
-            (c) =>
-              c.image &&
-              (snipersVisible || !c.isSniper) && (
-                <CharacterImg
-                  key={c.id}
-                  x={c.x}
-                  y={c.y}
-                  src={c.image}
-                  alt="Character"
-                  style={{
-                    zIndex: 2,
-                    filter: c.isSniper ? "drop-shadow(0 0 5px red)" : "none",
-                  }}
-                />
-              ),
-          )}
+        {!isZoomedOut && (
+          <EnemySnipers
+            characters={characters}
+            snipersVisible={snipersVisible}
+            setCharacters={setCharacters}
+          />
+        )}
 
         {sniperScopePosition && (
           <SniperScope
