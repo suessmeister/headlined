@@ -143,6 +143,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const [gameStarted, setGameStarted] = useState(false);
 
   const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(null);
+  const [unlimitedAmmo, setUnlimitedAmmo] = useState(false);
 
   const router = useRouter();
 

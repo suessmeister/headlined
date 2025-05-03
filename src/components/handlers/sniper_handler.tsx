@@ -18,7 +18,8 @@ export function useSniperHandlers({
   setAmmo,
   ammo,
   isReloading,
-  balloonRef
+  balloonRef,
+  unlimitedAmmo
 }: {
   sceneRef: React.MutableRefObject<THREE.Scene | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -36,19 +37,25 @@ export function useSniperHandlers({
   ammo: number;
   isReloading: boolean;
   balloonRef: React.MutableRefObject<{ id: number, x: number, y: number, size: number, isHit: boolean }[]>;
+  unlimitedAmmo: boolean;
 }) {
 
-  
+  const unlimitedAmmoRef = useRef(unlimitedAmmo);
+  useEffect(() => {
+    unlimitedAmmoRef.current = unlimitedAmmo;
+  }, [unlimitedAmmo]);
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!sceneRef.current || !cameraRef.current) return;
 
-      if (!isReloading && ammo > 0) {
-        setAmmo((prev: number) => prev - 1);
-      } else {
-        return;
+      if (!unlimitedAmmoRef.current) {
+        if (!isReloading && ammo > 0) {
+          setAmmo((prev: number) => prev - 1);
+        } else {
+          return;
+        }
       }
-
 
       let screenX: number;
       let screenY: number;
@@ -143,34 +150,6 @@ export function useSniperHandlers({
           }
 
 
-
-
-
-          // const dot = document.createElement("div");
-          // dot.style.cssText = `
-          //   position: absolute;
-          //   width: 12px;
-          //   height: 12px;
-          //   border-radius: 50%;
-          //   background: red;
-          //   top: ${y - 6}px;
-          //   left: ${x - 6}px;
-          //   z-index: 9999;
-          //   pointer-events: none;
-          // `;
-          // document.body.appendChild(dot);
-          // setTimeout(() => dot.remove(), 1000);
-
-
-
-
-          // console.log("🎯 Shot landed at screen coords:", adjustedX.toFixed(2), adjustedY.toFixed(2));
-          // console.log("🎈 Checking balloons for hit...");
-          // balloonRef.current.forEach((b) => {
-          //   console.log(
-          //     `Balloon ${b.id}: center=(${b.x.toFixed(2)}, ${b.y.toFixed(2)}), size=${b.size}`
-          //   );
-          // });
 
           if (hitCharacter || hitBalloon) {
             setHits((prev) => prev + 1);

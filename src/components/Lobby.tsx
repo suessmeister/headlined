@@ -150,6 +150,7 @@ const Lobby: React.FC = () => {
    const [introMessage, setIntroMessage] = useState(false);
    const [isPlayerHit, setIsPlayerHit] = useState(false);
 
+   const [unlimitedAmmo, setUnlimitedAmmo] = useState(false);
 
 
    const router = useRouter();
@@ -402,11 +403,6 @@ const Lobby: React.FC = () => {
     
    };
 
-
-
-
-
-
    useSniperHandlers({
       sceneRef,
       cameraRef,
@@ -421,7 +417,8 @@ const Lobby: React.FC = () => {
       setAmmo,
       ammo,
       isReloading,
-      balloonRef
+      balloonRef, 
+      unlimitedAmmo
    });
 
    useZoomHandlers({
@@ -429,6 +426,11 @@ const Lobby: React.FC = () => {
       setZoomPosition,
    });
 
+   useEffect(() => {
+      //  ⬇ add “unlimitedAmmo” here
+      if (!initGun.current || isReloading || ammo > 0 || unlimitedAmmo) return;
+      /* … rest of the reload logic … */
+   }, [ammo, isReloading, maxAmmo, activeGun, unlimitedAmmo]);
 
    useEffect(() => {
       const savedGun = localStorage.getItem("selectedGun");
@@ -709,11 +711,32 @@ const Lobby: React.FC = () => {
                   >
                      Waiting for match...
                   </div>
+
+                  
                )}
+
+               
 
 
             </div>
          </div>
+
+         <button
+            onClick={() => setUnlimitedAmmo(p => !p)}
+            style={{
+               backgroundColor: unlimitedAmmo ? "darkgreen" : "darkred",
+               color: "white",
+               border: "1px solid rgba(255,255,255,.3)",
+               padding: "4px 10px",
+               borderRadius: "4px",
+               cursor: "pointer",
+               fontFamily: "monospace",
+               fontSize: "13px",
+            }}
+         >
+            Ammo: {unlimitedAmmo ? "∞" : "limited"}
+         </button>
+
 
          {isPlayerHit && (
             <div style={{
