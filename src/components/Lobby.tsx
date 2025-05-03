@@ -690,7 +690,7 @@ const Lobby: React.FC = () => {
               Join a <strong>Live Match</strong> to go 1v1 against another opponent.
               <br />
               <br />
-              You'll be graded on <strong>hits</strong>, then <strong>accuracy</strong>. Don't let an enemy get you first.
+              You will be graded on <strong>hits</strong>, then <strong>accuracy</strong>. Enemy hits subtract your overall hits.
               <br />
               Rounds last <span style={{ color: "#FFA500" }}>1 minute</span>.
               <br />
