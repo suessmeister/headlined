@@ -112,7 +112,7 @@ const Lobby: React.FC = () => {
    const [hits, setHits] = useState(0);
    const [isLastShotHit, setIsLastShotHit] = useState(false);
    const [timeLeft, setTimeLeft] = useState(120);
-   const [activeGun, setActiveGun] = useState<any | null>(null);
+   const [activeGun, setActiveGun] = useState<{ name: keyof typeof gun_metadata } | null>(null);
    const [isMatchmakingOpen, setIsMatchmakingOpen] = useState(false);
 
    const CHARACTER_PROBABILITY = 0.1;
@@ -550,7 +550,9 @@ const Lobby: React.FC = () => {
    }, [shots, isLastShotHit]);
 
    const wrapperStyle: React.CSSProperties = {
-      transform: isZoomed ? "scale(5)" : "scale(1)",
+      transform: isZoomed
+         ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 5})`
+         : "scale(1)",
       transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
       transition: "transform 0.2s ease",
       width: "100vw",
@@ -594,6 +596,38 @@ const Lobby: React.FC = () => {
 
    return (
       <>
+         {/* 🔫 Infinite Ammo Toggle – Top Right with Black Background */}
+         <div style={{
+            position: "fixed",
+            top: 15,
+            right: 205, // adjust this for spacing
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            font: "Quantico",
+            fontSize: "13px",
+            color: "white",
+            backgroundColor: "black",
+            padding: "6px 10px",
+            borderRadius: "6px",
+            border: "1px solid rgba(255,255,255,0.2)",
+            
+         }}>
+            <input
+               type="checkbox"
+               id="infinite-ammo"
+               checked={unlimitedAmmo}
+               onChange={() => setUnlimitedAmmo(p => !p)}
+               style={{ cursor: "pointer" }}
+            />
+            <label htmlFor="infinite-ammo" style={{ cursor: "pointer" }}>
+               ♾️ Ammo
+            </label>
+         </div>
+
+
+
          {introMessage && (
             <div style={{
                position: "fixed",
@@ -683,22 +717,26 @@ const Lobby: React.FC = () => {
                </div>
 
                {!isMatchmakingOpen ? (
-                  <button
-                     onClick={handleJoinMatch}
-                     style={{
-                        backgroundColor: "rgba(80, 0, 0, 0.9)",
-                        color: "white",
-                        border: "1px solid rgba(255, 255, 255, 0.3)",
-                        padding: "8px 16px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontFamily: "monospace",
-                        fontSize: "14px",
-                        transition: "all 0.2s ease",
-                     }}
-                  >
-                     Join Live Match
-                  </button>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                     <button
+                        onClick={handleJoinMatch}
+                        style={{
+                           backgroundColor: "rgba(80, 0, 0, 0.9)",
+                           color: "white",
+                           border: "1px solid rgba(255, 255, 255, 0.3)",
+                           padding: "8px 16px",
+                           borderRadius: "4px",
+                           cursor: "pointer",
+                           fontFamily: "monospace",
+                           fontSize: "14px",
+                           transition: "all 0.2s ease",
+                        }}
+                     >
+                        Join Live Match
+                     </button>
+
+                    
+                  </div>
                ) : (
                   <div
                      style={{
@@ -711,9 +749,8 @@ const Lobby: React.FC = () => {
                   >
                      Waiting for match...
                   </div>
-
-                  
                )}
+
 
                
 
@@ -721,21 +758,7 @@ const Lobby: React.FC = () => {
             </div>
          </div>
 
-         <button
-            onClick={() => setUnlimitedAmmo(p => !p)}
-            style={{
-               backgroundColor: unlimitedAmmo ? "darkgreen" : "darkred",
-               color: "white",
-               border: "1px solid rgba(255,255,255,.3)",
-               padding: "4px 10px",
-               borderRadius: "4px",
-               cursor: "pointer",
-               fontFamily: "monospace",
-               fontSize: "13px",
-            }}
-         >
-            Ammo: {unlimitedAmmo ? "∞" : "limited"}
-         </button>
+    
 
 
          {isPlayerHit && (

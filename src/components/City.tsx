@@ -143,7 +143,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const [gameStarted, setGameStarted] = useState(false);
 
   const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(null);
-  const [unlimitedAmmo, setUnlimitedAmmo] = useState(false);
+
 
   const router = useRouter();
 
@@ -154,7 +154,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
 
 
-
+  const unlimitedAmmo = false; //NEVER HAVE UNLIMITED IN CITY LOL 
   useSniperHandlers({
     sceneRef,
     cameraRef,
@@ -169,7 +169,8 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     setAmmo,
     ammo,
     isReloading,
-    balloonRef
+    balloonRef, 
+    unlimitedAmmo
   });
 
   useZoomHandlers({
