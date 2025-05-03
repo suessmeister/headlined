@@ -51,41 +51,50 @@ export function useSniperHandlers({
     const handleClick = (e: MouseEvent) => {
       if (!sceneRef.current || !cameraRef.current) return;
 
-      if (!unlimitedAmmoRef.current && (!isReloading && ammo > 0)) {
-        setAmmo((prev) => prev - 1);
-      } else if (!unlimitedAmmoRef.current) {
-        return;
-      }
+      /* ammo handling … */
 
-      let screenX: number;
-      let screenY: number;
+      /* compute click (or jitter) coords */
+      const { x: rawX, y: rawY } = isZoomedRef.current
+        ? { x: zoomPosRef.current.x - 5, y: zoomPosRef.current.y + 14 }
+        : {
+          x: e.clientX + (Math.random() - 0.5) * 100,
+          y: e.clientY + (Math.random() - 0.5) * 100,
+        };
 
-      if (isZoomedRef.current) {
-        screenX = zoomPosRef.current.x - 5;
-        screenY = zoomPosRef.current.y + 14;
-      } else {
-        screenX = e.clientX + (Math.random() - 0.5) * 100;
-        screenY = e.clientY + (Math.random() - 0.5) * 100;
-      }
+      setShots((p) => p + 1);
 
-      setShots((prev) => prev + 1);
+      /* ───── snapshot sniper hit, using offsets ───── */
+      const sniperHit = characterRef.current.find((c) => {
+        if (!c.isSniper) return false;
+        const el = document.getElementById(`sniper-hitbox-${c.id}`);
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const rad = r.width / 2;
+        const adjX = rawX - 8.4;   // ← apply offsets
+        const adjY = rawY + 22.7;
+        const dx = adjX - cx;
+        const dy = adjY - cy;
+        return dx * dx + dy * dy <= rad * rad;
+      }) as Character | undefined;
 
+      /* ─── build tracer ray ─── */
       const mouse = new THREE.Vector2(
-        (screenX / window.innerWidth) * 2 - 1,
-        -(screenY / window.innerHeight) * 2 + 1
-      );
-
+          (rawX / window.innerWidth) * 2 - 1,
+          -(rawY / window.innerHeight) * 2 + 1
+        );
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, cameraRef.current);
       const dir = raycaster.ray.direction.clone().normalize();
 
-      const line = new THREE.Line(
+      const tracer = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
         new THREE.LineBasicMaterial({ color: 0xff4500 })
       );
-      line.position.copy(cameraRef.current.position);
-      line.quaternion.copy(cameraRef.current.quaternion);
-      sceneRef.current.add(line);
+      tracer.position.copy(cameraRef.current.position);
+      tracer.quaternion.copy(cameraRef.current.quaternion);
+      sceneRef.current.add(tracer);
 
       const speed = 10;
       const maxDist = 300;
@@ -94,78 +103,55 @@ export function useSniperHandlers({
       const fly = () => {
         travelled += speed;
         if (travelled < maxDist) {
-          line.position.addScaledVector(dir, speed);
+          tracer.position.addScaledVector(dir, speed);
           requestAnimationFrame(fly);
         } else {
-          const finalPosition = new THREE.Vector3().copy(line.position).project(cameraRef.current!);
-          const x = (finalPosition.x * 0.5 + 0.5) * window.innerWidth;
-          const y = -(finalPosition.y * 0.5 - 0.5) * window.innerHeight;
+          /* project tip for scope flash only */
+          const proj = new THREE.Vector3().copy(tracer.position).project(cameraRef.current!);
+          const flashX = (proj.x * 0.5 + 0.5) * window.innerWidth;
+          const flashY = -(proj.y * 0.5 - 0.5) * window.innerHeight;
 
-          const hitCharacter = characterRef.current.find((c) => {
-            if (!c.isSniper) return false;
-            const el = document.getElementById(`sniper-hitbox-${c.id}`);
-            if (!el) return false;
-
-            const rect = el.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const radius = rect.width / 2;
-
-            const adjustedX = x - 8.4;
-            const adjustedY = y + 22.7;
-
-            return (
-              adjustedX >= centerX - radius &&
-              adjustedX <= centerX + radius &&
-              adjustedY >= centerY - radius &&
-              adjustedY <= centerY + radius
-            );
-          });
-
+          /* balloons are tested live (they were fine) */
           const hitBalloon = balloonRef.current.find((b) => {
             const el = document.getElementById(`balloon-hitbox-${b.id}`);
             if (!el) return false;
-
-            const rect = el.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const radius = rect.width / 2;
-
-            const dx = x - centerX;
-            const dy = y - centerY;
-
-            return dx * dx + dy * dy <= radius * radius;
+            const r = el.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+            const rad = r.width / 2;
+            const dx = flashX - cx;
+            const dy = flashY - cy;
+            return dx * dx + dy * dy <= rad * rad;
           });
 
+          /* apply results */
+          if (sniperHit) {
+            setCharacters((prev) => prev.map((c) => (c.id === sniperHit.id ? { ...c, isHit: true } : c)));
+          }
           if (hitBalloon) {
-            const index = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
-            if (index !== -1) balloonRef.current[index].isHit = true;
+            const idx = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
+            if (idx !== -1) balloonRef.current[idx].isHit = true;
           }
 
-          if (hitCharacter) {
-            setCharacters((prev) =>
-              prev.map((c) => (c.id === hitCharacter.id ? { ...c, isHit: true } : c))
-            );
-          }
-
-          if (hitCharacter || hitBalloon) {
-            setHits((prev) => prev + 1);
+          if (sniperHit || hitBalloon) {
+            setHits((p) => p + 1);
             setIsLastShotHit(true);
             getSocket().emit("shot", {
-              characterId: hitCharacter?.id ?? null,
+              characterId: sniperHit?.id ?? null,
               by: getSocket().id,
             });
           } else {
             setIsLastShotHit(false);
           }
 
-          setSniperScopePosition({ x, y });
+          setSniperScopePosition({ x: flashX, y: flashY });
           setIsSniperScopeVisible(true);
           setTimeout(() => setIsSniperScopeVisible(false), 1000);
 
-          sceneRef.current!.remove(line);
-          line.geometry.dispose();
-          (line.material as THREE.Material).dispose();
+          /* cleanup tracer */
+          sceneRef.current!.remove(tracer);
+          tracer.geometry.dispose();
+          (tracer.material as THREE.Material).dispose();
         }
       };
 
@@ -177,14 +163,11 @@ export function useSniperHandlers({
   }, [
     ammo,
     isReloading,
-    sceneRef,
-    cameraRef,
     setShots,
     setHits,
     setIsLastShotHit,
     setSniperScopePosition,
     setIsSniperScopeVisible,
-    characterRef,
     setCharacters,
     isZoomedRef,
     zoomPosRef,

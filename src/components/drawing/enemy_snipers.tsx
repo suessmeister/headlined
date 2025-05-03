@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { Character } from "../Lobby";
+import { Character } from "../types/Character";
+
 
 interface Props {
    characters: Character[];

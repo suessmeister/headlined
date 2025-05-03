@@ -15,6 +15,7 @@ import "react-circular-progressbar/dist/styles.css";
 import { useCallback } from "react";
 import { FlyingBalloon } from "./drawing/flying_balloon";
 
+
 import {
   FlashMessage,
   IntroMessage,
@@ -24,7 +25,10 @@ import {
   ReloadTimer,
 } from "./ui/game_ui";
 import EnemySnipers from "./drawing/enemy_snipers";
+import { addSnipers } from "./handlers/add_snipers";
+import { Character } from "./types/Character";
 
+const MAX_WAVES = 2; // maximum number of waves
 const DARK_STAGGER_MS = 3000;
 let nextDarkOrder = 0; // global variable to track the order of dark phases
 
@@ -66,17 +70,6 @@ const gun_metadata = {
   },
 };
 
-export interface Character {
-  id: number;
-  x: number;
-  y: number;
-  image: string;
-  isSniper?: boolean;
-  phase?: "warmup" | "dark" | "aggressive";
-  nextPhase?: number;
-  laserCooldown?: number;
-  isHit?: boolean;
-}
 
 // Sniper scope logo styled component
 const SniperScope = styled.img<{ x: number; y: number; visible: boolean }>`
@@ -154,6 +147,12 @@ const Lobby: React.FC = () => {
   const [isPlayerHit, setIsPlayerHit] = useState(false);
 
   const [unlimitedAmmo, setUnlimitedAmmo] = useState(false);
+
+  // right under other useState lines
+  const [waveMsgVisible, setWaveMsgVisible] = useState(false);
+  const waveLockRef = useRef(false);        // prevents double‑trigger
+  const [wave, setWave] = useState(1);      // optional: track wave #
+
 
   const router = useRouter();
 
@@ -567,6 +566,27 @@ const Lobby: React.FC = () => {
   };
 
   useEffect(() => {
+    const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
+
+    if (!anyAlive && snipersVisible) {
+      if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
+      if (waveLockRef.current) return; // ⛔️ avoid double-triggers
+
+      waveLockRef.current = true;
+      setWaveMsgVisible(true);
+
+      setTimeout(() => {
+        setWaveMsgVisible(false);
+        setWave((w) => w + 1);
+        nextDarkOrder = 0;
+        setCharacters((prev) => addSnipers(prev));
+        waveLockRef.current = false;
+      }, 3000);
+    }
+
+  }, [characters, snipersVisible, wave]);
+
+  useEffect(() => {
     // whenever isZoomed changes
     isZoomedRef.current = isZoomed;
   }, [isZoomed]);
@@ -622,7 +642,28 @@ const Lobby: React.FC = () => {
         </div>
       )}
 
-      
+      {waveMsgVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: "40%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            padding: "18px 34px",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            color: "gold",
+            fontSize: "26px",
+            fontFamily: "monospace",
+            textAlign: "center",
+            borderRadius: "12px",
+            zIndex: 10000,
+            boxShadow: "0 0 20px gold",
+          }}
+        >
+          Your shots have awoken more snipers!
+        </div>
+      )}
+
 
       <GunDisplay activeGun={activeGun} />
 
