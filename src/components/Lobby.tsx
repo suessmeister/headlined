@@ -18,6 +18,8 @@ import { FlyingBalloon } from "./drawing/flying_balloon";
 
 
 
+
+
 const DARK_STAGGER_MS = 3000; 
 let nextDarkOrder = 0; // global variable to track the order of dark phases
 
@@ -146,6 +148,8 @@ const Lobby: React.FC = () => {
 
    const [snipersVisible, setSnipersVisible] = useState(false);
    const [introMessage, setIntroMessage] = useState(false);
+   const [isPlayerHit, setIsPlayerHit] = useState(false);
+
 
 
    const router = useRouter();
@@ -318,14 +322,18 @@ const Lobby: React.FC = () => {
       let target = cam.position.clone();
 
       // Add a chance to miss — 30%
+      let isHit = false;
       if (Math.random() < 0.8) {
          const missOffset = new THREE.Vector3(
-            (Math.random() - 0.5) * 2,  // ±5 units X
-            (Math.random() - 0.5) * 2,   // ±4 units Y
-            (Math.random() - 0.5) * 2    // ±2.5 units Z (optional)
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2
          );
          target.add(missOffset);
+      } else {
+         isHit = true;
       }
+
 
       const dir = target.clone().sub(origin).normalize();
       const fullLength = origin.distanceTo(target);
@@ -364,11 +372,17 @@ const Lobby: React.FC = () => {
          if (t < 1) {
             requestAnimationFrame(grow);
          } else {
-            // Once fully grown, lock to final position and start fade
             beam.scale.set(1, 1, 1);
             beam.position.copy(origin).add(dir.clone().multiplyScalar(fullLength / 2));
+
+            if (isHit) {
+               setIsPlayerHit(true);
+               setTimeout(() => setIsPlayerHit(false), 400);
+            }
+
             requestAnimationFrame(fade);
          }
+
       };
       requestAnimationFrame(grow);
 
@@ -700,6 +714,21 @@ const Lobby: React.FC = () => {
 
             </div>
          </div>
+
+         {isPlayerHit && (
+            <div style={{
+               position: "fixed",
+               top: 0,
+               left: 0,
+               width: "100vw",
+               height: "100vh",
+               zIndex: 99999,
+               border: "10px solid red",
+               boxSizing: "border-box",
+               pointerEvents: "none",
+               animation: "borderFlash 0.4s ease",
+            }} />
+         )}
 
          <div style={wrapperStyle}>
             <div ref={mountRef} style={{
