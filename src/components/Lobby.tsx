@@ -269,15 +269,15 @@ const Lobby: React.FC = () => {
           }
 
           // laser fire every cooldown
-          if (c.phase === "aggressive" && now >= (c.laserCooldown ?? 0)) {
+          if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
             const nextCooldown = now + 2000 + Math.random() * 1200;
 
-            // ► update the object *before* the next frame
             c.laserCooldown = nextCooldown;
 
             fireLaser(c);
-            return { ...c }; // return a new object so React still re‑renders
+            return { ...c };
           }
+
           return c;
         }),
       );
@@ -416,6 +416,7 @@ const Lobby: React.FC = () => {
     setSniperScopePosition,
     setIsSniperScopeVisible,
     characterRef,
+    setCharacters,
     isZoomedRef,
     zoomPosRef,
     setAmmo,
@@ -554,7 +555,7 @@ const Lobby: React.FC = () => {
 
   const wrapperStyle: React.CSSProperties = {
     transform: isZoomed
-      ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 5})`
+      ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 1.2})`
       : "scale(1)",
     transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
     transition: "transform 0.2s ease",

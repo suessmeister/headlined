@@ -1,8 +1,28 @@
-// hooks/useSniperHandlers.ts
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Character } from "../City";
 import { getSocket } from "../../app/utils/socket";
+
+interface SniperHandlersParams {
+  sceneRef: React.MutableRefObject<THREE.Scene | null>;
+  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
+  setShots: React.Dispatch<React.SetStateAction<number>>;
+  setHits: React.Dispatch<React.SetStateAction<number>>;
+  setIsLastShotHit: React.Dispatch<React.SetStateAction<boolean>>;
+  setSniperScopePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
+  setIsSniperScopeVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  characterRef: React.MutableRefObject<Character[]>;
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+  isZoomedRef: React.MutableRefObject<boolean>;
+  zoomPosRef: React.MutableRefObject<{ x: number; y: number }>;
+  setAmmo: React.Dispatch<React.SetStateAction<number>>;
+  ammo: number;
+  isReloading: boolean;
+  balloonRef: React.MutableRefObject<
+    { id: number; x: number; y: number; size: number; isHit: boolean }[]
+  >;
+  unlimitedAmmo: boolean;
+}
 
 export function useSniperHandlers({
   sceneRef,
@@ -13,6 +33,7 @@ export function useSniperHandlers({
   setSniperScopePosition,
   setIsSniperScopeVisible,
   characterRef,
+  setCharacters,
   isZoomedRef,
   zoomPosRef,
   setAmmo,
@@ -20,27 +41,7 @@ export function useSniperHandlers({
   isReloading,
   balloonRef,
   unlimitedAmmo,
-}: {
-  sceneRef: React.MutableRefObject<THREE.Scene | null>;
-  cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
-  setShots: React.Dispatch<React.SetStateAction<number>>;
-  setHits: React.Dispatch<React.SetStateAction<number>>;
-  setIsLastShotHit: React.Dispatch<React.SetStateAction<boolean>>;
-  setSniperScopePosition: React.Dispatch<
-    React.SetStateAction<{ x: number; y: number } | null>
-  >;
-  setIsSniperScopeVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  characterRef: React.MutableRefObject<Character[]>;
-  isZoomedRef: React.MutableRefObject<boolean>;
-  zoomPosRef: React.MutableRefObject<{ x: number; y: number }>;
-  setAmmo: React.Dispatch<React.SetStateAction<number>>;
-  ammo: number;
-  isReloading: boolean;
-  balloonRef: React.MutableRefObject<
-    { id: number; x: number; y: number; size: number; isHit: boolean }[]
-  >;
-  unlimitedAmmo: boolean;
-}) {
+}: SniperHandlersParams) {
   const unlimitedAmmoRef = useRef(unlimitedAmmo);
   useEffect(() => {
     unlimitedAmmoRef.current = unlimitedAmmo;
@@ -50,12 +51,10 @@ export function useSniperHandlers({
     const handleClick = (e: MouseEvent) => {
       if (!sceneRef.current || !cameraRef.current) return;
 
-      if (!unlimitedAmmoRef.current) {
-        if (!isReloading && ammo > 0) {
-          setAmmo((prev: number) => prev - 1);
-        } else {
-          return;
-        }
+      if (!unlimitedAmmoRef.current && (!isReloading && ammo > 0)) {
+        setAmmo((prev) => prev - 1);
+      } else if (!unlimitedAmmoRef.current) {
+        return;
       }
 
       let screenX: number;
@@ -65,33 +64,30 @@ export function useSniperHandlers({
         screenX = zoomPosRef.current.x - 5;
         screenY = zoomPosRef.current.y + 14;
       } else {
-        const jitterX = (Math.random() - 0.5) * 100; // up to ±40px
-        const jitterY = (Math.random() - 0.5) * 100;
-        screenX = e.clientX + jitterX;
-        screenY = e.clientY + jitterY;
+        screenX = e.clientX + (Math.random() - 0.5) * 100;
+        screenY = e.clientY + (Math.random() - 0.5) * 100;
       }
 
       setShots((prev) => prev + 1);
 
       const mouse = new THREE.Vector2(
         (screenX / window.innerWidth) * 2 - 1,
-        -(screenY / window.innerHeight) * 2 + 1,
+        -(screenY / window.innerHeight) * 2 + 1
       );
+
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, cameraRef.current);
       const dir = raycaster.ray.direction.clone().normalize();
 
-      const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)];
-      const geom = new THREE.BufferGeometry();
-      geom.setFromPoints(pts);
-      const mat = new THREE.LineBasicMaterial({ color: 0xff4500 });
-      const line = new THREE.Line(geom, mat);
-
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+        new THREE.LineBasicMaterial({ color: 0xff4500 })
+      );
       line.position.copy(cameraRef.current.position);
       line.quaternion.copy(cameraRef.current.quaternion);
       sceneRef.current.add(line);
 
-      const speed = 10.0;
+      const speed = 10;
       const maxDist = 300;
       let travelled = 0;
 
@@ -101,50 +97,30 @@ export function useSniperHandlers({
           line.position.addScaledVector(dir, speed);
           requestAnimationFrame(fly);
         } else {
-          const finalScreenPosition = new THREE.Vector3();
-          finalScreenPosition.copy(line.position);
-          const projected = finalScreenPosition.project(cameraRef.current!);
-
-          const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
-          const y = -(projected.y * 0.5 - 0.5) * window.innerHeight;
-
-          // const hitCharacter = characterRef.current.find((character) => {
-          //   return (
-          //     x >= character.x - 15 &&
-          //     x <= character.x + 15 &&
-          //     y >= character.y - 20 &&
-          //     y <= character.y + 20
-          //   );
-          // });
+          const finalPosition = new THREE.Vector3().copy(line.position).project(cameraRef.current!);
+          const x = (finalPosition.x * 0.5 + 0.5) * window.innerWidth;
+          const y = -(finalPosition.y * 0.5 - 0.5) * window.innerHeight;
 
           const hitCharacter = characterRef.current.find((c) => {
             if (!c.isSniper) return false;
-
             const el = document.getElementById(`sniper-hitbox-${c.id}`);
-            if (!el) {
-              console.warn(`❌ No hitbox element for sniper #${c.id}`);
-              return false;
-            }
+            if (!el) return false;
 
             const rect = el.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             const radius = rect.width / 2;
 
-            console.log(`🎯 Sniper #${c.id} hitbox center: x=${centerX.toFixed(1)}, y=${centerY.toFixed(1)} | radius=${radius.toFixed(1)}`);
-            console.log(`🧨 Shot landed at: x=${x.toFixed(1)}, y=${y.toFixed(1)}`);
-
             const adjustedX = x - 8.4;
-            const adjustedY = y + 22.7
+            const adjustedY = y + 22.7;
+
             return (
               adjustedX >= centerX - radius &&
               adjustedX <= centerX + radius &&
               adjustedY >= centerY - radius &&
               adjustedY <= centerY + radius
             );
-
           });
-
 
           const hitBalloon = balloonRef.current.find((b) => {
             const el = document.getElementById(`balloon-hitbox-${b.id}`);
@@ -162,30 +138,22 @@ export function useSniperHandlers({
           });
 
           if (hitBalloon) {
-            setHits((prev) => prev + 1);
-            setIsLastShotHit(true);
+            const index = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
+            if (index !== -1) balloonRef.current[index].isHit = true;
+          }
 
-            const index = balloonRef.current.findIndex(
-              (b) => b.id === hitBalloon.id,
+          if (hitCharacter) {
+            setCharacters((prev) =>
+              prev.map((c) => (c.id === hitCharacter.id ? { ...c, isHit: true } : c))
             );
-            if (index !== -1) {
-              balloonRef.current[index].isHit = true; // crash it!
-            }
-
-            const socket = getSocket();
-            socket.emit("shot", {
-              characterId: hitCharacter ? hitCharacter.id : null,
-              by: socket.id,
-            });
           }
 
           if (hitCharacter || hitBalloon) {
-            setHits((prev) => prev + 1); // Balloons count as 2 hits. 
+            setHits((prev) => prev + 1);
             setIsLastShotHit(true);
-            const socket = getSocket();
-            socket.emit("shot", {
-              characterId: hitCharacter ? hitCharacter.id : null,
-              by: socket.id,
+            getSocket().emit("shot", {
+              characterId: hitCharacter?.id ?? null,
+              by: getSocket().id,
             });
           } else {
             setIsLastShotHit(false);
@@ -193,23 +161,19 @@ export function useSniperHandlers({
 
           setSniperScopePosition({ x, y });
           setIsSniperScopeVisible(true);
-
-          setTimeout(() => {
-            setIsSniperScopeVisible(false);
-          }, 1000);
+          setTimeout(() => setIsSniperScopeVisible(false), 1000);
 
           sceneRef.current!.remove(line);
-          geom.dispose();
-          mat.dispose();
+          line.geometry.dispose();
+          (line.material as THREE.Material).dispose();
         }
       };
+
       fly();
     };
 
     window.addEventListener("click", handleClick);
-    return () => {
-      window.removeEventListener("click", handleClick);
-    };
+    return () => window.removeEventListener("click", handleClick);
   }, [
     ammo,
     isReloading,
@@ -221,6 +185,7 @@ export function useSniperHandlers({
     setSniperScopePosition,
     setIsSniperScopeVisible,
     characterRef,
+    setCharacters,
     isZoomedRef,
     zoomPosRef,
     setAmmo,

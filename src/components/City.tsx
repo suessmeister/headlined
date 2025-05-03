@@ -158,6 +158,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     setSniperScopePosition,
     setIsSniperScopeVisible,
     characterRef,
+    setCharacters,
     isZoomedRef,
     zoomPosRef,
     setAmmo,
