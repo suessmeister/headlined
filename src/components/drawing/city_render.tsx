@@ -36,7 +36,7 @@ const drawBuildings = (
   screenWidth: number,
   screenHeight: number,
   newCharacters: Character[],
-  rng: seedrandom.PRNG
+  rng: seedrandom.PRNG,
 ) => {
   const minBuildingWidth = 40;
   const maxBuildingWidth = 80;
@@ -71,8 +71,7 @@ const drawBuildings = (
     const width =
       rng() * (maxBuildingWidth - minBuildingWidth) + minBuildingWidth;
     const height =
-      rng() * (maxBuildingHeight - minBuildingHeight) +
-      minBuildingHeight;
+      rng() * (maxBuildingHeight - minBuildingHeight) + minBuildingHeight;
     const spacing = rng() * (maxSpacing - minSpacing) + minSpacing;
     const x = i === 0 ? 0 : currentX - spacing;
 
@@ -200,7 +199,8 @@ const drawWindows = (
         const isSniper = rng() < 0.4;
 
         // Only add sniper if inside visible window
-        const isOnScreen = x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight;
+        const isOnScreen =
+          x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight;
 
         if (isSniper && !isOnScreen) return;
 
@@ -209,14 +209,14 @@ const drawWindows = (
           id: now + rng(),
           x,
           y: isSniper ? y + 5 : y,
-          image: isSniper ? "/figures/evil_sniper.png" : "/figures/better_s2.gif",
+          image: isSniper
+            ? "/figures/evil_sniper.png"
+            : "/figures/better_s2.gif",
           isSniper,
           phase: isSniper ? "warmup" : undefined,
           nextPhase: isSniper ? now + 5_000 : undefined,
         });
       }
-
-
     }
   }
 };

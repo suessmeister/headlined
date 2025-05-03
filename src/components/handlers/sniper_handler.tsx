@@ -19,7 +19,7 @@ export function useSniperHandlers({
   ammo,
   isReloading,
   balloonRef,
-  unlimitedAmmo
+  unlimitedAmmo,
 }: {
   sceneRef: React.MutableRefObject<THREE.Scene | null>;
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -36,10 +36,11 @@ export function useSniperHandlers({
   setAmmo: React.Dispatch<React.SetStateAction<number>>;
   ammo: number;
   isReloading: boolean;
-  balloonRef: React.MutableRefObject<{ id: number, x: number, y: number, size: number, isHit: boolean }[]>;
+  balloonRef: React.MutableRefObject<
+    { id: number; x: number; y: number; size: number; isHit: boolean }[]
+  >;
   unlimitedAmmo: boolean;
 }) {
-
   const unlimitedAmmoRef = useRef(unlimitedAmmo);
   useEffect(() => {
     unlimitedAmmoRef.current = unlimitedAmmo;
@@ -68,9 +69,7 @@ export function useSniperHandlers({
         const jitterY = (Math.random() - 0.5) * 100;
         screenX = e.clientX + jitterX;
         screenY = e.clientY + jitterY;
-
       }
-
 
       setShots((prev) => prev + 1);
 
@@ -137,7 +136,9 @@ export function useSniperHandlers({
             setHits((prev) => prev + 1);
             setIsLastShotHit(true);
 
-            const index = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
+            const index = balloonRef.current.findIndex(
+              (b) => b.id === hitBalloon.id,
+            );
             if (index !== -1) {
               balloonRef.current[index].isHit = true; // 💥 crash it!
             }
@@ -149,8 +150,6 @@ export function useSniperHandlers({
             });
           }
 
-
-
           if (hitCharacter || hitBalloon) {
             setHits((prev) => prev + 1);
             setIsLastShotHit(true);
@@ -159,7 +158,6 @@ export function useSniperHandlers({
               characterId: hitCharacter ? hitCharacter.id : null,
               by: socket.id,
             });
-
           } else {
             setIsLastShotHit(false);
           }
@@ -183,5 +181,19 @@ export function useSniperHandlers({
     return () => {
       window.removeEventListener("click", handleClick);
     };
-  }, [ammo, isReloading, sceneRef, cameraRef, setShots, setHits, setIsLastShotHit, setSniperScopePosition, setIsSniperScopeVisible, characterRef, isZoomedRef, zoomPosRef, setAmmo]);
+  }, [
+    ammo,
+    isReloading,
+    sceneRef,
+    cameraRef,
+    setShots,
+    setHits,
+    setIsLastShotHit,
+    setSniperScopePosition,
+    setIsSniperScopeVisible,
+    characterRef,
+    isZoomedRef,
+    zoomPosRef,
+    setAmmo,
+  ]);
 }
