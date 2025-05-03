@@ -18,6 +18,8 @@ import { FlyingBalloon } from "./drawing/flying_balloon";
 
 
 
+const DARK_STAGGER_MS = 3000; 
+let nextDarkOrder = 0; // global variable to track the order of dark phases
 
 const gun_metadata = {
    "AW Magnum": {
@@ -142,6 +144,10 @@ const Lobby: React.FC = () => {
 
    const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(null);
 
+   const [snipersVisible, setSnipersVisible] = useState(false);
+   const [introMessage, setIntroMessage] = useState(false);
+
+
    const router = useRouter();
 
    // give handle click fresh values
@@ -223,20 +229,9 @@ const Lobby: React.FC = () => {
 
       const tick = () => {
 
-         // setCharacters(prev => {
-         //    const sniper = prev.find(c => c.isSniper);
-         //    if (sniper) {
-         //       console.log("🚨 Live sniper:", {
-         //          id: sniper.id,
-         //          phase: sniper.phase,
-         //          nextPhase: sniper.nextPhase,
-         //       });
-         //    }
-         //    return prev;
-         // });
-
          const now = Date.now();
 
+         
          setCharacters(prev =>
             prev.map(c => {
                if (!c.isSniper) return c;
@@ -246,8 +241,17 @@ const Lobby: React.FC = () => {
                // phase changes
                if (c.nextPhase && now >= c.nextPhase) {
                   if (c.phase === "warmup") {
-                     return { ...c, phase: "dark", image: "", nextPhase: now + 5000 };
+                     const myOrder = nextDarkOrder++;           // 0, 1, 2, …
+                     const exitDelay = myOrder * DARK_STAGGER_MS; // 0 ms, 500 ms, …
+
+                     return {
+                        ...c,
+                        phase: "dark",
+                        image: "",                    // hide sprite
+                        nextPhase: now + exitDelay,   // schedule dark → aggressive
+                     };
                   }
+
                   if (c.phase === "dark") {
                      return {
                         ...c,
@@ -260,16 +264,17 @@ const Lobby: React.FC = () => {
                }
 
                // laser fire every cooldown
-               if (
-                  c.phase === "aggressive" &&
-                  now >= (c.laserCooldown ?? 0)
-               ) {
-                  console.log(`💥 Sniper ${c.id} firing laser`);
-                  fireLaser(c);
-                  return { ...c, laserCooldown: now + 2000 + Math.random() * 1200 };
-               }
+               if (c.phase === "aggressive" && now >= (c.laserCooldown ?? 0)) {
+                  const nextCooldown = now + 2000 + Math.random() * 1200;
 
+                  // ► update the object *before* the next frame
+                  c.laserCooldown = nextCooldown;
+
+                  fireLaser(c);
+                  return { ...c };             // return a new object so React still re‑renders
+               }
                return c;
+
             })
          );
 
@@ -290,11 +295,15 @@ const Lobby: React.FC = () => {
       const cam = cameraRef.current;
       const scene = sceneRef.current;
 
-      // 1️⃣ Convert screen to NDC
+      // Apply small offset before mapping to NDC (e.g., 10px right, 20px down)
+      const visualOffsetX = 8;
+      const visualOffsetY = 10;
+
       const ndc = new THREE.Vector2(
-         (c.x / window.innerWidth) * 2 - 1,
-         -(c.y / window.innerHeight) * 2 + 1
+         ((c.x + visualOffsetX) / window.innerWidth) * 2 - 1,
+         -((c.y + visualOffsetY) / window.innerHeight) * 2 + 1
       );
+
 
       // 2️⃣ Ray from screen position
       const raycaster = new THREE.Raycaster();
@@ -376,7 +385,7 @@ const Lobby: React.FC = () => {
          }
       };
 
-      requestAnimationFrame(grow);
+    
    };
 
 
@@ -485,6 +494,18 @@ const Lobby: React.FC = () => {
          const seed = `practice-${Date.now()}`;
          generateCity(canvasRef.current, setCharacters, seed);
       }
+      
+      setSnipersVisible(false);
+      setIntroMessage(false);
+
+      setTimeout(() => {
+         setIntroMessage(true);
+         setTimeout(() => {
+            setIntroMessage(false);
+            setSnipersVisible(true);
+         }, 3000); // message stays for 3s
+      }, 5000); // initial wait
+
 
       const renderLoop = () => {
          renderer.render(scene, camera);
@@ -557,6 +578,26 @@ const Lobby: React.FC = () => {
 
    return (
       <>
+         {introMessage && (
+            <div style={{
+               position: "fixed",
+               top: "40%",
+               left: "50%",
+               transform: "translate(-50%, -50%)",
+               padding: "20px 40px",
+               backgroundColor: "rgba(0,0,0,0.85)",
+               color: "red",
+               fontSize: "28px",
+               fontFamily: "monospace",
+               textAlign: "center",
+               borderRadius: "12px",
+               zIndex: 9999,
+               boxShadow: "0 0 20px red",
+            }}>
+               Enemy Snipers have located you!
+            </div>
+         )}
+
          {flashMessage && (
             <div style={{
                position: "fixed",
@@ -710,7 +751,7 @@ const Lobby: React.FC = () => {
             }} />
 
             {!isZoomedOut && characters.map((c) => (
-               c.image && ( // ✅ skip if image is ""
+               c.image && (snipersVisible || !c.isSniper) && (
                   <CharacterImg
                      key={c.id}
                      x={c.x}
@@ -724,6 +765,7 @@ const Lobby: React.FC = () => {
                   />
                )
             ))}
+
 
 
 
