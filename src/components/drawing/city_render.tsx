@@ -1,11 +1,11 @@
-// handlers/city_renderer.ts
+import p5 from 'p5';
 import { Character } from "../City";
 import seedrandom from "seedrandom";
 
 export function generateCity(
   canvas: HTMLCanvasElement,
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>,
-  seed: string,
+  seed: string
 ) {
   const rng = seedrandom(seed);
   const ctx = canvas.getContext("2d");
@@ -16,20 +16,67 @@ export function generateCity(
   const ratio = 4;
   canvas.width = screenWidth * ratio;
   canvas.height = screenHeight * ratio;
-
   ctx.scale(ratio, ratio);
-  ctx.clearRect(0, 0, screenWidth, screenHeight);
 
-  const gradient = ctx.createLinearGradient(0, 0, 0, screenHeight);
-  gradient.addColorStop(0, "#87CEEB");
-  gradient.addColorStop(1, "#E0F7FA");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, screenWidth, screenHeight);
+  // 1️⃣ DRAW SKY FIRST
+  drawAnimatedSky(ctx, screenWidth, screenHeight);
 
+  // 2️⃣ THEN draw city
+  // ctx.clearRect(0, 0, screenWidth, screenHeight); // optional clear before buildings
   const newCharacters: Character[] = [];
   drawBuildings(ctx, screenWidth, screenHeight, newCharacters, rng);
   setCharacters(newCharacters);
 }
+
+function drawAnimatedSky(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const now = Date.now();
+  const t = ((now / 1000) % 60) / 60; // loops every 60 seconds
+  const topColor = lerpColor("#FF512F", "#0F2027", t);
+  const bottomColor = lerpColor("#F09819", "#001120", t);
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, topColor);
+  gradient.addColorStop(1, bottomColor);
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // draw sun
+  const sunY = height * 0.4 + Math.sin(t * Math.PI * 2) * 50;
+  ctx.beginPath();
+  ctx.arc(width * 0.75, sunY, 40, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 204, 0, 0.8)";
+  ctx.fill();
+
+  // draw stars fading in
+  const starAlpha = t > 0.5 ? (t - 0.5) * 2 : 0;
+  ctx.fillStyle = `rgba(255, 255, 255, ${starAlpha})`;
+  for (let i = 0; i < 50; i++) {
+    const x = (i * 137) % width;
+    const y = (i * 89) % height * 0.6;
+    ctx.beginPath();
+    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function lerpColor(c1: string, c2: string, t: number): string {
+  const hex = (c: string) =>
+    c.length === 4
+      ? c
+        .substring(1)
+        .split("")
+        .map((ch) => parseInt(ch + ch, 16))
+      : [parseInt(c.substring(1, 3), 16), parseInt(c.substring(3, 5), 16), parseInt(c.substring(5, 7), 16)];
+
+  const [r1, g1, b1] = hex(c1);
+  const [r2, g2, b2] = hex(c2);
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 
 const drawBuildings = (
   ctx: CanvasRenderingContext2D,
@@ -199,8 +246,13 @@ const drawWindows = (
         const isSniper = rng() < 0.4;
 
         // Only add sniper if inside visible window
+        const margin = 50;
         const isOnScreen =
-          x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight;
+          x >= margin &&
+          x <= window.innerWidth - margin &&
+          y >= margin &&
+          y <= window.innerHeight - margin;
+
 
         if (isSniper && !isOnScreen) return;
 

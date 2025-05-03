@@ -10,9 +10,12 @@ export function addSnipers(
    let added = 0;
 
    return chars.map((c) => {
+      const margin = 50;
       const isOnScreen =
-         c.x >= 0 && c.x <= window.innerWidth &&
-         c.y >= 0 && c.y <= window.innerHeight;
+         c.x >= margin &&
+         c.x <= window.innerWidth - margin &&
+         c.y >= margin &&
+         c.y <= window.innerHeight - margin;
 
       if (
          !c.isSniper &&
@@ -27,7 +30,7 @@ export function addSnipers(
             ...c,
             isSniper: true,
             phase: "warmup",
-            image: "/figures/sniper.png",
+            image: "/figures/evil_sniper.png",
             nextPhase: now + delay,
             laserCooldown: undefined,
          };

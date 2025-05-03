@@ -153,6 +153,8 @@ const Lobby: React.FC = () => {
   const waveLockRef = useRef(false);        // prevents double‑trigger
   const [wave, setWave] = useState(1);      // optional: track wave #
 
+  const [showIntroScroll, setShowIntroScroll] = useState(true);
+
 
   const router = useRouter();
 
@@ -615,6 +617,104 @@ const Lobby: React.FC = () => {
 
   return (
     <>
+
+      {showIntroScroll && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0, 0, 0, 0.6)",
+            color: "white",
+            overflowY: "scroll",
+            zIndex: 100000,
+            padding: "40px",
+            fontFamily: "'Courier New', monospace",
+            letterSpacing: "0.4px",
+          }}
+        >
+          <div style={{ minHeight: "250vh", maxWidth: "800px", margin: "0 auto" }}>
+            <h1
+              style={{
+                fontSize: "42px",
+                marginBottom: "28px",
+                textAlign: "center",
+                color: "#FFA500",
+                textShadow: "0 0 8px black",
+              }}
+            >
+              Welcome to <span style={{ color: "white" }}>Headlined</span>.
+            </h1>
+
+            <p
+              style={{
+                fontSize: "20px",
+                lineHeight: "1.8",
+                textShadow: "0 0 4px black",
+              }}
+            >
+              Your enemies are taking over.
+              <br />
+              <br />
+              Zoom, scan windows, and pick off the enemies before they fire back.{" "}
+              <span style={{ color: "#FFA500" }}>Only headshots count.</span>
+              <br />
+              You can shoot the balloons as well.
+              <br />
+              <br />
+              You only need <span style={{ color: "#FFA500" }}>Ctrl</span> to scope and{" "}
+              <span style={{ color: "#FFA500" }}>Click</span> to shoot.
+              <br />
+              <br />
+              The <span style={{ color: "#FFA500" }}>Arsenal</span> contains snipers for purchase with various scopes and mags.
+              <br />
+              Use the one that inspires you.
+              <br />
+              <br />
+              Join a <strong>Live Match</strong> to go 1v1 against another opponent.
+              <br />
+              <br />
+              You'll be graded on <strong>hits</strong>, then <strong>accuracy</strong>. Don't let an enemy get you first.
+              <br />
+              Rounds last <span style={{ color: "#FFA500" }}>1 minute</span>.
+              <br />
+              <br />
+              Will you make headlines and save the city?
+            </p>
+
+
+            <div
+              style={{
+                marginTop: "30px",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowIntroScroll(false)}
+                style={{
+                  padding: "12px 26px",
+                  fontSize: "18px",
+                  fontFamily: "monospace",
+                  backgroundColor: "#FF4500",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  boxShadow: "0 0 10px #FF4500",
+                }}
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
       <InfiniteAmmoToggle
         unlimitedAmmo={unlimitedAmmo}
         setUnlimitedAmmo={setUnlimitedAmmo}

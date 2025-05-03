@@ -52,6 +52,13 @@ export function useSniperHandlers({
       if (!sceneRef.current || !cameraRef.current) return;
 
       /* ammo handling … */
+      if (!unlimitedAmmoRef.current) {
+        if (!isReloading && ammo > 0) {
+          setAmmo((prev: number) => prev - 1);
+        } else {
+          return;
+        }
+      }
 
       /* compute click (or jitter) coords */
       const { x: rawX, y: rawY } = isZoomedRef.current
