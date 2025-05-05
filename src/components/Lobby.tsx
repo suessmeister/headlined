@@ -838,8 +838,7 @@ const Lobby: React.FC = () => {
             boxShadow: "0 0 20px red",
           }}
         >
-          Enemy Snipers have located you!
-          They're Coming Soon!!
+          The Enemy Snipers located you. Be on lookout. 
         </div>
       )}
 
