@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { Character } from "../City";
+import { Character } from "../types/Character";
 import { getSocket } from "../../app/utils/socket";
 
 interface SniperHandlersParams {

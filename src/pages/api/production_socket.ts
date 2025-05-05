@@ -10,7 +10,7 @@ const test_url = "http://localhost:4000";
 export function getSocket(): Socket {
    if (!socket) {
       if (typeof window !== "undefined") {
-         socket = io(SOCKET_SERVER_URL);
+         socket = io(test_url);
       } else {
          console.warn("Attempted to connect socket on server.");
       }

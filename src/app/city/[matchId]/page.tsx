@@ -1,4 +1,4 @@
-'use client'
+
 import { useRouter } from "next/navigation";
 import City from "../../../components/City"; // <-- Your City component
 

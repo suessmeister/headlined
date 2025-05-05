@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import { Character } from "../City";
+import { Character } from '../types/Character';
 import seedrandom from "seedrandom";
 
 export function generateCity(

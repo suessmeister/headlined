@@ -1,3 +1,4 @@
+'use client'
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
@@ -14,12 +15,32 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useCallback } from "react";
 import { FlyingBalloon } from "./drawing/flying_balloon";
+import { Character } from "./types/Character";
+import { addSnipers } from "./handlers/add_snipers";
+import {
+  FlashMessage,
+  IntroMessage,
+  InfiniteAmmoToggle,
+  GunDisplay,
+  AmmoBar,
+  ReloadTimer,
+} from "./ui/game_ui";
+import EnemySnipers from "./drawing/enemy_snipers";
+
+const MAX_WAVES = 2; // maximum number of waves
+const DARK_STAGGER_MS = 3000;
+let nextDarkOrder = 0; // global variable to track the order of dark phases
 
 interface CityProps {
   matchId: string;
 }
 
 const gun_metadata = {
+  "Default Sniper": {
+    scope: "1.5",
+    capacity: "3",
+    reload: "1.5",
+  },
   "AW Magnum": {
     scope: "2.2",
     capacity: "5",
@@ -57,16 +78,6 @@ const gun_metadata = {
   },
 };
 
-export interface Character {
-  id: number;
-  x: number;
-  y: number;
-  image: string;
-  isSniper?: boolean;
-  phase?: "warmup" | "dark" | "aggressive";
-  nextPhase?: number;
-  laserCooldown?: number;
-}
 
 // Sniper scope logo styled component
 const SniperScope = styled.img<{ x: number; y: number; visible: boolean }>`
@@ -137,16 +148,231 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const [showReloading, setShowReloading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
 
+
   const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(
     null,
   );
 
+  const [isPlayerHit, setIsPlayerHit] = useState(false);
+  const [introMessage, setIntroMessage] = useState(false);
   const router = useRouter();
 
   // give handle click fresh values
   const isZoomedRef = useRef(false);
   const zoomPosRef = useRef({ x: 0, y: 0 });
   const reloadStartTimeRef = useRef<number>(0);
+
+    const [waveMsgVisible, setWaveMsgVisible] = useState(false);
+    const waveLockRef = useRef(false);        // prevents double‑trigger
+    const [wave, setWave] = useState(1);      // optional: track wave #
+      const [snipersVisible, setSnipersVisible] = useState(false);
+
+
+
+   useEffect(() => {
+      const spawn = () => {
+        const random = Math.random();
+        const id = Date.now() + random;
+        const startY = Math.random() * window.innerHeight * 0.1 + 50;
+        const duration = 15 + Math.random() * 5;
+        const size = 80 + Math.random() * 25;
+  
+        setBalloons((prev) => [...prev, { id, startY, duration, size }]);
+  
+        // 💥 Add to the tracking ref
+        balloonRef.current.push({
+          id,
+          x: window.innerWidth + 150, // start off-screen right
+          y: startY,
+          size,
+          isHit: false,
+        });
+  
+        // 🔁 Schedule next spawn
+        const nextDelay = 8000 + Math.random() * 8000;
+        setTimeout(spawn, nextDelay);
+      };
+  
+      spawn();
+    }, []);
+  
+    useEffect(() => {
+      console.log("TICKED ");
+      let raf: number;
+  
+      const tick = () => {
+        const now = Date.now();
+  
+        setCharacters((prev) =>
+          prev.map((c) => {
+            if (!c.isSniper) return c;
+            if (!c.phase) return c; // always need a phase
+            if (c.phase !== "aggressive" && !c.nextPhase) return c;
+  
+            // phase changes
+            if (c.nextPhase && now >= c.nextPhase) {
+              if (c.phase === "warmup") {
+                const myOrder = nextDarkOrder++; // 0, 1, 2, …
+                const exitDelay = myOrder * DARK_STAGGER_MS; // 0 ms, 500 ms, …
+  
+                return {
+                  ...c,
+                  phase: "dark",
+                  image: "", // hide sprite
+                  nextPhase: now + exitDelay, // schedule dark → aggressive
+                };
+              }
+  
+              if (c.phase === "dark") {
+                return {
+                  ...c,
+                  phase: "aggressive",
+                  image: "/figures/evil_sniper_2.png",
+                  laserCooldown: now + 700 + Math.random() * 800,
+                  nextPhase: undefined,
+                };
+              }
+            }
+  
+            // laser fire every cooldown
+            if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
+              const nextCooldown = now + 2000 + Math.random() * 1200;
+  
+              c.laserCooldown = nextCooldown;
+  
+              fireLaser(c);
+              return { ...c };
+            }
+  
+            return c;
+          }),
+        );
+  
+        raf = requestAnimationFrame(tick);
+      };
+  
+      raf = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(raf);
+    }, []);
+  
+    // ─── LASER: character ➜ camera ──────────────────────────────────────────────
+    const fireLaser = (c: Character) => {
+      if (!sceneRef.current || !cameraRef.current) return;
+  
+      const cam = cameraRef.current;
+      const scene = sceneRef.current;
+  
+      // Apply small offset before mapping to NDC (e.g., 10px right, 20px down)
+      const visualOffsetX = 8;
+      const visualOffsetY = 10;
+  
+      const ndc = new THREE.Vector2(
+        ((c.x + visualOffsetX) / window.innerWidth) * 2 - 1,
+        -((c.y + visualOffsetY) / window.innerHeight) * 2 + 1,
+      );
+  
+      // 2️⃣ Ray from screen position
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(ndc, cam);
+      const ray = raycaster.ray;
+  
+      // 3️⃣ Origin of the laser
+      const origin = ray.origin
+        .clone()
+        .add(ray.direction.clone().multiplyScalar(40));
+  
+      // 4️⃣ Direction to camera
+      // 4️⃣ Direction to camera (with randomized offset for misses)
+      let target = cam.position.clone();
+  
+      // Add a chance to miss — 30%
+      let isHit = false;
+      if (Math.random() < 0.8) {
+        const missOffset = new THREE.Vector3(
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+          (Math.random() - 0.5) * 2,
+        );
+        target.add(missOffset);
+      } else {
+        isHit = true;
+      }
+  
+      const dir = target.clone().sub(origin).normalize();
+      const fullLength = origin.distanceTo(target);
+  
+      // 5️⃣ Create cylinder with full length (we’ll scale it up)
+      const radius = 0.05;
+      const geom = new THREE.CylinderGeometry(
+        radius,
+        radius,
+        fullLength,
+        8,
+        1,
+        true,
+      );
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const beam = new THREE.Mesh(geom, mat);
+  
+      // Align beam from Y-up → dir
+      const up = new THREE.Vector3(0, 1, 0);
+      const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
+      beam.quaternion.copy(quat);
+  
+      // Start at origin
+      beam.position.copy(origin);
+      scene.add(beam);
+  
+      const growDuration = 800; // total grow time in ms
+      const growStart = performance.now();
+  
+      const grow = (now: number) => {
+        const elapsed = now - growStart;
+        const t = Math.min(elapsed / growDuration, 1); // normalized [0,1]
+  
+        beam.scale.set(1, t, 1);
+        beam.position
+          .copy(origin)
+          .add(dir.clone().multiplyScalar((fullLength * t) / 2));
+  
+        if (t < 1) {
+          requestAnimationFrame(grow);
+        } else {
+          beam.scale.set(1, 1, 1);
+          beam.position
+            .copy(origin)
+            .add(dir.clone().multiplyScalar(fullLength / 2));
+  
+          if (isHit) {
+            setIsPlayerHit(true);
+            setTimeout(() => setIsPlayerHit(false), 400);
+          }
+  
+          requestAnimationFrame(fade);
+        }
+      };
+      requestAnimationFrame(grow);
+  
+      // 7️⃣ Fade out after full growth
+      const startFade = performance.now();
+      const fade = (t: number) => {
+        const alpha = 1 - (t - startFade) / 400;
+        mat.opacity = Math.max(alpha, 0);
+        if (alpha > 0) requestAnimationFrame(fade);
+        else {
+          scene.remove(beam);
+          geom.dispose();
+          mat.dispose();
+        }
+      };
+    };
+
 
   const unlimitedAmmo = false; //NEVER HAVE UNLIMITED IN CITY LOL
   useSniperHandlers({
@@ -213,29 +439,42 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   useEffect(() => {
     const socket = getSocket();
 
-    if (!socket.connected) socket.connect();
+    console.log("🎮 City component mounted");
+
+    if (!socket.connected) {
+      console.log("🔌 Connecting socket...");
+      socket.connect();
+    }
 
     const seed = localStorage.getItem("matchSeed");
     const matchId = localStorage.getItem("matchId");
 
-    if (seed && matchId && !gameStarted) {
-      console.log("🎮 Resuming match with cached data:", matchId, seed);
-      setMatchSeed(seed);
-      setGameStarted(true);
+    console.log("📦 matchId:", matchId, "| seed:", seed);
 
-      if (canvasRef.current) {
-        generateCity(canvasRef.current, setCharacters, seed);
-      }
+    if (seed && canvasRef.current) {
+      console.log("🧠 Generating city with seed");
+      generateCity(canvasRef.current, setCharacters, seed);
     }
 
-    socket.on("start", ({ roomId, seed }: { roomId: string; seed: string }) => {
-      console.log("🎮 Match started (from socket):", seed);
-      setMatchSeed(seed);
+    if (matchId) {
+      console.log("📡 Emitting ready_in_city");
+      socket.emit("ready_in_city", { roomId: matchId });
+    }
+
+    socket.on("start", ({ roomId, seed }) => {
+      console.log("🎬 MATCH STARTING:", roomId, seed);
       setGameStarted(true);
 
-      if (canvasRef.current) {
-        generateCity(canvasRef.current, setCharacters, seed);
-      }
+      setSnipersVisible(false);
+      setIntroMessage(false);
+
+      setTimeout(() => {
+        setIntroMessage(true);
+        setTimeout(() => {
+          setIntroMessage(false);
+          setSnipersVisible(true);
+        }, 3000);
+      }, 5000);
     });
 
     socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
@@ -247,28 +486,32 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       }
     });
 
-    socket.on(
-      "shot",
-      ({ characterId, by }: { characterId: number; by: string }) => {
-        console.log("💥 Kill received:", characterId, "by", by);
-        setCharacters((prev) => prev.filter((c) => c.id !== characterId));
-        setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
-        setTimeout(() => setFlashMessage(null), 2000);
+    socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
+      console.log("💥 Kill received:", characterId, "by", by);
+      setCharacters((prev) => prev.filter((c) => c.id !== characterId));
+      setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
+      setTimeout(() => setFlashMessage(null), 2000);
 
-        if (by === socket.id) {
-          setHits((h) => h + 1);
-        } else {
-          setEnemyHits((h) => h + 1);
-        }
-      },
-    );
+      if (by === socket.id) {
+        setHits((h) => h + 1);
+      } else {
+        setEnemyHits((h) => h + 1);
+      }
+    });
+
+    socket.on("match_ended", ({ results }: { results: any[] }) => {
+      console.log("🏁 Match ended. Results:", results);
+      localStorage.setItem("matchResults", JSON.stringify(results));
+    });
 
     return () => {
       socket.off("start");
       socket.off("timer");
       socket.off("shot");
+      socket.off("match_ended");
     };
   }, []);
+
 
   const [balloons, setBalloons] = useState<
     { id: number; startY: number; duration: number; size: number }[]
@@ -373,17 +616,18 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     return () => clearTimeout(timer);
   }, [shots, isLastShotHit]);
 
-  const wrapperStyle: React.CSSProperties = {
-    transform: isZoomed ? "scale(5)" : "scale(1)",
-    transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
-    transition: "transform 0.2s ease",
-    width: "100vw",
-    height: "100vh",
-    position: "relative",
-    overflow: "hidden",
-    cursor: isZoomed ? "none" : "default",
-    marginTop: "-30px",
-  };
+ const wrapperStyle: React.CSSProperties = {
+     transform: isZoomed
+       ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 1.2})`
+       : "scale(1)",
+     transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
+     transition: "transform 0.2s ease",
+     width: "100vw",
+     height: "100vh",
+     position: "relative",
+     overflow: "hidden",
+     cursor: isZoomed ? "none" : "default",
+   };
 
   useEffect(() => {
     // whenever isZoomed changes
@@ -414,6 +658,27 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       setMaxAmmo(4);
     }
   }, []);
+  
+    useEffect(() => {
+      const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
+  
+      if (!anyAlive && snipersVisible) {
+        if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
+        if (waveLockRef.current) return; // ⛔️ avoid double-triggers
+  
+        waveLockRef.current = true;
+        setWaveMsgVisible(true);
+  
+        setTimeout(() => {
+          setWaveMsgVisible(false);
+          setWave((w) => w + 1);
+          nextDarkOrder = 0;
+          setCharacters((prev) => addSnipers(prev));
+          waveLockRef.current = false;
+        }, 3000);
+      }
+  
+    }, [characters, snipersVisible, wave]);
 
   useEffect(() => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
@@ -433,6 +698,51 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
   return (
     <>
+      {introMessage && (
+        <div
+          style={{
+            position: "fixed",
+            top: "40%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            padding: "20px 40px",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            color: "red",
+            fontSize: "28px",
+            fontFamily: "monospace",
+            textAlign: "center",
+            borderRadius: "12px",
+            zIndex: 9999,
+            boxShadow: "0 0 20px red",
+          }}
+        >
+          Enemy Snipers have located you!
+        </div>
+      )}
+
+      {waveMsgVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: "40%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            padding: "18px 34px",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            color: "gold",
+            fontSize: "26px",
+            fontFamily: "monospace",
+            textAlign: "center",
+            borderRadius: "12px",
+            zIndex: 10000,
+            boxShadow: "0 0 20px gold",
+          }}
+        >
+          Your shots have awoken more snipers!
+        </div>
+      )}
+
+
       {flashMessage && (
         <div
           style={{
@@ -453,7 +763,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         </div>
       )}
 
-      <div
+      {/* <div
         style={{
           position: "fixed",
           top: 60,
@@ -470,7 +780,24 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         }}
       >
         {activeGun && <div>Now Using: {activeGun.name}</div>}
-      </div>
+      </div> */}
+
+      {isPlayerHit && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 99999,
+            border: "10px solid red",
+            boxSizing: "border-box",
+            pointerEvents: "none",
+            animation: "borderFlash 0.4s ease",
+          }}
+        />
+      )}
 
       <div
         style={{
@@ -548,6 +875,14 @@ const City: React.FC<CityProps> = ({ matchId }) => {
             cursor: isZoomed ? "none" : "default",
           }}
         />
+
+           {!isZoomedOut && (
+                  <EnemySnipers
+                    characters={characters}
+                    snipersVisible={snipersVisible}
+                    setCharacters={setCharacters}
+                  />
+                )}
 
         {!isZoomedOut &&
           characters.map((c) => (

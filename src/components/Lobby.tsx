@@ -161,6 +161,14 @@ const Lobby: React.FC = () => {
   const [showIntroScroll, setShowIntroScroll] = useState(true);
 
 
+  // 🔝 put with the other useState calls
+  const [matchFound, setMatchFound] = useState(false);
+  const [opponent, setOpponent] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);   // seconds left
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+
+
   const router = useRouter();
 
   // give handle click fresh values
@@ -183,22 +191,44 @@ const Lobby: React.FC = () => {
 
     socket.emit("join_matchmaking", { walletAddress: publicKey.toString() });
 
-    socket.on("start", ({ roomId, seed }: { roomId: string; seed: string }) => {
-      console.log("🎯 Match found!", roomId, seed);
+    socket.on("match_found", ({ roomId, seed, opponent }: {
+      roomId: string;
+      seed: string;
+      opponent: string;
+    }) => {
+      console.log("🎯 Match found!", roomId, seed, opponent);
+
+      // Store match data
       localStorage.setItem("matchSeed", seed);
       localStorage.setItem("matchId", roomId);
-      router.push(`/city/${roomId}`);
+
+      // Show countdown overlay
+      setOpponent(opponent);
+      setMatchFound(true);
+      setCountdown(5);
+
+      // Clear any existing countdown
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+
+      // Start countdown interval
+      countdownRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === 1) {
+            clearInterval(countdownRef.current!);
+            router.push(`/city/${roomId}`); // Redirect after countdown
+          }
+          return prev - 1;
+        });
+      }, 1000);
     });
+
 
     socket.on("waiting", ({ message }: { message: string }) => {
       console.log("⌛ Waiting:", message);
     });
 
-    socket.on("already_in_match", () => {
-      console.log("🚫 Already in match!");
-      setIsMatchmakingOpen(false); // optional: let them try again later
-      alert("You are already in a match! Finish it first.");
-    });
   };
 
   const [balloons, setBalloons] = useState<
@@ -209,12 +239,12 @@ const Lobby: React.FC = () => {
   const removeBalloon = useCallback((id: number) => {
     setBalloons((prev) => prev.filter((b) => b.id !== id));
   }, []);
-  
-  useEffect(() => {
-    if (!publicKey) {
-      router.push("/landing");
-    }
-  }, [publicKey, router]);
+
+  // useEffect(() => {
+  //   if (!publicKey) {
+  //     router.push("/landing");
+  //   }
+  // }, [publicKey, router]);
 
 
   useEffect(() => {
@@ -734,6 +764,45 @@ const Lobby: React.FC = () => {
         </div>
       )}
 
+      {matchFound && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100000,
+            color: "white",
+            fontFamily: "monospace",
+            textShadow: "0 0 6px black",
+          }}
+        >
+          <h2 style={{ fontSize: "34px", marginBottom: "18px" }}>
+            Match Found!
+          </h2>
+          <p style={{ fontSize: "20px", marginBottom: "8px" }}>
+            Opponent:&nbsp;
+            <span style={{ color: "#FFD700" }}>
+              {opponent
+                ? `${opponent.slice(0, 4)}…${opponent.slice(-4)}`
+                : "loading…"}
+            </span>
+          </p>
+          <p style={{ fontSize: "24px" }}>
+            Starting in&nbsp;
+            <span style={{ color: "#FFA500", fontWeight: "bold" }}>
+              {countdown}
+            </span>
+            …
+          </p>
+        </div>
+      )}
 
 
       <InfiniteAmmoToggle
