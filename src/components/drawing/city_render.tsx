@@ -277,11 +277,12 @@ const drawWindows = (
 
         const scaleX = window.innerWidth / screenWidth;
         const scaleY = window.innerHeight / screenHeight;
+        
 
         newCharacters.push({
           id: Date.now() + rng(),
-          x: (isSniper ? charX + 2 : charX) * scaleX,
-          y: (isSniper ? charY : charY - 10.5) * scaleY,
+          x: isSniper ? charX  + 2 * scaleX: charX,
+          y: isSniper ? charY : charY - 10.5 * scaleY,
           image: isSniper
             ? "/figures/evil_sniper.png"
             : "/figures/better_s2.gif",
@@ -289,7 +290,6 @@ const drawWindows = (
           phase: isSniper ? "warmup" : undefined,
           nextPhase: isSniper ? Date.now() + 5000 : undefined,
         });
-
       }
 
 
