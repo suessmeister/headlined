@@ -272,10 +272,16 @@ const drawWindows = (
           `🪟 Lit window at (${x.toFixed(1)}, ${y.toFixed(1)}) → character at (${charX.toFixed(1)}, ${charY.toFixed(1)})`
         );
 
+        const screenWidth = 1920;
+        const screenHeight = 1080;
+
+        const scaleX = window.innerWidth / screenWidth;
+        const scaleY = window.innerHeight / screenHeight;
+
         newCharacters.push({
           id: Date.now() + rng(),
-          x: isSniper ? charX + 2 : charX,
-          y: isSniper ? charY : charY - 10.5,
+          x: (isSniper ? charX + 2 : charX) * scaleX,
+          y: (isSniper ? charY : charY - 10.5) * scaleY,
           image: isSniper
             ? "/figures/evil_sniper.png"
             : "/figures/better_s2.gif",
@@ -283,6 +289,7 @@ const drawWindows = (
           phase: isSniper ? "warmup" : undefined,
           nextPhase: isSniper ? Date.now() + 5000 : undefined,
         });
+
       }
 
 
