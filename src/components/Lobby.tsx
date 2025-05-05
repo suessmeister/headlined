@@ -839,6 +839,7 @@ const Lobby: React.FC = () => {
           }}
         >
           Enemy Snipers have located you!
+          They're Coming Soon!!
         </div>
       )}
 

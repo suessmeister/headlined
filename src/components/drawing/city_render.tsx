@@ -274,8 +274,8 @@ const drawWindows = (
 
         newCharacters.push({
           id: Date.now() + rng(),
-          x: charX,
-          y: charY,
+          x: isSniper ? charX + 2 : charX,
+          y: isSniper ? charY : charY - 10.5,
           image: isSniper
             ? "/figures/evil_sniper.png"
             : "/figures/better_s2.gif",
