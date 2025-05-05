@@ -29,7 +29,9 @@ import EnemySnipers from "./drawing/enemy_snipers";
 import seedrandom from "seedrandom"
 
 const MAX_WAVES = 2; // maximum number of waves
-const DARK_STAGGER_MS = 3000;
+const DARK_STAGGER_MS_FIRST = 400;
+const DARK_STAGGER_MS_DEFAULT = 3000;
+
 let nextDarkOrder = 0; // global variable to track the order of dark phases
 
 interface CityProps {
@@ -162,6 +164,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const isZoomedRef = useRef(false);
   const zoomPosRef = useRef({ x: 0, y: 0 });
   const reloadStartTimeRef = useRef<number>(0);
+  const matchStartTimeRef = useRef<number | null>(null);
 
     const [waveMsgVisible, setWaveMsgVisible] = useState(false);
     const waveLockRef = useRef(false);        // prevents double‑trigger
@@ -169,6 +172,13 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     const [snipersVisible, setSnipersVisible] = useState(false);
 
   const rngRef = useRef<seedrandom.PRNG>(seedrandom(matchId));
+
+
+  // add near your other useState declarations
+  type MatchResult = { wallet: string; shotsFired: number };
+
+  const [matchResults, setMatchResults] = useState<MatchResult[] | null>(null);
+
 
 
    useEffect(() => {
@@ -214,16 +224,19 @@ const City: React.FC<CityProps> = ({ matchId }) => {
             // phase changes
             if (c.nextPhase && now >= c.nextPhase) {
               if (c.phase === "warmup") {
-                const myOrder = nextDarkOrder++; // 0, 1, 2, …
-                const exitDelay = myOrder * DARK_STAGGER_MS; // 0 ms, 500 ms, …
-  
+                // 1) 0.5 s between snipers
+                const exitDelay = nextDarkOrder * 1700;          // 0‑ms, 500‑ms, 1000‑ms…
+                nextDarkOrder++;                                  // increment *once* per sniper
+
                 return {
                   ...c,
                   phase: "dark",
-                  image: "", // hide sprite
-                  nextPhase: now + exitDelay, // schedule dark → aggressive
+                  image: "",
+                  nextPhase: now + exitDelay,                     // ← always in the future
                 };
               }
+
+
   
               if (c.phase === "dark") {
                 return {
@@ -467,27 +480,24 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     }
 
     socket.on("start", ({ roomId, seed }) => {
+      matchStartTimeRef.current = performance.now();
       console.log("🎬 MATCH STARTING:", roomId, seed);
       setGameStarted(true);
 
       setSnipersVisible(false);
-      setIntroMessage(false);
+      setIntroMessage(true); // Show immediately
 
       setTimeout(() => {
-        setIntroMessage(true);
-        setTimeout(() => {
-          setIntroMessage(false);
-          setSnipersVisible(true);
-        }, 3000);
-      }, 5000);
+        setIntroMessage(false);
+        setSnipersVisible(true); // Show snipers right after intro disappears
+      }, 3000); // Display intro message for 3s
     });
+
 
     socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
       setTimeLeft(timeLeft);
       if (timeLeft <= 0) {
         setIsGameOver(true);
-        socket.disconnect();
-        setTimeout(() => router.push("/game_over"), 1500);
       }
     });
 
@@ -505,7 +515,9 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
     socket.on("match_ended", ({ results }: { results: any[] }) => {
       console.log("🏁 Match ended. Results:", results);
-      localStorage.setItem("matchResults", JSON.stringify(results));
+      const ordered = [...results].sort((a, b) => b.shotsFired - a.shotsFired);
+      setMatchResults(ordered);
+      socket.disconnect();
     });
 
     return () => {
@@ -695,6 +707,45 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
   return (
     <>
+
+      {matchResults && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.85)',
+            color: 'white',
+            fontFamily: 'monospace',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+        >
+          <h2 style={{ fontSize: 38, marginBottom: 24 }}>Match Results</h2>
+
+          {matchResults.map((p, i) => (
+            <div key={p.wallet} style={{ fontSize: 26, margin: '6px 0' }}>
+              {i + 1}. {p.wallet.slice(0, 4)}… — {p.shotsFired} kills
+            </div>
+          ))}
+
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              marginTop: 32,
+              padding: '10px 24px',
+              fontSize: 18,
+              borderRadius: 8,
+              cursor: 'pointer',
+            }}
+          >
+            Back to Lobby
+          </button>
+        </div>
+      )}
+
       {introMessage && (
         <div
           style={{
