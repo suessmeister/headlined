@@ -104,6 +104,12 @@ export default function ArsenalPage() {
   // }, [publicKey, router]);
 
   useEffect(() => {
+    console.log("wallet object:", wallet);
+    console.log("wallet.adapter:", wallet?.adapter);
+    console.log("publicKey:", publicKey?.toBase58());
+  }, [wallet, publicKey]);
+
+  useEffect(() => {
     console.log("Active Gun:", activeGun);
     if (activeGun) {
       localStorage.setItem("selectedGun", JSON.stringify(activeGun));
@@ -317,6 +323,7 @@ export default function ArsenalPage() {
   }
 
   return (
+    
     <div className="relative w-full min-h-screen overflow-hidden">
       {/* 🔽 Background Image (fixed behind content) */}
       <div className="fixed inset-0 z-0">
@@ -539,6 +546,27 @@ export default function ArsenalPage() {
           )}
         </div>
       </div>
+
+      {publicKey && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 10,
+            right: 10,
+            fontSize: "12px",
+            fontFamily: "monospace",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            color: "white",
+            padding: "4px 8px",
+            borderRadius: "4px",
+            zIndex: 10000,
+          }}
+        >
+          Wallet: {publicKey.toBase58().slice(0, 4)}...
+          {publicKey.toBase58().slice(-4)}
+        </div>
+      )}
+
     </div>
   );
 }

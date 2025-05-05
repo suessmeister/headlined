@@ -246,6 +246,11 @@ const Lobby: React.FC = () => {
     }
   }, [publicKey, router]);
 
+    useEffect(() => {
+      console.log("wallet object:", wallet);
+      console.log("wallet.adapter:", wallet?.adapter);
+      console.log("publicKey:", publicKey?.toBase58());
+    }, [wallet, publicKey]);
 
   useEffect(() => {
     const spawn = () => {
