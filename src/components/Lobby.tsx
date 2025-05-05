@@ -737,9 +737,9 @@ const Lobby: React.FC = () => {
               Join a <strong>Live Match</strong> to go 1v1 against another opponent.
               <br />
               <br />
-              You will be graded on <strong>hits</strong>, then <strong>accuracy</strong>. Enemy hits subtract your overall hits.
+              You will be graded on <strong>hits</strong>. Rounds last <span style={{ color: "#FFA500" }}>2 minutes</span>.
               <br />
-              Rounds last <span style={{ color: "#FFA500" }}>1 minute</span>.
+              Both players will receive the same match + rng. Compete on any platform of your choosing!
               <br />
               <br />
               Will you make headlines and save the city?
