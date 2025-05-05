@@ -273,6 +273,9 @@ const Lobby: React.FC = () => {
     spawn();
   }, []);
 
+
+
+
   useEffect(() => {
     console.log("TICKED ");
     let raf: number;
@@ -343,10 +346,14 @@ const Lobby: React.FC = () => {
     const visualOffsetX = 8;
     const visualOffsetY = 10;
 
+    const logicalWidth = 1920;
+    const logicalHeight = 1080;
+
     const ndc = new THREE.Vector2(
-      ((c.x + visualOffsetX) / window.innerWidth) * 2 - 1,
-      -((c.y + visualOffsetY) / window.innerHeight) * 2 + 1,
+      ((c.x + visualOffsetX) / logicalWidth) * 2 - 1,
+      -((c.y + visualOffsetY) / logicalHeight) * 2 + 1
     );
+
 
     // 2️⃣ Ray from screen position
     const raycaster = new THREE.Raycaster();
@@ -565,7 +572,10 @@ const Lobby: React.FC = () => {
     // 🔥 After renderer setup, now safely generate city!
     if (canvasRef.current) {
       const seed = `practice-${Date.now()}`;
-      generateCity(canvasRef.current, setCharacters, seed);
+      generateCity(canvasRef.current, (chars) => {
+        console.log("📦 Characters spawned:", chars);
+        setCharacters(chars);
+      }, seed);
     }
 
     setSnipersVisible(false);

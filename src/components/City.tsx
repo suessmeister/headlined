@@ -26,6 +26,7 @@ import {
   ReloadTimer,
 } from "./ui/game_ui";
 import EnemySnipers from "./drawing/enemy_snipers";
+import seedrandom from "seedrandom"
 
 const MAX_WAVES = 2; // maximum number of waves
 const DARK_STAGGER_MS = 3000;
@@ -165,17 +166,18 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     const [waveMsgVisible, setWaveMsgVisible] = useState(false);
     const waveLockRef = useRef(false);        // prevents double‑trigger
     const [wave, setWave] = useState(1);      // optional: track wave #
-      const [snipersVisible, setSnipersVisible] = useState(false);
+    const [snipersVisible, setSnipersVisible] = useState(false);
 
+  const rngRef = useRef<seedrandom.PRNG>(seedrandom(matchId));
 
 
    useEffect(() => {
       const spawn = () => {
-        const random = Math.random();
+        const random = rngRef.current();
         const id = Date.now() + random;
-        const startY = Math.random() * window.innerHeight * 0.1 + 50;
-        const duration = 15 + Math.random() * 5;
-        const size = 80 + Math.random() * 25;
+        const startY = rngRef.current() * window.innerHeight * 0.1 + 50;
+        const duration = 15 + rngRef.current() * 5;
+        const size = 80 + rngRef.current() * 25;
   
         setBalloons((prev) => [...prev, { id, startY, duration, size }]);
   
@@ -189,7 +191,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         });
   
         // 🔁 Schedule next spawn
-        const nextDelay = 8000 + Math.random() * 8000;
+        const nextDelay = 8000 + rngRef.current() * 8000;
         setTimeout(spawn, nextDelay);
       };
   
@@ -228,7 +230,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
                   ...c,
                   phase: "aggressive",
                   image: "/figures/evil_sniper_2.png",
-                  laserCooldown: now + 700 + Math.random() * 800,
+                  laserCooldown: now + 700 + rngRef.current() * 800,
                   nextPhase: undefined,
                 };
               }
@@ -236,7 +238,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   
             // laser fire every cooldown
             if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
-              const nextCooldown = now + 2000 + Math.random() * 1200;
+              const nextCooldown = now + 2000 + rngRef.current() * 1200;
   
               c.laserCooldown = nextCooldown;
   
@@ -266,10 +268,13 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       const visualOffsetX = 8;
       const visualOffsetY = 10;
   
-      const ndc = new THREE.Vector2(
-        ((c.x + visualOffsetX) / window.innerWidth) * 2 - 1,
-        -((c.y + visualOffsetY) / window.innerHeight) * 2 + 1,
-      );
+    const logicalWidth = 1920;
+    const logicalHeight = 1080;
+
+    const ndc = new THREE.Vector2(
+      ((c.x + visualOffsetX) / logicalWidth) * 2 - 1,
+      -((c.y + visualOffsetY) / logicalHeight) * 2 + 1
+    );
   
       // 2️⃣ Ray from screen position
       const raycaster = new THREE.Raycaster();
@@ -287,11 +292,11 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   
       // Add a chance to miss — 30%
       let isHit = false;
-      if (Math.random() < 0.8) {
+      if (rngRef.current() < 0.8) {
         const missOffset = new THREE.Vector3(
-          (Math.random() - 0.5) * 2,
-          (Math.random() - 0.5) * 2,
-          (Math.random() - 0.5) * 2,
+          (rngRef.current() - 0.5) * 2,
+          (rngRef.current() - 0.5) * 2,
+          (rngRef.current() - 0.5) * 2,
         );
         target.add(missOffset);
       } else {
@@ -488,7 +493,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
     socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
       console.log("💥 Kill received:", characterId, "by", by);
-      setCharacters((prev) => prev.filter((c) => c.id !== characterId));
       setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
       setTimeout(() => setFlashMessage(null), 2000);
 
@@ -525,9 +529,9 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   useEffect(() => {
     const spawn = () => {
       const id = Date.now();
-      const startY = Math.random() * window.innerHeight * 0.1 + 50;
-      const duration = 12 + Math.random() * 5;
-      const size = 80 + Math.random() * 25;
+      const startY = rngRef.current() * window.innerHeight * 0.1 + 50;
+      const duration = 12 + rngRef.current() * 5;
+      const size = 80 + rngRef.current() * 25;
 
       setBalloons((prev) => [...prev, { id, startY, duration, size }]);
 
@@ -541,7 +545,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       });
 
       // 🔁 Schedule next spawn
-      const nextDelay = 8000 + Math.random() * 8000;
+      const nextDelay = 8000 + rngRef.current() * 8000;
       setTimeout(spawn, nextDelay);
     };
 
@@ -593,19 +597,12 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     // Check zoom periodically
     const zoomCheckInterval = setInterval(checkZoom, 100);
 
-    const reloadTimeSec = activeGun
-      ? parseFloat(
-          gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
-        )
-      : 3;
+
 
     return () => {
       clearInterval(zoomCheckInterval);
-      if (rendererRef.current) {
-        rendererRef.current.dispose();
-        mountRef.current?.removeChild(renderer.domElement);
-      }
-
+      renderer.dispose();
+      mountRef.current?.removeChild(renderer.domElement);
       document.body.style.cursor = "default";
     };
   }, []);
@@ -884,17 +881,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
                   />
                 )}
 
-        {!isZoomedOut &&
-          characters.map((c) => (
-            <CharacterImg
-              key={c.id}
-              x={c.x}
-              y={c.y}
-              src={c.image}
-              alt="Character"
-              style={{ zIndex: 2 }}
-            />
-          ))}
+
 
         <>
           {balloons.map((b) => (

@@ -1,6 +1,7 @@
 import p5 from 'p5';
 import { Character } from '../types/Character';
 import seedrandom from "seedrandom";
+import { fitCanvasToViewport } from '@/app/utils/fitCanvas';
 
 export function generateCity(
   canvas: HTMLCanvasElement,
@@ -11,12 +12,18 @@ export function generateCity(
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  const screenWidth = window.innerWidth;
-  const screenHeight = window.innerHeight;
-  const ratio = 4;
-  canvas.width = screenWidth * ratio;
-  canvas.height = screenHeight * ratio;
-  ctx.scale(ratio, ratio);
+  const fixedWidth = 1920;
+  const fixedHeight = 1080;
+
+  const screenWidth = fixedWidth;
+  const screenHeight = fixedHeight;
+
+  // Scale canvas to logical resolution
+  canvas.width = fixedWidth;
+  canvas.height = fixedHeight;
+
+  ctx.clearRect(0, 0, fixedWidth, fixedHeight);
+  // ctx.scale(1, 1); // Keep as 1 for pure logical coords
 
   // 1️⃣ DRAW SKY FIRST
   drawAnimatedSky(ctx, screenWidth, screenHeight);
@@ -26,6 +33,8 @@ export function generateCity(
   const newCharacters: Character[] = [];
   drawBuildings(ctx, screenWidth, screenHeight, newCharacters, rng);
   setCharacters(newCharacters);
+
+  // fitCanvasToViewport(canvas);
 }
 
 function drawAnimatedSky(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -242,33 +251,41 @@ const drawWindows = (
       ctx.fillStyle = isLit ? "#FFD700" : "#2C3E50";
       ctx.fillRect(x, y, windowWidth, windowHeight);
 
+      const windowCenterX = x + windowWidth / 2;
+      const windowCenterY = y + windowHeight / 2;
+
+      const isInsideCanvas =
+        windowCenterX >= 0 &&
+        windowCenterX <= 1920 &&
+        windowCenterY >= 0 &&
+        windowCenterY <= 1080;
+
+      if (!isInsideCanvas) continue;
+
       if (isLit && rng() < CHARACTER_PROBABILITY) {
         const isSniper = rng() < 0.4;
 
-        // Only add sniper if inside visible window
-        const margin = 50;
-        const isOnScreen =
-          x >= margin &&
-          x <= window.innerWidth - margin &&
-          y >= margin &&
-          y <= window.innerHeight - margin;
+        const charX = windowCenterX - 9;
+        const charY = isSniper ? windowCenterY - 5 : windowCenterY;
 
+        console.log(
+          `🪟 Lit window at (${x.toFixed(1)}, ${y.toFixed(1)}) → character at (${charX.toFixed(1)}, ${charY.toFixed(1)})`
+        );
 
-        if (isSniper && !isOnScreen) return;
-
-        const now = Date.now();
         newCharacters.push({
-          id: now + rng(),
-          x,
-          y: isSniper ? y + 5 : y,
+          id: Date.now() + rng(),
+          x: charX,
+          y: charY,
           image: isSniper
             ? "/figures/evil_sniper.png"
             : "/figures/better_s2.gif",
           isSniper,
           phase: isSniper ? "warmup" : undefined,
-          nextPhase: isSniper ? now + 5_000 : undefined,
+          nextPhase: isSniper ? Date.now() + 5000 : undefined,
         });
       }
+
+
     }
   }
 };

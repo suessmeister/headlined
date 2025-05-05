@@ -1,5 +1,3 @@
-
-import { useRouter } from "next/navigation";
 import City from "../../../components/City"; // <-- Your City component
 
 export default function CityPage({ params }: { params: { matchId: string } }) {

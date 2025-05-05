@@ -99,17 +99,24 @@ const EnemySnipers: React.FC<Props> = ({
    return (
       <div ref={containerRef}>
          {characters.map(c => {
-            if (!c.image || (!snipersVisible && c.isSniper)) return null;
+            if (c.phase === "dark" || (!snipersVisible && c.isSniper)) return null;
+
 
             const isDead = c.isSniper && c.isHit;
             const showSkull = deadSnipers.includes(c.id);
+
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const scaleX = screenWidth / 1920;
+            const scaleY = screenHeight / 1080;
+
 
             return (
                <React.Fragment key={c.id}>
                   {!showSkull && (
                      <SniperImg
-                        x={c.x}
-                        y={c.y}
+                        x={c.x * scaleX}
+                        y={c.y * scaleY}
                         src={c.image}
                         alt="Sniper"
                         /* --- same pattern as FlyingBalloon --- */
@@ -138,8 +145,8 @@ const EnemySnipers: React.FC<Props> = ({
                            width: 8,
                            height: 8,
                            borderRadius: "50%",
-                           top: c.y - 6 + 5,
-                           left: c.x - 6 + 8,
+                           top: c.y * scaleY - 6 + 5,
+                           left: c.x * scaleX - 6 + 8,
                            backgroundColor: "transparent",
                            pointerEvents: "none",
                            zIndex: 10,
@@ -149,7 +156,7 @@ const EnemySnipers: React.FC<Props> = ({
 
                   {/* skull appears after slump animation completes */}
                   {showSkull && (
-                     <SkullWrapper x={c.x} y={c.y}>
+                     <SkullWrapper x={c.x * scaleX} y={c.y * scaleY}>
                         <Skull>💀</Skull>
                         <Coffin>⚰️</Coffin>
                         <Wings
