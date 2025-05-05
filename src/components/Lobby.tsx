@@ -240,11 +240,11 @@ const Lobby: React.FC = () => {
     setBalloons((prev) => prev.filter((b) => b.id !== id));
   }, []);
 
-  // useEffect(() => {
-  //   if (!publicKey) {
-  //     router.push("/landing");
-  //   }
-  // }, [publicKey, router]);
+  useEffect(() => {
+    if (!publicKey) {
+      router.push("/landing");
+    }
+  }, [publicKey, router]);
 
 
   useEffect(() => {
