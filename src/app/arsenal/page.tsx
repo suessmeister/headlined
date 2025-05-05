@@ -96,12 +96,12 @@ export default function ArsenalPage() {
     }
   }, [activeTab]);
   
-  const router = useRouter();
-  useEffect(() => {
-    if (!publicKey) {
-      router.push("/landing");
-    }
-  }, [publicKey, router]);
+  // const router = useRouter();
+  // useEffect(() => {
+  //   if (!publicKey) {
+  //     router.push("/landing");
+  //   }
+  // }, [publicKey, router]);
 
   useEffect(() => {
     console.log("Active Gun:", activeGun);
