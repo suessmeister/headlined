@@ -147,7 +147,7 @@ const EnemySnipers: React.FC<Props> = ({
                            borderRadius: "50%",
                            top: c.y * scaleY - 5.5,
                            left: c.x * scaleX - 6 + 8,
-                           backgroundColor: "blue",
+                           backgroundColor: "transparent",
                            pointerEvents: "none",
                            zIndex: 10,
                         }}
