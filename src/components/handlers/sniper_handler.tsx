@@ -123,6 +123,8 @@ export function useSniperHandlers({
           const flashX = (proj.x * 0.5 + 0.5) * window.innerWidth;
           const flashY = -(proj.y * 0.5 - 0.5) * window.innerHeight;
 
+          console.log(`🟢 Shot landed at: x=${flashX.toFixed(1)}, y=${flashY.toFixed(1)}`);
+
           /* balloons are tested live (they were fine) */
           const hitBalloon = balloonRef.current.find((b) => {
             const el = document.getElementById(`balloon-hitbox-${b.id}`);
