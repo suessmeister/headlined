@@ -137,31 +137,24 @@ const EnemySnipers: React.FC<Props> = ({
                   )}
 
                   {/* active hitbox while sniper is alive */}
-                  {c.isSniper && !c.isHit && snipersVisible && (() => {
-                     const cx = c.x * scaleX + 8 - 6; // left + radius offset
-                     const cy = c.y * scaleY + 5 - 6; // top + radius offset
-                     const radius = 4; // since width = height = 8
-
-                     console.log(`🎯 Sniper #${c.id} hitbox center: x=${cx.toFixed(1)}, y=${cy.toFixed(1)} | radius=${radius}`);
-
-                     return (
-                        <motion.div
-                           id={`sniper-hitbox-${c.id}`}
-                           style={{
-                              position: "absolute",
-                              width: 8,
-                              height: 8,
-                              borderRadius: "50%",
-                              top: cy - radius,
-                              left: cx - radius,
-                              backgroundColor: "blue",
-                              pointerEvents: "none",
-                              zIndex: 10,
-                           }}
-                        />
-                     );
-                  })()}
-
+                  {c.isSniper && !c.isHit && snipersVisible && (
+                     <motion.div
+                        id={`sniper-hitbox-${c.id}`}
+                        style={{
+                           position: "absolute",
+                           width: 9,
+                           height: 9,
+                           borderRadius: "50%",
+                           top: c.y * scaleY,
+                           left: c.x * scaleX - 6 + 8,
+                           backgroundColor: "blue",
+                           pointerEvents: "none",
+                           zIndex: 10,
+                        }}
+                        
+                     />
+                     
+                  )}
 
                   {/* skull appears after slump animation completes */}
                   {showSkull && (
