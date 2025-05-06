@@ -72,6 +72,11 @@ export function useSniperHandlers({
 
       /* ───── snapshot sniper hit, using offsets ───── */
       const sniperHit = characterRef.current.find((c) => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const scaleX = screenWidth / 1920;
+        const scaleY = screenHeight / 1080;
+
         if (!c.isSniper) return false;
         const el = document.getElementById(`sniper-hitbox-${c.id}`);
         if (!el) return false;
@@ -79,8 +84,8 @@ export function useSniperHandlers({
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         const rad = r.width / 2;
-        const adjX = rawX - 8.4;   // ← apply offsets
-        const adjY = rawY + 22.7;
+        const adjX = rawX - 8.4 * scaleX;   // ← apply offsets
+        const adjY = rawY + 22.7 * scaleY;
         const dx = adjX - cx;
         const dy = adjY - cy;
         return dx * dx + dy * dy <= rad * rad;
