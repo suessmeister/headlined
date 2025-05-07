@@ -24,6 +24,7 @@ export function UiLayout({
 }) {
   const pathname = usePathname();
   const isLandingPage = pathname === "/landing";
+  const isMainPage = pathname === "/";
   const router = useRouter();
   const [showWelcome, setShowWelcome] = useState(false);
   const { disconnect } = useWallet();
@@ -61,28 +62,16 @@ export function UiLayout({
           </div>
         </div>
       ) : (
-        <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+          <div
+            className="absolute top-4 z-50 flex items-center gap-4"
+            style={{
+              right: isMainPage ? "42%" : "1rem", // 50% from right when on main page
+              transform: isMainPage ? "translateX(200px)" : "none", // move back toward right
+            }}
+          >
+
           {!isLandingPage && (
-            <>
-              {pathname === "/arsenal" ? (
-                <button
-                  onClick={() => router.push("/")}
-                  className="btn btn-sm bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600"
-                >
-                  Go Back
-                </button>
-              ) : (
-                <Link href="/arsenal">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="btn btn-sm btn-arsenal bg-black text-white border-2 border-gray-700 hover:bg-gray-900 hover:border-gray-600"
-                  >
-                    Arsenal
-                  </button>
-                </Link>
-              )}
+            isMainPage ? (
               <button
                 onClick={() => {
                   disconnect();
@@ -92,14 +81,28 @@ export function UiLayout({
                   fontFamily: "Quantico",
                   fontSize: "18px",
                   backgroundColor: "transparent",
-                  color: "black",
+                  color: "light-gray",
                   border: "none",
                   cursor: "pointer",
                 }}
               >
                 [Disconnect]
               </button>
-            </>
+            ) : (
+              <button
+                onClick={() => router.push("/")}
+                style={{
+                  fontFamily: "Quantico",
+                  fontSize: "18px",
+                  backgroundColor: "transparent",
+                  color: "light-gray",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                [Go Back]
+              </button>
+            )
           )}
         </div>
       )}

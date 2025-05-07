@@ -3,107 +3,107 @@
 import React from "react";
 
 export const InfiniteAmmoToggle = ({
-  unlimitedAmmo,
-  setUnlimitedAmmo,
+   unlimitedAmmo,
+   setUnlimitedAmmo,
 }: {
-  unlimitedAmmo: boolean;
-  setUnlimitedAmmo: React.Dispatch<React.SetStateAction<boolean>>;
+   unlimitedAmmo: boolean;
+   setUnlimitedAmmo: React.Dispatch<React.SetStateAction<boolean>>;
 }) => (
-  <div
-    style={{
-      position: "fixed",
-      top: 15,
-      right: 205,
-      zIndex: 9999,
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      font: "bold 13px Quantico",
-      color: "white",
-      backgroundColor: "black",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      border: "1px solid rgba(255,255,255,0.2)",
-    }}
-  >
-    <input
-      type="checkbox"
-      id="infinite-ammo"
-      checked={unlimitedAmmo}
-      onChange={() => setUnlimitedAmmo((p) => !p)}
-      style={{ cursor: "pointer" }}
-    />
-    <label htmlFor="infinite-ammo" style={{ cursor: "pointer" }}>
-      ♾️ Ammo
-    </label>
-  </div>
+   <div
+      style={{
+         position: "fixed",
+         top: 70,
+         left: 20,
+         zIndex: 9999,
+         display: "flex",
+         alignItems: "center",
+         gap: "6px",
+         font: "bold 13px Quantico",
+         color: "white",
+         backgroundColor: "black",
+         padding: "6px 10px",
+         borderRadius: "6px",
+         border: "1px solid rgba(255,255,255,0.2)",
+      }}
+   >
+      <input
+         type="checkbox"
+         id="infinite-ammo"
+         checked={unlimitedAmmo}
+         onChange={() => setUnlimitedAmmo((p) => !p)}
+         style={{ cursor: "pointer" }}
+      />
+      <label htmlFor="infinite-ammo" style={{ cursor: "pointer" }}>
+         ♾️ Ammo
+      </label>
+   </div>
 );
 
-export const GunDisplay = ({
-  activeGun,
-}: {
-  activeGun: { name: string } | null;
-}) => (
-  <div
-    style={{
-      position: "fixed",
-      top: 60,
-      right: 20,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-      padding: "5px 15px",
-      borderRadius: "8px",
-      color: "white",
-      fontFamily: "monospace",
-      fontSize: "16px",
-      zIndex: 9999,
-      display: "flex",
-      gap: "20px",
-    }}
-  >
-    {activeGun && <div>Now Using: {activeGun.name}</div>}
-  </div>
-);
+// export const GunDisplay = ({
+//   activeGun,
+// }: {
+//   activeGun: { name: string } | null;
+// }) => (
+//   <div
+//     style={{
+//       position: "fixed",
+//       top: 60,
+//       right: 20,
+//       backgroundColor: "rgba(0, 0, 0, 0.7)",
+//       padding: "5px 15px",
+//       borderRadius: "8px",
+//       color: "white",
+//       fontFamily: "monospace",
+//       fontSize: "16px",
+//       zIndex: 9999,
+//       display: "flex",
+//       gap: "20px",
+//     }}
+//   >
+//     {activeGun && <div>Now Using: {activeGun.name}</div>}
+//   </div>
+// );
 
 export const IntroMessage = () => (
-  <div
-    style={{
-      position: "fixed",
-      top: "40%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      padding: "20px 40px",
-      backgroundColor: "rgba(0,0,0,0.85)",
-      color: "red",
-      fontSize: "28px",
-      fontFamily: "monospace",
-      textAlign: "center",
-      borderRadius: "12px",
-      zIndex: 9999,
-      boxShadow: "0 0 20px red",
-    }}
-  >
-    Enemy Snipers have located you!
-  </div>
+   <div
+      style={{
+         position: "fixed",
+         top: "40%",
+         left: "50%",
+         transform: "translate(-50%, -50%)",
+         padding: "20px 40px",
+         backgroundColor: "rgba(0,0,0,0.85)",
+         color: "red",
+         fontSize: "28px",
+         fontFamily: "monospace",
+         textAlign: "center",
+         borderRadius: "12px",
+         zIndex: 9999,
+         boxShadow: "0 0 20px red",
+      }}
+   >
+      Enemy Snipers have located you!
+   </div>
 );
 
 export const FlashMessage = ({ flashMessage }: { flashMessage: string }) => (
-  <div
-    style={{
-      position: "fixed",
-      top: 0,
-      width: "100%",
-      textAlign: "center",
-      padding: "10px",
-      backgroundColor: "rgba(255, 0, 0, 0.8)",
-      color: "white",
-      fontSize: "18px",
-      fontFamily: "monospace",
-      zIndex: 9999,
-      animation: "fadeInOut 2s ease-in-out",
-    }}
-  >
-    {flashMessage}
-  </div>
+   <div
+      style={{
+         position: "fixed",
+         top: 0,
+         width: "100%",
+         textAlign: "center",
+         padding: "10px",
+         backgroundColor: "rgba(255, 0, 0, 0.8)",
+         color: "white",
+         fontSize: "18px",
+         fontFamily: "monospace",
+         zIndex: 9999,
+         animation: "fadeInOut 2s ease-in-out",
+      }}
+   >
+      {flashMessage}
+   </div>
 );
 
 interface AmmoBarProps {
