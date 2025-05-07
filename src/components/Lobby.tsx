@@ -20,7 +20,6 @@ import {
   FlashMessage,
   IntroMessage,
   InfiniteAmmoToggle,
-  GunDisplay,
   AmmoBar,
   ReloadTimer,
 } from "./ui/game_ui";
@@ -870,7 +869,7 @@ const Lobby: React.FC = () => {
       )}
 
 
-      <GunDisplay activeGun={activeGun} />
+      
 
       <div
         style={{

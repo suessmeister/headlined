@@ -21,7 +21,6 @@ import {
   FlashMessage,
   IntroMessage,
   InfiniteAmmoToggle,
-  GunDisplay,
   AmmoBar,
   ReloadTimer,
 } from "./ui/game_ui";
