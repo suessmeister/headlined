@@ -9,12 +9,12 @@ const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
    
-   useEffect(() => {
-      connectSocket();
-      return () => {
-         disconnectSocket(); // clean up when component unmounts
-      };
-   }, []);
+   // useEffect(() => {
+   //    connectSocket();
+   //    return () => {
+   //       disconnectSocket(); // clean up when component unmounts
+   //    };
+   // }, []);
 
    useEffect(() => {
       if (!publicKey) {
