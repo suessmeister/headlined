@@ -8,7 +8,13 @@ import { connectSocket, disconnectSocket, getSocket } from "../app/utils/socket"
 const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
-   connectSocket();
+   
+   useEffect(() => {
+      connectSocket();
+      return () => {
+         disconnectSocket(); // clean up when component unmounts
+      };
+   }, []);
 
    useEffect(() => {
       if (!publicKey) {
