@@ -75,7 +75,6 @@ export function UiLayout({
               <button
                 onClick={() => {
                   disconnect();
-                  router.push("/landing");
                 }}
                 style={{
                   fontFamily: "Quantico",

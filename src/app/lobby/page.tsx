@@ -239,7 +239,7 @@ const Lobby: React.FC = () => {
 
    useEffect(() => {
       if (!publicKey) {
-         router.push("/landing");
+         router.push("/");
       }
    }, [publicKey, router]);
 

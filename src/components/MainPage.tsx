@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWallet } from "@solana/wallet-adapter-react";
 import { connectSocket, disconnectSocket, getSocket } from "../app/utils/socket";
+import { WalletButton } from "@/components/solana/solana-provider";
+import { supabase } from "../app/utils/supabaseClient";
 
 const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
-   
+
    // useEffect(() => {
    //    connectSocket();
    //    return () => {
@@ -16,11 +18,11 @@ const MainPage: React.FC = () => {
    //    };
    // }, []);
 
-   useEffect(() => {
-      if (!publicKey) {
-         router.push('/landing');
-      } 
-   }, [publicKey, router]);
+   // useEffect(() => {
+   //    if (!publicKey) {
+   //       router.push('/landing');
+   //    }
+   // }, [publicKey, router]);
 
    const [activeGun, setActiveGun] = useState<{ name: string } | null>(null);
    const [showIntroScroll, setShowIntroScroll] = useState(false);
@@ -30,6 +32,46 @@ const MainPage: React.FC = () => {
    const [countdown, setCountdown] = useState(5);
    const countdownRef = React.useRef<NodeJS.Timeout | null>(null);
    const [onlineUsers, setOnlineUsers] = useState<number>(0);
+   const [consentGiven, setConsentGiven] = useState(false);
+
+   useEffect(() => {
+      if (publicKey) {
+         // Check if user is on waitlist when wallet connects
+         const checkWaitlist = async () => {
+            const walletAddress = publicKey.toBase58();
+
+            const { data, error: fetchError } = await supabase
+               .from('waitlist')
+               .select('address')
+               .eq('address', walletAddress)
+               .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+               console.error('Error checking waitlist:', fetchError);
+               return;
+            }
+
+            if (!data) {
+               // Not on waitlist - add them
+               const { error: insertError } = await supabase
+                  .from('waitlist')
+                  .insert([
+                     {
+                        address: walletAddress,
+                        signed_up_at: new Date().toISOString(),
+                     },
+                  ]);
+
+               if (insertError) {
+                  console.error('Error inserting into waitlist:', insertError);
+                  return;
+               }
+            }
+         };
+
+         checkWaitlist();
+      }
+   }, [publicKey]);
 
    useEffect(() => {
       const socket = getSocket();
@@ -127,6 +169,37 @@ const MainPage: React.FC = () => {
 
    return (
       <>
+         {!publicKey && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-md">
+               <div className="bg-white/20 backdrop-blur-lg border border-white/30 p-10 rounded-3xl shadow-2xl text-center animate-fadeInUp w-[90%] max-w-md">
+                  <h1 className="text-4xl font-extrabold text-white mb-6 tracking-wide">
+                     Welcome to Headlined!
+                  </h1>
+                  <p className="text-lg text-white/80 mb-8">
+                     You&apos;ll need a Solana wallet to access the platform. Please connect one now.
+                  </p>
+
+                  <div className="mb-6">
+                     <WalletButton />
+                  </div>
+
+                  {publicKey && (
+                     <div className="flex flex-col items-center space-y-4">
+                        <label className="flex items-center text-white space-x-3 text-sm">
+                           <input
+                              type="checkbox"
+                              checked={consentGiven}
+                              onChange={(e) => setConsentGiven(e.target.checked)}
+                              className="w-5 h-5 text-green-500 bg-gray-100 border-gray-300 rounded focus:ring-green-400 focus:ring-2"
+                           />
+                           <span>I agree to be put on the waitlist for beta access.</span>
+                        </label>
+                     </div>
+                  )}
+               </div>
+            </div>
+         )}
+
          {showIntroScroll && (
             <div
                style={{
@@ -337,6 +410,32 @@ const MainPage: React.FC = () => {
                   {onlineUsers} online
                </span>
             </div>
+
+            {publicKey && (
+               <div
+                  style={{
+                     position: "absolute",
+                     bottom: "2%",
+                     right: "30%",
+                     zIndex: 10,
+                     pointerEvents: "none",
+                  }}
+               >
+                  <span
+                     style={{
+                        backgroundColor: "rgba(128, 128, 128, 0.3)",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        color: "white",
+                        fontSize: "12px",
+                        fontFamily: "'Courier New', monospace",
+                        letterSpacing: "0.4px",
+                     }}
+                  >
+                     wallet: {publicKey.toString().slice(0, 4)}...{publicKey.toString().slice(-4)}
+                  </span>
+               </div>
+            )}
 
             {/* Rain effect */}
             <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 to-transparent">
