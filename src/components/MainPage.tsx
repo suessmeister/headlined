@@ -354,7 +354,7 @@ const MainPage: React.FC = () => {
                   position: "fixed",
                   width: "32px",
                   height: "32px",
-                  backgroundImage: "url('/city/default_scope.png')",
+                  backgroundImage: "url('/city/better.png')",
                   backgroundSize: "contain",
                   backgroundRepeat: "no-repeat",
                   pointerEvents: "none",
