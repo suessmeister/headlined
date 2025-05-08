@@ -361,6 +361,7 @@ const MainPage: React.FC = () => {
                   zIndex: 9999,
                   transform: "translate(-50%, -50%)",
                   transition: "transform 0.1s ease",
+                  filter: "hue-rotate(120deg) brightness(1.5)",
                }}
             />
 
@@ -500,7 +501,7 @@ const MainPage: React.FC = () => {
             {/* Right Column */}
             <div className="absolute top-0 right-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                {/* Join Match */}
-               <div onClick={handleJoinMatch} className="cursor-pointer flex-1 group relative overflow-hidden cursor-none">
+               <div onClick={handleJoinMatch} className="cursor-none flex-1 group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
                      <h2 className="text-2xl font-bold sunset-text mb-2">Join Match</h2>
                      {isMatchmakingOpen ? (
@@ -518,7 +519,7 @@ const MainPage: React.FC = () => {
                </div>
 
                {/* Practice Match */}
-               <div onClick={handlePracticeClick} className="cursor-pointer flex-1 group relative overflow-hidden cursor-none">
+               <div onClick={handlePracticeClick} className="cursor-none flex-1 group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex items-center justify-center sunset-border">
                      <h2 className="text-2xl font-bold sunset-text">Practice Match</h2>
                      <img
