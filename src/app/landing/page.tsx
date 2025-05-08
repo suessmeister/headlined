@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { WalletButton } from "@/components/solana/solana-provider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { supabase } from "../utils/supabaseClient";
+import { disconnectSocket } from "../utils/socket";
 
 
 export default function LandingPage() {
@@ -59,7 +60,9 @@ export default function LandingPage() {
     router.push("/");
   };
 
-
+  useEffect(() => {
+    disconnectSocket();
+  }, []);
 
   /* ──────────────────────────────────────────────────────────
      Keep our local flag in sync with the wallet state

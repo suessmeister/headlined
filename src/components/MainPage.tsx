@@ -3,11 +3,21 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWallet } from "@solana/wallet-adapter-react";
-import { getSocket } from "../app/utils/socket";
+import { connectSocket, disconnectSocket, getSocket } from "../app/utils/socket";
 
 const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
+
+   useEffect(() => {
+      if (!publicKey) {
+         disconnectSocket();
+         router.push('/landing');
+      } else {
+         connectSocket();
+      }
+   }, [publicKey, router]);
+
    const [activeGun, setActiveGun] = useState<{ name: string } | null>(null);
    const [showIntroScroll, setShowIntroScroll] = useState(false);
    const [isMatchmakingOpen, setIsMatchmakingOpen] = useState(false);
@@ -15,6 +25,20 @@ const MainPage: React.FC = () => {
    const [opponent, setOpponent] = useState<string | null>(null);
    const [countdown, setCountdown] = useState(5);
    const countdownRef = React.useRef<NodeJS.Timeout | null>(null);
+   const [onlineUsers, setOnlineUsers] = useState<number>(0);
+
+   useEffect(() => {
+      const socket = getSocket();
+
+      socket.on("user_count", (count) => {
+         console.log("👥 Current users online:", count);
+         setOnlineUsers(count);
+      });
+
+      return () => {
+         socket.off("user_count");
+      };
+   }, []);
 
    useEffect(() => {
       const savedGun = localStorage.getItem("selectedGun");
@@ -85,30 +109,56 @@ const MainPage: React.FC = () => {
       });
    };
 
+   useEffect(() => {
+      const socket = getSocket();
+
+      socket.on("user_count", (count) => {
+         console.log("👥 Current users online:", count);
+         // Optional: store in state for UI
+      });
+
+      return () => {
+         socket.off("user_count");
+      };
+   }, []);
+
    return (
       <>
          {showIntroScroll && (
             <div
                style={{
+                  /* full‑screen dimmer */
                   position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100vw",
-                  height: "100vh",
-                  background: "rgba(0, 0, 0, 0.6)",
-                  color: "white",
-                  overflowY: "scroll",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.6)",
                   zIndex: 100000,
-                  padding: "40px",
+
+                  /* flexbox centering */
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+
+                  /* vertical scroll for very small screens */
+                  overflowY: "auto",
+                  /* edge gutter that scales with viewport */
+                  padding: "4vw",
+
                   fontFamily: "'Courier New', monospace",
                   letterSpacing: "0.4px",
+                  color: "white",
                }}
             >
-               <div style={{ minHeight: "250vh", maxWidth: "800px", margin: "0 auto" }}>
+               {/* bounded intro panel */}
+               <div
+                  style={{
+                     width: "100%",
+                     maxWidth: "800px",
+                  }}
+               >
                   <h1
                      style={{
-                        fontSize: "42px",
-                        marginBottom: "28px",
+                        fontSize: "clamp(28px, 3.2vw, 42px)",
+                        marginBottom: "1.5rem",
                         textAlign: "center",
                         color: "#FFA500",
                         textShadow: "0 0 8px black",
@@ -119,7 +169,7 @@ const MainPage: React.FC = () => {
 
                   <p
                      style={{
-                        fontSize: "20px",
+                        fontSize: "clamp(16px, 1.2vw, 20px)",
                         lineHeight: "1.8",
                         textShadow: "0 0 4px black",
                      }}
@@ -127,27 +177,26 @@ const MainPage: React.FC = () => {
                      Your enemies are taking over.
                      <br />
                      <br />
-                     Zoom, scan windows, and pick off the enemies before they fire back.{" "}
+                     Zoom, scan windows, and pick off the enemies before they fire back.&nbsp;
                      <span style={{ color: "#FFA500" }}>Only headshots count.</span>
                      <br />
                      You can shoot the balloons as well.
                      <br />
                      <br />
-                     You only need <span style={{ color: "#FFA500" }}>Ctrl</span> to scope and{" "}
+                     You only need&nbsp;<span style={{ color: "#FFA500" }}>Ctrl</span> to scope and&nbsp;
                      <span style={{ color: "#FFA500" }}>Click</span> to shoot.
                      <br />
                      <br />
-                     The <span style={{ color: "#FFA500" }}>Arsenal</span> contains snipers for purchase with various scopes and mags.
-                     <br />
-                     Use the one that inspires you.
-                     <br />
-                     <br />
-                     Join a <strong>Live Match</strong> to go 1v1 against another opponent.
+                     The&nbsp;<span style={{ color: "#FFA500" }}>Arsenal</span> contains snipers for purchase
+                     with various scopes and mags. Use the one that inspires you.
                      <br />
                      <br />
-                     You will be graded on <strong>hits</strong>. Rounds last <span style={{ color: "#FFA500" }}>2 minutes</span>.
+                     Join a&nbsp;<strong>Live Match</strong>&nbsp;to go 1‑v‑1 against another opponent.
                      <br />
-                     Both players will receive the same match + rng. Compete on any platform of your choosing!
+                     <br />
+                     You will be graded on&nbsp;<strong>hits</strong>. Rounds last&nbsp;
+                     <span style={{ color: "#FFA500" }}>2&nbsp;minutes</span>. Both players receive the same
+                     match + RNG. Compete on any platform of your choosing!
                      <br />
                      <br />
                      Will you make headlines and save the city?
@@ -155,7 +204,7 @@ const MainPage: React.FC = () => {
 
                   <div
                      style={{
-                        marginTop: "30px",
+                        marginTop: "2rem",
                         display: "flex",
                         justifyContent: "flex-end",
                      }}
@@ -163,8 +212,8 @@ const MainPage: React.FC = () => {
                      <button
                         onClick={() => setShowIntroScroll(false)}
                         style={{
-                           padding: "12px 26px",
-                           fontSize: "18px",
+                           padding: "0.8rem 1.6rem",
+                           fontSize: "clamp(14px, 1.1vw, 18px)",
                            fontFamily: "monospace",
                            backgroundColor: "#FF4500",
                            color: "white",
@@ -253,6 +302,38 @@ const MainPage: React.FC = () => {
                alt="Background"
             />
 
+            <div
+               style={{
+                  position: "absolute",
+                  bottom: "6%",
+                  right: "30%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  zIndex: 10,
+                  pointerEvents: "none",
+               }}
+            >
+               <div
+                  style={{
+                     width: "12px",
+                     height: "12px",
+                     borderRadius: "50%",
+                     backgroundColor: "#00FF00",
+                     boxShadow: "0 0 8px #00FF00",
+                  }}
+               />
+               <span
+                  style={{
+                     color: "#00FF00",
+                     fontSize: "14px",
+                     fontFamily: "monospace",
+                     textShadow: "0 0 4px black",
+                  }}
+               >
+                  {onlineUsers} online
+               </span>
+            </div>
 
             {/* Rain effect */}
             <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 to-transparent">
@@ -284,17 +365,14 @@ const MainPage: React.FC = () => {
                📜
             </button>
 
-
-
-            {/* L:eft Column */}
+            {/* Left Column */}
             <div className="absolute top-0 left-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                <Link href="/arsenal" className="flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center border border-white transition-all hover:scale-[1.01] animate-fadeIn" style={{ animationDelay: '2.2s' }}>
-                     <h2 className="text-2xl font-bold text-white mb-2">Arsenal</h2>
+                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
+                     <h2 className="text-2xl font-bold sunset-text mb-2">Arsenal</h2>
                      {activeGun && (
                         <p className="text-base text-gray-300 text-center">Now Using: {activeGun.name}</p>
                      )}
-                     
                      <img
                         src="/city/button_arsenal.png"
                         className="absolute bottom-0 left-1/2 opacity-0
@@ -304,11 +382,9 @@ const MainPage: React.FC = () => {
                   </div>
                </Link>
 
-
                <Link href="/headlines" className="flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center border border-white transition-all hover:scale-[1.01] animate-fadeIn" style={{ animationDelay: '3.0s' }}>
-                     <h2 className="text-2xl font-bold text-white">Headlines</h2>
-
+                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
+                     <h2 className="text-2xl font-bold sunset-text mb-2">Headlines</h2>
                      <img
                         src="/city/button_headlines.png"
                         className="absolute bottom-0 left-1/2 opacity-0
@@ -317,15 +393,14 @@ const MainPage: React.FC = () => {
                      />
                   </div>
                </Link>
-
             </div>
 
-            {/* RIGHT column */}
+            {/* Right Column */}
             <div className="absolute top-0 right-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                {/* Join Match */}
                <div onClick={handleJoinMatch} className="cursor-pointer flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center border border-white transition-all hover:scale-[1.01] animate-fadeIn" style={{ animationDelay: '2.6s' }}>
-                     <h2 className="text-2xl font-bold text-white mb-2">Join Match</h2>
+                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
+                     <h2 className="text-2xl font-bold sunset-text mb-2">Join Match</h2>
                      {isMatchmakingOpen ? (
                         <p className="text-gold text-base font-mono font-bold">Waiting for match...</p>
                      ) : (
@@ -342,8 +417,8 @@ const MainPage: React.FC = () => {
 
                {/* Practice Match */}
                <div onClick={handlePracticeClick} className="cursor-pointer flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex items-center justify-center border border-white transition-all hover:scale-[1.01] animate-fadeIn" style={{ animationDelay: '3.4s' }}>
-                     <h2 className="text-2xl font-bold text-white">Practice Match</h2>
+                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex items-center justify-center sunset-border">
+                     <h2 className="text-2xl font-bold sunset-text">Practice Match</h2>
                      <img
                         src="/city/lobby_button.png"
                         className="absolute bottom-0 left-1/2 opacity-0
@@ -353,9 +428,6 @@ const MainPage: React.FC = () => {
                   </div>
                </div>
             </div>
-
-
-
 
             <style jsx>{`
    @keyframes fadeIn {
@@ -368,7 +440,6 @@ const MainPage: React.FC = () => {
        transform: translateY(0);
      }
    }
-
 
 @keyframes bounceUp {
   0% {
@@ -398,7 +469,6 @@ const MainPage: React.FC = () => {
   animation: bounceUp 0.9s ease forwards;
 }
 
-
    .animate-fadeIn {
      animation: fadeIn 1s ease-out forwards;
      opacity: 0;
@@ -425,6 +495,28 @@ const MainPage: React.FC = () => {
      position: fixed;
      pointer-events: none;
      z-index: 9999;
+   }
+
+   /* Glimmering sunset gradient text */
+.sunset-text {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+   @keyframes glimmer {
+     0% {
+       background-position: 0%;
+     }
+     100% {
+       background-position: 200%;
+     }
+   }
+
+   /* Sunset gradient for button borders */
+   .sunset-border {
+     border: 2px solid;
+     border-image-source: linear-gradient(90deg, #FF4500, #FFA500, #FFD700);
+     border-image-slice: 1;
    }
 `}</style>
 
