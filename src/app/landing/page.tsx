@@ -60,9 +60,6 @@ export default function LandingPage() {
     router.push("/");
   };
 
-  useEffect(() => {
-    disconnectSocket();
-  }, []);
 
   /* ──────────────────────────────────────────────────────────
      Keep our local flag in sync with the wallet state

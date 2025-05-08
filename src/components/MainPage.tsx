@@ -8,14 +8,12 @@ import { connectSocket, disconnectSocket, getSocket } from "../app/utils/socket"
 const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
+   connectSocket();
 
    useEffect(() => {
       if (!publicKey) {
-         disconnectSocket();
          router.push('/landing');
-      } else {
-         connectSocket();
-      }
+      } 
    }, [publicKey, router]);
 
    const [activeGun, setActiveGun] = useState<{ name: string } | null>(null);
@@ -29,7 +27,6 @@ const MainPage: React.FC = () => {
 
    useEffect(() => {
       const socket = getSocket();
-
       socket.on("user_count", (count) => {
          console.log("👥 Current users online:", count);
          setOnlineUsers(count);
