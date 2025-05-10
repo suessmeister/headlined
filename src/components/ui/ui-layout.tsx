@@ -29,6 +29,8 @@ export function UiLayout({
   const [showWelcome, setShowWelcome] = useState(false);
   const { disconnect } = useWallet();
   const [activeGun, setActiveGun] = useState<any>(null);
+  const isNewspaperPage = pathname === "/headlines"; // or whatever your route is
+
   const handleGetStarted = () => {
     setShowWelcome(true);
   };
@@ -49,10 +51,13 @@ export function UiLayout({
     <div
       className="h-full relative"
       style={{
-        background: "linear-gradient(to bottom, #87CEEB, #E0F7FA)",
+        background: isNewspaperPage
+          ? "none"
+          : "linear-gradient(to bottom, #87CEEB, #E0F7FA)",
         minHeight: "100vh",
       }}
     >
+  
       {showWelcome ? (
         <div className="absolute inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
