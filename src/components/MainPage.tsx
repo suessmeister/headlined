@@ -11,19 +11,6 @@ const MainPage: React.FC = () => {
    const router = useRouter();
    const { publicKey } = useWallet();
 
-   // useEffect(() => {
-   //    connectSocket();
-   //    return () => {
-   //       disconnectSocket(); // clean up when component unmounts
-   //    };
-   // }, []);
-
-   // useEffect(() => {
-   //    if (!publicKey) {
-   //       router.push('/landing');
-   //    }
-   // }, [publicKey, router]);
-
    const [activeGun, setActiveGun] = useState<{ name: string } | null>(null);
    const [showIntroScroll, setShowIntroScroll] = useState(false);
    const [isMatchmakingOpen, setIsMatchmakingOpen] = useState(false);
@@ -75,15 +62,20 @@ const MainPage: React.FC = () => {
 
    useEffect(() => {
       const socket = getSocket();
-      socket.on("user_count", (count) => {
+
+      const handleUserCount = (count: number) => {
          console.log("👥 Current users online:", count);
          setOnlineUsers(count);
-      });
+      };
+
+      socket.on("user_count", handleUserCount);
+      socket.emit("get_user_count");
 
       return () => {
-         socket.off("user_count");
+         socket.off("user_count", handleUserCount);
       };
    }, []);
+   
 
    useEffect(() => {
       const savedGun = sessionStorage.getItem("selectedGun");
