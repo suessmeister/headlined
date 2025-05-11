@@ -165,10 +165,10 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const reloadStartTimeRef = useRef<number>(0);
   const matchStartTimeRef = useRef<number | null>(null);
 
-    const [waveMsgVisible, setWaveMsgVisible] = useState(false);
-    const waveLockRef = useRef(false);        // prevents double‑trigger
-    const [wave, setWave] = useState(1);      // optional: track wave #
-    const [snipersVisible, setSnipersVisible] = useState(false);
+  const [waveMsgVisible, setWaveMsgVisible] = useState(false);
+  const waveLockRef = useRef(false);        // prevents double‑trigger
+  const [wave, setWave] = useState(1);      // optional: track wave #
+  const [snipersVisible, setSnipersVisible] = useState(false);
 
   const rngRef = useRef<seedrandom.PRNG>(seedrandom(matchId));
 
@@ -180,106 +180,106 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
 
 
-   useEffect(() => {
-      const spawn = () => {
-        const random = rngRef.current();
-        const id = Date.now() + random;
-        const startY = rngRef.current() * window.innerHeight * 0.1 + 50;
-        const duration = 15 + rngRef.current() * 5;
-        const size = 80 + rngRef.current() * 25;
-  
-        setBalloons((prev) => [...prev, { id, startY, duration, size }]);
-  
-        // 💥 Add to the tracking ref
-        balloonRef.current.push({
-          id,
-          x: window.innerWidth + 150, // start off-screen right
-          y: startY,
-          size,
-          isHit: false,
-        });
-  
-        // 🔁 Schedule next spawn
-        const nextDelay = 8000 + rngRef.current() * 8000;
-        setTimeout(spawn, nextDelay);
-      };
-  
-      spawn();
-    }, []);
-  
-    useEffect(() => {
-      console.log("TICKED ");
-      let raf: number;
-  
-      const tick = () => {
-        const now = Date.now();
-  
-        setCharacters((prev) =>
-          prev.map((c) => {
-            if (!c.isSniper) return c;
-            if (!c.phase) return c; // always need a phase
-            if (c.phase !== "aggressive" && !c.nextPhase) return c;
-  
-            // phase changes
-            if (c.nextPhase && now >= c.nextPhase) {
-              if (c.phase === "warmup") {
-                // 1) 0.5 s between snipers
-                const exitDelay = nextDarkOrder * 1700;          // 0‑ms, 500‑ms, 1000‑ms…
-                nextDarkOrder++;                                  // increment *once* per sniper
+  useEffect(() => {
+    const spawn = () => {
+      const random = rngRef.current();
+      const id = Date.now() + random;
+      const startY = rngRef.current() * window.innerHeight * 0.1 + 50;
+      const duration = 15 + rngRef.current() * 5;
+      const size = 80 + rngRef.current() * 25;
 
-                return {
-                  ...c,
-                  phase: "dark",
-                  image: "",
-                  nextPhase: now + exitDelay,                     // ← always in the future
-                };
-              }
+      setBalloons((prev) => [...prev, { id, startY, duration, size }]);
 
+      // 💥 Add to the tracking ref
+      balloonRef.current.push({
+        id,
+        x: window.innerWidth + 150, // start off-screen right
+        y: startY,
+        size,
+        isHit: false,
+      });
 
-  
-              if (c.phase === "dark") {
-                return {
-                  ...c,
-                  phase: "aggressive",
-                  image: "/figures/evil_sniper_2.png",
-                  laserCooldown: now + 700 + rngRef.current() * 800,
-                  nextPhase: undefined,
-                };
-              }
+      // 🔁 Schedule next spawn
+      const nextDelay = 8000 + rngRef.current() * 8000;
+      setTimeout(spawn, nextDelay);
+    };
+
+    spawn();
+  }, []);
+
+  useEffect(() => {
+    console.log("TICKED ");
+    let raf: number;
+
+    const tick = () => {
+      const now = Date.now();
+
+      setCharacters((prev) =>
+        prev.map((c) => {
+          if (!c.isSniper) return c;
+          if (!c.phase) return c; // always need a phase
+          if (c.phase !== "aggressive" && !c.nextPhase) return c;
+
+          // phase changes
+          if (c.nextPhase && now >= c.nextPhase) {
+            if (c.phase === "warmup") {
+              // 1) 0.5 s between snipers
+              const exitDelay = nextDarkOrder * 1700;          // 0‑ms, 500‑ms, 1000‑ms…
+              nextDarkOrder++;                                  // increment *once* per sniper
+
+              return {
+                ...c,
+                phase: "dark",
+                image: "",
+                nextPhase: now + exitDelay,                     // ← always in the future
+              };
             }
-  
-            // laser fire every cooldown
-            if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
-              const nextCooldown = now + 2000 + rngRef.current() * 1200;
-  
-              c.laserCooldown = nextCooldown;
-  
-              fireLaser(c);
-              return { ...c };
+
+
+
+            if (c.phase === "dark") {
+              return {
+                ...c,
+                phase: "aggressive",
+                image: "/figures/evil_sniper_2.png",
+                laserCooldown: now + 700 + rngRef.current() * 800,
+                nextPhase: undefined,
+              };
             }
-  
-            return c;
-          }),
-        );
-  
-        raf = requestAnimationFrame(tick);
-      };
-  
+          }
+
+          // laser fire every cooldown
+          if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
+            const nextCooldown = now + 2000 + rngRef.current() * 1200;
+
+            c.laserCooldown = nextCooldown;
+
+            fireLaser(c);
+            return { ...c };
+          }
+
+          return c;
+        }),
+      );
+
       raf = requestAnimationFrame(tick);
-      return () => cancelAnimationFrame(raf);
-    }, []);
-  
-    // ─── LASER: character ➜ camera ──────────────────────────────────────────────
-    const fireLaser = (c: Character) => {
-      if (!sceneRef.current || !cameraRef.current) return;
-  
-      const cam = cameraRef.current;
-      const scene = sceneRef.current;
-  
-      // Apply small offset before mapping to NDC (e.g., 10px right, 20px down)
-      const visualOffsetX = 8;
-      const visualOffsetY = 10;
-  
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // ─── LASER: character ➜ camera ──────────────────────────────────────────────
+  const fireLaser = (c: Character) => {
+    if (!sceneRef.current || !cameraRef.current) return;
+
+    const cam = cameraRef.current;
+    const scene = sceneRef.current;
+
+    // Apply small offset before mapping to NDC (e.g., 10px right, 20px down)
+    const visualOffsetX = 8;
+    const visualOffsetY = 10;
+
     const logicalWidth = 1920;
     const logicalHeight = 1080;
 
@@ -287,108 +287,108 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       ((c.x + visualOffsetX) / logicalWidth) * 2 - 1,
       -((c.y + visualOffsetY) / logicalHeight) * 2 + 1
     );
-  
-      // 2️⃣ Ray from screen position
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(ndc, cam);
-      const ray = raycaster.ray;
-  
-      // 3️⃣ Origin of the laser
-      const origin = ray.origin
-        .clone()
-        .add(ray.direction.clone().multiplyScalar(40));
-  
-      // 4️⃣ Direction to camera
-      // 4️⃣ Direction to camera (with randomized offset for misses)
-      let target = cam.position.clone();
-  
-      // Add a chance to miss — 30%
-      let isHit = false;
-      if (rngRef.current() < 0.8) {
-        const missOffset = new THREE.Vector3(
-          (rngRef.current() - 0.5) * 2,
-          (rngRef.current() - 0.5) * 2,
-          (rngRef.current() - 0.5) * 2,
-        );
-        target.add(missOffset);
-      } else {
-        isHit = true;
-      }
-  
-      const dir = target.clone().sub(origin).normalize();
-      const fullLength = origin.distanceTo(target);
-  
-      // 5️⃣ Create cylinder with full length (we’ll scale it up)
-      const radius = 0.05;
-      const geom = new THREE.CylinderGeometry(
-        radius,
-        radius,
-        fullLength,
-        8,
-        1,
-        true,
+
+    // 2️⃣ Ray from screen position
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(ndc, cam);
+    const ray = raycaster.ray;
+
+    // 3️⃣ Origin of the laser
+    const origin = ray.origin
+      .clone()
+      .add(ray.direction.clone().multiplyScalar(40));
+
+    // 4️⃣ Direction to camera
+    // 4️⃣ Direction to camera (with randomized offset for misses)
+    let target = cam.position.clone();
+
+    // Add a chance to miss — 30%
+    let isHit = false;
+    if (rngRef.current() < 0.8) {
+      const missOffset = new THREE.Vector3(
+        (rngRef.current() - 0.5) * 2,
+        (rngRef.current() - 0.5) * 2,
+        (rngRef.current() - 0.5) * 2,
       );
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-        transparent: true,
-        opacity: 1,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const beam = new THREE.Mesh(geom, mat);
-  
-      // Align beam from Y-up → dir
-      const up = new THREE.Vector3(0, 1, 0);
-      const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-      beam.quaternion.copy(quat);
-  
-      // Start at origin
-      beam.position.copy(origin);
-      scene.add(beam);
-  
-      const growDuration = 800; // total grow time in ms
-      const growStart = performance.now();
-  
-      const grow = (now: number) => {
-        const elapsed = now - growStart;
-        const t = Math.min(elapsed / growDuration, 1); // normalized [0,1]
-  
-        beam.scale.set(1, t, 1);
+      target.add(missOffset);
+    } else {
+      isHit = true;
+    }
+
+    const dir = target.clone().sub(origin).normalize();
+    const fullLength = origin.distanceTo(target);
+
+    // 5️⃣ Create cylinder with full length (we'll scale it up)
+    const radius = 0.05;
+    const geom = new THREE.CylinderGeometry(
+      radius,
+      radius,
+      fullLength,
+      8,
+      1,
+      true,
+    );
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      transparent: true,
+      opacity: 1,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const beam = new THREE.Mesh(geom, mat);
+
+    // Align beam from Y-up → dir
+    const up = new THREE.Vector3(0, 1, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
+    beam.quaternion.copy(quat);
+
+    // Start at origin
+    beam.position.copy(origin);
+    scene.add(beam);
+
+    const growDuration = 800; // total grow time in ms
+    const growStart = performance.now();
+
+    const grow = (now: number) => {
+      const elapsed = now - growStart;
+      const t = Math.min(elapsed / growDuration, 1); // normalized [0,1]
+
+      beam.scale.set(1, t, 1);
+      beam.position
+        .copy(origin)
+        .add(dir.clone().multiplyScalar((fullLength * t) / 2));
+
+      if (t < 1) {
+        requestAnimationFrame(grow);
+      } else {
+        beam.scale.set(1, 1, 1);
         beam.position
           .copy(origin)
-          .add(dir.clone().multiplyScalar((fullLength * t) / 2));
-  
-        if (t < 1) {
-          requestAnimationFrame(grow);
-        } else {
-          beam.scale.set(1, 1, 1);
-          beam.position
-            .copy(origin)
-            .add(dir.clone().multiplyScalar(fullLength / 2));
-  
-          if (isHit) {
-            setIsPlayerHit(true);
-            setTimeout(() => setIsPlayerHit(false), 400);
-          }
-  
-          requestAnimationFrame(fade);
+          .add(dir.clone().multiplyScalar(fullLength / 2));
+
+        if (isHit) {
+          setIsPlayerHit(true);
+          setTimeout(() => setIsPlayerHit(false), 400);
         }
-      };
-      requestAnimationFrame(grow);
-  
-      // 7️⃣ Fade out after full growth
-      const startFade = performance.now();
-      const fade = (t: number) => {
-        const alpha = 1 - (t - startFade) / 400;
-        mat.opacity = Math.max(alpha, 0);
-        if (alpha > 0) requestAnimationFrame(fade);
-        else {
-          scene.remove(beam);
-          geom.dispose();
-          mat.dispose();
-        }
-      };
+
+        requestAnimationFrame(fade);
+      }
     };
+    requestAnimationFrame(grow);
+
+    // 7️⃣ Fade out after full growth
+    const startFade = performance.now();
+    const fade = (t: number) => {
+      const alpha = 1 - (t - startFade) / 400;
+      mat.opacity = Math.max(alpha, 0);
+      if (alpha > 0) requestAnimationFrame(fade);
+      else {
+        scene.remove(beam);
+        geom.dispose();
+        mat.dispose();
+      }
+    };
+  };
 
 
   const unlimitedAmmo = false; //NEVER HAVE UNLIMITED IN CITY LOL
@@ -420,8 +420,8 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
       const reloadDuration = activeGun
         ? parseFloat(
-            gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
-          )
+          gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
+        )
         : 10; // fallback if no activeGun
 
       setIsReloading(true);
@@ -463,8 +463,8 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       socket.connect();
     }
 
-    const seed = localStorage.getItem("matchSeed");
-    const matchId = localStorage.getItem("matchId");
+    const seed = sessionStorage.getItem("matchSeed");
+    const matchId = sessionStorage.getItem("matchId");
 
     console.log("📦 matchId:", matchId, "| seed:", seed);
 
@@ -516,6 +516,15 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       console.log("🏁 Match ended. Results:", results);
       const ordered = [...results].sort((a, b) => b.shotsFired - a.shotsFired);
       setMatchResults(ordered);
+
+      // Store match results in sessionStorage for the newspaper
+      sessionStorage.setItem("matchResults", JSON.stringify({
+        walletA: ordered[0]?.wallet || "",
+        walletB: ordered[1]?.wallet || "",
+        a_kills: ordered[0]?.shotsFired || 0,
+        b_kills: ordered[1]?.shotsFired || 0
+      }));
+
       socket.disconnect();
     });
 
@@ -624,18 +633,18 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     return () => clearTimeout(timer);
   }, [shots, isLastShotHit]);
 
- const wrapperStyle: React.CSSProperties = {
-     transform: isZoomed
-       ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 1.2})`
-       : "scale(1)",
-     transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
-     transition: "transform 0.2s ease",
-     width: "100vw",
-     height: "100vh",
-     position: "relative",
-     overflow: "hidden",
-     cursor: isZoomed ? "none" : "default",
-   };
+  const wrapperStyle: React.CSSProperties = {
+    transform: isZoomed
+      ? `scale(${activeGun ? 2 * parseFloat(gun_metadata[activeGun.name as keyof typeof gun_metadata].scope) : 1.2})`
+      : "scale(1)",
+    transformOrigin: `${zoomPosition.x}px ${zoomPosition.y}px`,
+    transition: "transform 0.2s ease",
+    width: "100vw",
+    height: "100vh",
+    position: "relative",
+    overflow: "hidden",
+    cursor: isZoomed ? "none" : "default",
+  };
 
   useEffect(() => {
     // whenever isZoomed changes
@@ -652,7 +661,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   }, [characters]);
 
   useEffect(() => {
-    const savedGun = localStorage.getItem("selectedGun");
+    const savedGun = sessionStorage.getItem("selectedGun");
     if (savedGun) {
       const parsedGun: { name: keyof typeof gun_metadata } =
         JSON.parse(savedGun);
@@ -666,27 +675,27 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       setMaxAmmo(4);
     }
   }, []);
-  
-    useEffect(() => {
-      const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
-  
-      if (!anyAlive && snipersVisible) {
-        if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
-        if (waveLockRef.current) return; // ⛔️ avoid double-triggers
-  
-        waveLockRef.current = true;
-        setWaveMsgVisible(true);
-  
-        setTimeout(() => {
-          setWaveMsgVisible(false);
-          setWave((w) => w + 1);
-          nextDarkOrder = 0;
-          setCharacters((prev) => addSnipers(prev));
-          waveLockRef.current = false;
-        }, 3000);
-      }
-  
-    }, [characters, snipersVisible, wave]);
+
+  useEffect(() => {
+    const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
+
+    if (!anyAlive && snipersVisible) {
+      if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
+      if (waveLockRef.current) return; // ⛔️ avoid double-triggers
+
+      waveLockRef.current = true;
+      setWaveMsgVisible(true);
+
+      setTimeout(() => {
+        setWaveMsgVisible(false);
+        setWave((w) => w + 1);
+        nextDarkOrder = 0;
+        setCharacters((prev) => addSnipers(prev));
+        waveLockRef.current = false;
+      }, 3000);
+    }
+
+  }, [characters, snipersVisible, wave]);
 
   useEffect(() => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
@@ -923,13 +932,13 @@ const City: React.FC<CityProps> = ({ matchId }) => {
           }}
         />
 
-           {!isZoomedOut && (
-                  <EnemySnipers
-                    characters={characters}
-                    snipersVisible={snipersVisible}
-                    setCharacters={setCharacters}
-                  />
-                )}
+        {!isZoomedOut && (
+          <EnemySnipers
+            characters={characters}
+            snipersVisible={snipersVisible}
+            setCharacters={setCharacters}
+          />
+        )}
 
 
 

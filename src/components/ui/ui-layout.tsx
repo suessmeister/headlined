@@ -41,7 +41,7 @@ export function UiLayout({
   };
 
   useEffect(() => {
-    const savedGun = localStorage.getItem("selectedGun");
+    const savedGun = sessionStorage.getItem("selectedGun");
     if (savedGun) {
       setActiveGun(JSON.parse(savedGun));
     }
@@ -57,7 +57,7 @@ export function UiLayout({
         minHeight: "100vh",
       }}
     >
-  
+
       {showWelcome ? (
         <div className="absolute inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -67,13 +67,13 @@ export function UiLayout({
           </div>
         </div>
       ) : (
-          <div
-            className="absolute top-4 z-50 flex items-center gap-4"
-            style={{
-              right: isMainPage ? "42%" : "1rem", // 50% from right when on main page
-              transform: isMainPage ? "translateX(200px)" : "none", // move back toward right
-            }}
-          >
+        <div
+          className="absolute top-4 z-50 flex items-center gap-4"
+          style={{
+            right: isMainPage ? "42%" : "1rem", // 50% from right when on main page
+            transform: isMainPage ? "translateX(200px)" : "none", // move back toward right
+          }}
+        >
 
           {!isLandingPage && (
             isMainPage ? (

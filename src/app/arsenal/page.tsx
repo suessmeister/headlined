@@ -80,7 +80,7 @@ export default function ArsenalPage() {
 
   const handleSelectGun = (gun: any) => {
     setActiveGun(gun);
-    localStorage.setItem("selectedGun", JSON.stringify(gun));
+    sessionStorage.setItem("selectedGun", JSON.stringify(gun));
     
   };
 
@@ -112,12 +112,12 @@ export default function ArsenalPage() {
   useEffect(() => {
     console.log("Active Gun:", activeGun);
     if (activeGun) {
-      localStorage.setItem("selectedGun", JSON.stringify(activeGun));
+      sessionStorage.setItem("selectedGun", JSON.stringify(activeGun));
     }
   }, [activeGun]);
 
   useEffect(() => {
-    const savedGun = localStorage.getItem("selectedGun");
+    const savedGun = sessionStorage.getItem("selectedGun");
     if (savedGun) {
       const parsedGun = JSON.parse(savedGun);
       setActiveGun(parsedGun);

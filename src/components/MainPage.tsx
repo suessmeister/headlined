@@ -86,13 +86,13 @@ const MainPage: React.FC = () => {
    }, []);
 
    useEffect(() => {
-      const savedGun = localStorage.getItem("selectedGun");
+      const savedGun = sessionStorage.getItem("selectedGun");
       if (savedGun) {
          setActiveGun(JSON.parse(savedGun));
       } else {
          // Set default gun if none is selected
          const defaultGun = { name: "Default Sniper" };
-         localStorage.setItem("selectedGun", JSON.stringify(defaultGun));
+         sessionStorage.setItem("selectedGun", JSON.stringify(defaultGun));
          setActiveGun(defaultGun);
       }
    }, []);
@@ -109,8 +109,8 @@ const MainPage: React.FC = () => {
          return;
       }
 
-      localStorage.removeItem("matchSeed");
-      localStorage.removeItem("matchId");
+      sessionStorage.removeItem("matchSeed");
+      sessionStorage.removeItem("matchId");
 
       setIsMatchmakingOpen(true);
 
@@ -124,8 +124,8 @@ const MainPage: React.FC = () => {
          console.log("🎯 Match found!", roomId, seed, opponent);
 
          // Store match data
-         localStorage.setItem("matchSeed", seed);
-         localStorage.setItem("matchId", roomId);
+         sessionStorage.setItem("matchSeed", seed);
+         sessionStorage.setItem("matchId", roomId);
 
          // Show countdown overlay
          setOpponent(opponent);

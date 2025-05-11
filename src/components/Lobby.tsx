@@ -183,8 +183,8 @@ const Lobby: React.FC = () => {
       return;
     }
 
-    localStorage.removeItem("matchSeed");
-    localStorage.removeItem("matchId");
+    sessionStorage.removeItem("matchSeed");
+    sessionStorage.removeItem("matchId");
 
     setIsMatchmakingOpen(true);
 
@@ -198,8 +198,8 @@ const Lobby: React.FC = () => {
       console.log("🎯 Match found!", roomId, seed, opponent);
 
       // Store match data
-      localStorage.setItem("matchSeed", seed);
-      localStorage.setItem("matchId", roomId);
+      sessionStorage.setItem("matchSeed", seed);
+      sessionStorage.setItem("matchId", roomId);
 
       // Show countdown overlay
       setOpponent(opponent);
@@ -245,11 +245,11 @@ const Lobby: React.FC = () => {
     }
   }, [publicKey, router]);
 
-    useEffect(() => {
-      console.log("wallet object:", wallet);
-      console.log("wallet.adapter:", wallet?.adapter);
-      console.log("publicKey:", publicKey?.toBase58());
-    }, [wallet, publicKey]);
+  useEffect(() => {
+    console.log("wallet object:", wallet);
+    console.log("wallet.adapter:", wallet?.adapter);
+    console.log("publicKey:", publicKey?.toBase58());
+  }, [wallet, publicKey]);
 
   useEffect(() => {
     const spawn = () => {
@@ -492,7 +492,7 @@ const Lobby: React.FC = () => {
   }, [ammo, isReloading, maxAmmo, activeGun, unlimitedAmmo]);
 
   useEffect(() => {
-    const savedGun = localStorage.getItem("selectedGun");
+    const savedGun = sessionStorage.getItem("selectedGun");
 
     if (savedGun) {
       const parsedGun: { name: keyof typeof gun_metadata } = JSON.parse(savedGun);
@@ -503,7 +503,7 @@ const Lobby: React.FC = () => {
     } else {
       // 👇 Fallback to "Default Sniper"
       const fallback: { name: keyof typeof gun_metadata } = { name: "Default Sniper" };
-      localStorage.setItem("selectedGun", JSON.stringify(fallback));
+      sessionStorage.setItem("selectedGun", JSON.stringify(fallback));
       setActiveGun(fallback);
       setAmmo(Number(gun_metadata[fallback.name].capacity));
       setMaxAmmo(Number(gun_metadata[fallback.name].capacity));
@@ -519,8 +519,8 @@ const Lobby: React.FC = () => {
 
     const reloadDuration = activeGun
       ? parseFloat(
-          gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
-        )
+        gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
+      )
       : 5;
 
     setIsReloading(true);
@@ -668,7 +668,7 @@ const Lobby: React.FC = () => {
   }, [characters]);
 
   useEffect(() => {
-    const savedGun = localStorage.getItem("selectedGun");
+    const savedGun = sessionStorage.getItem("selectedGun");
     if (savedGun) {
       const parsedGun: { name: keyof typeof gun_metadata } =
         JSON.parse(savedGun);
@@ -842,7 +842,7 @@ const Lobby: React.FC = () => {
             boxShadow: "0 0 20px red",
           }}
         >
-          The Enemy Snipers located you. Be on lookout. 
+          The Enemy Snipers located you. Be on lookout.
         </div>
       )}
 
@@ -869,7 +869,7 @@ const Lobby: React.FC = () => {
       )}
 
 
-      
+
 
       <div
         style={{
@@ -1081,13 +1081,13 @@ const Lobby: React.FC = () => {
           </div>
         )}
 
-           {isReloading && reloadSecondsLeft !== null && (
-              <ReloadTimer
-                 reloadSecondsLeft={reloadSecondsLeft}
-                 isZoomed={isZoomed}
-                 zoomPosition={zoomPosition}
-              />
-           )}
+        {isReloading && reloadSecondsLeft !== null && (
+          <ReloadTimer
+            reloadSecondsLeft={reloadSecondsLeft}
+            isZoomed={isZoomed}
+            zoomPosition={zoomPosition}
+          />
+        )}
 
 
         <AmmoBar
