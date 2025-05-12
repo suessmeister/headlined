@@ -20,6 +20,7 @@ const MainPage: React.FC = () => {
    const countdownRef = React.useRef<NodeJS.Timeout | null>(null);
    const [onlineUsers, setOnlineUsers] = useState<number>(0);
    const [consentGiven, setConsentGiven] = useState(false);
+   const [zoomLevel, setZoomLevel] = useState(1);
 
    useEffect(() => {
       if (publicKey) {
@@ -75,7 +76,7 @@ const MainPage: React.FC = () => {
          socket.off("user_count", handleUserCount);
       };
    }, []);
-   
+
 
    useEffect(() => {
       const savedGun = sessionStorage.getItem("selectedGun");
@@ -158,6 +159,24 @@ const MainPage: React.FC = () => {
          socket.off("user_count");
       };
    }, []);
+
+   useEffect(() => {
+      if (isMatchmakingOpen) {
+         // Start zoom animation
+         const zoomInterval = setInterval(() => {
+            setZoomLevel(prev => {
+               if (prev >= 3) {
+                  clearInterval(zoomInterval);
+                  return 3;
+               }
+               return prev + 0.1;
+            });
+         }, 50);
+         return () => clearInterval(zoomInterval);
+      } else {
+         setZoomLevel(1);
+      }
+   }, [isMatchmakingOpen]);
 
    return (
       <>
@@ -365,11 +384,21 @@ const MainPage: React.FC = () => {
                   left: 0,
                   width: "100vw",
                   height: "100vh",
-                  objectFit: "contain", // ensures no cropping
+                  objectFit: "contain",
                   zIndex: 0,
+                  transform: `scale(${zoomLevel})`,
+                  transition: "transform 0.5s ease-out",
                }}
                alt="Background"
             />
+
+            {isMatchmakingOpen && !matchFound && (
+               <div className="absolute inset-0 flex items-center justify-center z-50">
+                  <div className="bg-red-500/20 backdrop-blur-md border-2 border-red-500 px-8 py-4 rounded-lg animate-pulse">
+                     <h2 className="text-2xl font-bold text-red-500 text-center">Waiting for match...</h2>
+                  </div>
+               </div>
+            )}
 
             <div
                style={{
@@ -460,171 +489,231 @@ const MainPage: React.FC = () => {
                📜
             </button>
 
-            {/* Left Column */}
+            {/* LEFT COLUMN */}
             <div className="absolute top-0 left-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
+               {/* Arsenal */}
                <Link href="/arsenal" className="flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
-                     <h2 className="text-2xl font-bold sunset-text mb-2">Arsenal</h2>
-                     {activeGun && (
-                        <p className="text-base text-gray-300 text-center">Now Using: {activeGun.name}</p>
-                     )}
-                     <img
-                        src="/city/button_arsenal.png"
-                        className="absolute bottom-0 left-1/2 opacity-0
-                                    group-hover:opacity-100
-                                    group-hover:animate-[bounceUpCentered_0.7s_ease-out_forwards]"
-                     />
+                  {/* Panel */}
+                  <div className="sunset-border bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center
+                    transition-all duration-300 ease-out
+                    transform
+                    group-hover:scale-105 group-hover:rotate-1
+                    group-hover:brightness-110
+                    group-hover:shadow-[0_0_20px_rgba(255,165,0,0.5)]
+                    group-hover:border-[3px]">
+                     <div className="relative w-full h-full">
+                        <img src="/city/button_arsenal.png" className="w-full h-full object-cover pointer-events-none"
+                           alt="Arsenal" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+                        <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white pointer-events-none">Arsenal</h2>
+
+                        {activeGun && (
+                           <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full pointer-events-none">
+                              <p className="text-orange-200 font-mono text-xs">{activeGun.name}</p>
+                           </div>
+                        )}
+                     </div>
                   </div>
                </Link>
 
+               {/* Headlines */}
                <Link href="/headlines" className="flex-1 group relative overflow-hidden cursor-none">
-                  <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
-                     <h2 className="text-2xl font-bold sunset-text mb-2">Headlines</h2>
-                     <img
-                        src="/city/button_headlines.png"
-                        className="absolute bottom-0 left-1/2 opacity-0
-                 group-hover:opacity-100
-                 group-hover:animate-[bounceUpCentered_0.7s_ease-out_forwards]"
-                     />
+                  <div className="sunset-border bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center
+                    transition-all duration-300 ease-out
+                    transform
+                    group-hover:scale-105 group-hover:rotate-1
+                    group-hover:brightness-110
+                    group-hover:shadow-[0_0_20px_rgba(255,165,0,0.5)]
+                    group-hover:border-[3px]">
+                     <div className="relative w-full h-full">
+                        <img src="/city/button_headlines.png" className="w-full h-full object-cover pointer-events-none"
+                           alt="Headlines" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+                        <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white pointer-events-none">Headlines</h2>
+                     </div>
                   </div>
                </Link>
             </div>
 
+
+
             {/* Right Column */}
             <div className="absolute top-0 right-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                {/* Join Match */}
-               <div onClick={handleJoinMatch} className="cursor-none flex-1 group relative overflow-hidden">
+               <div onClick={handleJoinMatch} className="cursor-none flex-1 menu-btn group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
-                     <h2 className="text-2xl font-bold sunset-text mb-2">Join Match</h2>
-                     {isMatchmakingOpen ? (
-                        <p className="text-gold text-base font-mono font-bold">Waiting for match...</p>
-                     ) : (
-                        <p className="text-base text-gray-300">Click to find a match</p>
-                     )}
-                     <img
-                        src="/city/live_button.png"
-                        className="absolute bottom-0 left-1/2 opacity-0
-                   group-hover:opacity-100
-                   group-hover:animate-[bounceUpCentered_0.7s_ease-out_forwards]"
-                     />
+                     <div className="relative w-full h-full">
+                        <img
+                           src="/city/live_button.png"
+                           className="w-full h-full object-cover"
+                           alt="Join Match"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                        <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">Join Match</h2>
+                        {isMatchmakingOpen && (
+                           <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full">
+                              <p className="text-orange-300 font-mono text-xs animate-pulse">
+                                 Waiting...
+                              </p>
+                           </div>
+                        )}
+                     </div>
                   </div>
                </div>
 
                {/* Practice Match */}
-               <div onClick={handlePracticeClick} className="cursor-none flex-1 group relative overflow-hidden">
+               <div onClick={handlePracticeClick} className="cursor-none flex-1 menu-btn group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex items-center justify-center sunset-border">
-                     <h2 className="text-2xl font-bold sunset-text">Practice Match</h2>
-                     <img
-                        src="/city/lobby_button.png"
-                        className="absolute bottom-0 left-1/2 opacity-0
-                   group-hover:opacity-100
-                   group-hover:animate-[bounceUpCentered_0.7s_ease-out_forwards]"
-                     />
+                     <div className="relative w-full h-full">
+                        <img
+                           src="/city/lobby_button.png"
+                           className="w-full h-full object-cover"
+                           alt="Practice Match"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                        <h2 className="absolute bottom-4 left-4 text-2xl font-bold text-white">Practice Match</h2>
+                     </div>
                   </div>
                </div>
             </div>
 
             <style jsx>{`
-   @keyframes fadeIn {
-     from {
-       opacity: 0.01;
-       transform: translateY(40px);
-     }
-     to {
-       opacity: 1;
-       transform: translateY(0);
-     }
-   }
+               @keyframes fadeIn {
+                 from {
+                   opacity: 0.01;
+                   transform: translateY(40px);
+                 }
+                 to {
+                   opacity: 1;
+                   transform: translateY(0);
+                 }
+               }
 
-@keyframes bounceUp {
-  0% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  60% {
-    transform: translateY(-20%);
-    opacity: 1;
-  }
-  80% {
-    transform: translateY(10%);
-  }
-  100% {
-    transform: translateY(0%);
-  }
+               @keyframes bounceUp {
+                 0% {
+                   transform: translateY(100%);
+                   opacity: 0;
+                 }
+                 60% {
+                   transform: translateY(-20%);
+                   opacity: 1;
+                 }
+                 80% {
+                   transform: translateY(10%);
+                 }
+                 100% {
+                   transform: translateY(0%);
+                 }
+               }
+
+               @keyframes bounceUpCentered {
+                 0%   { transform: translate(-50%, 100%);   opacity: 0; }
+                 60%  { transform: translate(-50%, -20%);  opacity: 1; }
+                 80%  { transform: translate(-50%,  10%); }
+                 100% { transform: translate(-50%,   0%); }
+               }
+
+               .bounce-up {
+                 animation: bounceUp 0.9s ease forwards;
+               }
+
+               .animate-fadeIn {
+                 animation: fadeIn 1s ease-out forwards;
+                 opacity: 0;
+               }
+
+               .rain {
+                 position: absolute;
+                 width: 100%;
+                 height: 100%;
+                 background: linear-gradient(transparent, rgba(255, 255, 255, 0.1));
+                 animation: rain 0.5s linear infinite;
+               }
+
+               @keyframes rain {
+                 0% {
+                   background-position: 0% 0%;
+                 }
+                 100% {
+                   background-position: 20% 100%;
+                 }
+               }
+
+               .custom-cursor {
+                 position: fixed;
+                 pointer-events: none;
+                 z-index: 9999;
+               }
+
+               .sunset-text {
+                 color: #FFD700;
+                 font-weight: bold;
+               }
+
+               @keyframes glimmer {
+                 0% {
+                   background-position: 0%;
+                 }
+                 100% {
+                   background-position: 200%;
+                 }
+               }
+
+               .sunset-border {
+                 border: 2px solid;
+                 border-image-source: linear-gradient(90deg, #FF4500, #FFA500, #FFD700);
+                 border-image-slice: 1;
+                 transition: all 0.3s ease;
+               }
+
+               /* Cool button hover effects */
+               .menu-btn {
+                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                 transform-origin: center;
+               }
+
+               .menu-btn:hover {
+                 transform: scale(1.02) rotate(1deg);
+                 filter: brightness(1.2) contrast(1.1);
+               }
+
+               .menu-btn:hover .sunset-border {
+  border: none;
+  box-shadow: none;
 }
 
-@keyframes bounceUpCentered {
-  0%   { transform: translate(-50%, 100%);   opacity: 0; }
-  60%  { transform: translate(-50%, -20%);  opacity: 1; }
-  80%  { transform: translate(-50%,  10%); }
-  100% { transform: translate(-50%,   0%); }
-}
 
-.bounce-up {
-  animation: bounceUp 0.9s ease forwards;
-}
 
-   .animate-fadeIn {
-     animation: fadeIn 1s ease-out forwards;
-     opacity: 0;
-   }
 
-   .rain {
-     position: absolute;
-     width: 100%;
-     height: 100%;
-     background: linear-gradient(transparent, rgba(255, 255, 255, 0.1));
-     animation: rain 0.5s linear infinite;
-   }
+               .menu-btn:hover img {
+                 transform: scale(1.05);
+                 filter: brightness(1.2);
+               }
 
-   @keyframes rain {
-     0% {
-       background-position: 0% 0%;
-     }
-     100% {
-       background-position: 20% 100%;
-     }
-   }
+               .menu-btn img {
+                 transition: all 0.3s ease;
+               }
 
-   .custom-cursor {
-     position: fixed;
-     pointer-events: none;
-     z-index: 9999;
-   }
+               .menu-btn:hover h2 {
+                 transform: translateY(-2px);
+                 text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+               }
 
-   /* Glimmering sunset gradient text */
-.sunset-text {
-  color: #FFD700;
-  font-weight: bold;
-}
-
-   @keyframes glimmer {
-     0% {
-       background-position: 0%;
-     }
-     100% {
-       background-position: 200%;
-     }
-   }
-
-   /* Sunset gradient for button borders */
-   .sunset-border {
-     border: 2px solid;
-     border-image-source: linear-gradient(90deg, #FF4500, #FFA500, #FFD700);
-     border-image-slice: 1;
-   }
-`}</style>
+               .menu-btn h2 {
+                 transition: all 0.3s ease;
+               }
+            `}</style>
 
             <script dangerouslySetInnerHTML={{
                __html: `
-              document.addEventListener('mousemove', (e) => {
-                const cursor = document.querySelector('.custom-cursor');
-                if (cursor) {
-                  cursor.style.left = e.clientX + 'px';
-                  cursor.style.top = e.clientY + 'px';
-                }
-              });
-            `
+               document.addEventListener('mousemove', (e) => {
+                 const cursor = document.querySelector('.custom-cursor');
+                 if (cursor) {
+                   cursor.style.left = e.clientX + 'px';
+                   cursor.style.top = e.clientY + 'px';
+                 }
+               });
+             `
             }} />
          </div>
       </>
@@ -632,4 +721,3 @@ const MainPage: React.FC = () => {
 };
 
 export default MainPage;
-
