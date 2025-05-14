@@ -145,7 +145,7 @@ async function createCollections() {
     }
   }
 
-  const outputPath = path.join(__dirname, "../data/collection_addresses.json");
+  const outputPath = path.join(__dirname, "../data/collection_addresses_2.json");
   fs.writeFileSync(outputPath, JSON.stringify({ collections }, null, 2));
   console.log(`Collection addresses saved to ${outputPath}`);
 }

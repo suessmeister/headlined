@@ -18,6 +18,7 @@ wallet = "~/.config/solana/id.json"
 [scripts]
 test = "../node_modules/.bin/jest --preset ts-jest"
 create_collection = "ts-node ../scripts/create_collection.ts"
+one = "ts-node ../scripts/one_col.ts"
 
 [test]
 startup_wait = 5000

@@ -9,7 +9,7 @@ export async function getNftsForWallet(
     const metaplex = new Metaplex(connection);
     const nfts = await metaplex.nfts().findAllByOwner({ owner: walletAddress });
 
-    const json = await fetch("/data/collection_addresses.json");
+    const json = await fetch("/data/collection_addresses_2.json");
     const collectionData = await json.json();
 
     const collectionMints = collectionData.collections.map(

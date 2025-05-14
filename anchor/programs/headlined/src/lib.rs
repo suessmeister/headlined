@@ -18,6 +18,7 @@ declare_id!("9YhZtfHPa9YY13AXr7PhNV1YnWPkqhvd6g4NRTfNNcND");
 
 #[program]
 pub mod headlined {
+    use anchor_lang::accounts::signer;
     use mpl_token_metadata::types::Collection;
 
     use super::*;
@@ -29,6 +30,8 @@ pub mod headlined {
         uri: String,
     ) -> Result<()> {
         let mint_key = ctx.accounts.collection_mint.key();
+        let bump = ctx.bumps.collection_authority;
+        let signer_seeds = &[b"collection_authority", ctx.program_id.as_ref(), &[bump]];
 
         let (metadata_pda, _bump) = Pubkey::find_program_address(
             &[b"metadata", MPL_METADATA_ID.as_ref(), mint_key.as_ref()],
@@ -45,6 +48,17 @@ pub mod headlined {
             &MPL_METADATA_ID,
         );
 
+        let (collection_authority, _collection_authority_bump) = Pubkey::find_program_address(
+            &[b"collection_authority", &crate::ID.to_bytes()],
+            &crate::ID,
+        );
+        msg!(
+            "📌 Derived collection authority PDA: {}",
+            collection_authority
+        );
+
+      
+
         let data = DataV2 {
             name: title,
             symbol,
@@ -59,7 +73,7 @@ pub mod headlined {
             .metadata(metadata_pda)
             .mint(ctx.accounts.collection_mint.key())
             .mint_authority(ctx.accounts.payer.key())
-            .update_authority(ctx.accounts.payer.key(), true)
+            .update_authority(collection_authority.key(), true)
             .payer(ctx.accounts.payer.key())
             .data(data)
             .is_mutable(true)
@@ -72,18 +86,19 @@ pub mod headlined {
                 ctx.accounts.collection_metadata.to_account_info(),
                 ctx.accounts.collection_mint.to_account_info(),
                 ctx.accounts.payer.to_account_info(),
-                ctx.accounts.payer.to_account_info(), // update authority is also payer
+                ctx.accounts.collection_authority.to_account_info(), // update authority is also payer
+                ctx.accounts.payer.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
                 ctx.accounts.rent.to_account_info(),
                 ctx.accounts.token_metadata_program.to_account_info(),
             ],
-            &[],
+            &[signer_seeds],
         )?;
 
         let edition_ix = CreateMasterEditionV3Builder::new()
             .edition(master_edition_pda)
             .mint(ctx.accounts.collection_mint.key())
-            .update_authority(ctx.accounts.payer.key())
+            .update_authority(collection_authority.key())
             .mint_authority(ctx.accounts.payer.key())
             .payer(ctx.accounts.payer.key())
             .metadata(metadata_pda)
@@ -95,13 +110,14 @@ pub mod headlined {
             &[
                 ctx.accounts.collection_master_edition.to_account_info(),
                 ctx.accounts.collection_mint.to_account_info(),
+                ctx.accounts.collection_authority.to_account_info(),
                 ctx.accounts.payer.to_account_info(),
                 ctx.accounts.payer.to_account_info(),
                 ctx.accounts.collection_metadata.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
                 ctx.accounts.token_metadata_program.to_account_info(),
             ],
-            &[],
+            &[signer_seeds],
         )?;
 
         Ok(())
@@ -114,7 +130,7 @@ pub mod headlined {
         metadata_uri: String,
     ) -> Result<()> {
         let bump = ctx.bumps.collection_authority;
-        let seeds = &[b"collection_authority", ctx.program_id.as_ref(), &[bump]];
+        let signer_seeds = &[b"collection_authority", ctx.program_id.as_ref(), &[bump]];
 
         let mint_key = ctx.accounts.mint.key();
         let collection_key = ctx.accounts.collection_mint.key();
@@ -184,7 +200,7 @@ pub mod headlined {
             .metadata(metadata_pda)
             .mint(acc.mint.key())
             .mint_authority(acc.payer.key())
-            .update_authority(collection_authority, true)
+            .update_authority(collection_authority.key(), true)
             .payer(acc.payer.key())
             .data(sniper_metadata)
             .is_mutable(true)
@@ -196,19 +212,20 @@ pub mod headlined {
                 acc.metadata.to_account_info(),
                 acc.mint.to_account_info(),
                 acc.payer.to_account_info(),
-                acc.collection_authority.to_account_info(), // update authority is also payer
+                acc.collection_authority.to_account_info(),
+                acc.payer.to_account_info(), 
                 acc.system_program.to_account_info(),
                 acc.rent.to_account_info(),
                 acc.token_metadata_program.to_account_info(),
             ],
-            &[seeds], // no signer seeds? unless using PDA mint authority
+            &[signer_seeds], // no signer seeds? unless using PDA mint authority
         )?;
 
         msg!("📌 Derived metadata PDA: {}", metadata_pda);
         let master_edition_ix = CreateMasterEditionV3Builder::new()
             .edition(master_edition_pda)
             .mint(acc.mint.key())
-            .update_authority(collection_authority)
+            .update_authority(collection_authority.key())
             .mint_authority(acc.payer.key())
             .payer(acc.payer.key())
             .metadata(metadata_pda)
@@ -220,18 +237,18 @@ pub mod headlined {
             &[
                 acc.master_edition.to_account_info(),
                 acc.mint.to_account_info(),
-                acc.payer.to_account_info(),
                 acc.collection_authority.to_account_info(),
+                acc.payer.to_account_info(),
                 acc.metadata.to_account_info(),
                 acc.system_program.to_account_info(),
                 acc.token_metadata_program.to_account_info(),
             ],
-            &[seeds],
+            &[signer_seeds],
         )?;
 
         let collection_instr = VerifySizedCollectionItemBuilder::new()
             .metadata(metadata_pda)
-            .collection_authority(acc.collection_authority.key())
+            .collection_authority(collection_authority.key())
             .payer(acc.payer.key())
             .collection_mint(collection_key)
             .collection(collection_metadata_pda)
@@ -242,15 +259,15 @@ pub mod headlined {
             &collection_instr,
             &[
                 acc.metadata.to_account_info(),
+                acc.collection_authority.to_account_info(),
                 acc.payer.to_account_info(),
                 acc.collection_mint.to_account_info(),
                 acc.collection_metadata.to_account_info(),
                 acc.collection_master_edition.to_account_info(),
                 acc.system_program.to_account_info(),
                 acc.token_metadata_program.to_account_info(),
-                acc.collection_authority.to_account_info(),
             ],
-            &[seeds],
+            &[signer_seeds],
         )?;
 
         Ok(())
@@ -295,9 +312,11 @@ pub struct MintNft<'info> {
     #[account(mut)]
     pub collection_master_edition: UncheckedAccount<'info>,
 
-    /// CHECK: PDA collection authority signer
+    
+    /// CHECK: Collection authority
     #[account(seeds = [b"collection_authority", crate::ID.as_ref()], bump)]
-    pub collection_authority: UncheckedAccount<'info>,
+    pub collection_authority: UncheckedAccount<'info>
+
 }
 
 #[derive(Accounts)]
@@ -356,4 +375,8 @@ pub struct CreateCollection<'info> {
 
     /// CHECK: SPL Token Program
     pub token_program: Program<'info, Token>,
+
+    /// CHECK: Collection authority
+    #[account(seeds = [b"collection_authority", crate::ID.as_ref()], bump)]
+    pub collection_authority: UncheckedAccount<'info>
 }
