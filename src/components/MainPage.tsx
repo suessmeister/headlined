@@ -357,25 +357,7 @@ const MainPage: React.FC = () => {
             </div>
          )}
 
-         <div className="min-h-screen bg-gray-900 relative overflow-hidden" style={{ cursor: 'none' }}>
-            {/* Custom cursor */}
-            <div
-               className="custom-cursor"
-               style={{
-                  position: "fixed",
-                  width: "32px",
-                  height: "32px",
-                  backgroundImage: "url('/city/better.png')",
-                  backgroundSize: "contain",
-                  backgroundRepeat: "no-repeat",
-                  pointerEvents: "none",
-                  zIndex: 9999,
-                  transform: "translate(-50%, -50%)",
-                  transition: "transform 0.1s ease",
-                  filter: "hue-rotate(120deg) brightness(1.5)",
-               }}
-            />
-
+         <div className="min-h-screen bg-gray-900 relative overflow-hidden">
             <img
                src="/city/we_made_it.gif"
                style={{
@@ -639,12 +621,6 @@ const MainPage: React.FC = () => {
                  }
                }
 
-               .custom-cursor {
-                 position: fixed;
-                 pointer-events: none;
-                 z-index: 9999;
-               }
-
                .sunset-text {
                  color: #FFD700;
                  font-weight: bold;
@@ -678,12 +654,9 @@ const MainPage: React.FC = () => {
                }
 
                .menu-btn:hover .sunset-border {
-  border: none;
-  box-shadow: none;
-}
-
-
-
+                 border: none;
+                 box-shadow: none;
+               }
 
                .menu-btn:hover img {
                  transform: scale(1.05);
@@ -703,18 +676,6 @@ const MainPage: React.FC = () => {
                  transition: all 0.3s ease;
                }
             `}</style>
-
-            <script dangerouslySetInnerHTML={{
-               __html: `
-               document.addEventListener('mousemove', (e) => {
-                 const cursor = document.querySelector('.custom-cursor');
-                 if (cursor) {
-                   cursor.style.left = e.clientX + 'px';
-                   cursor.style.top = e.clientY + 'px';
-                 }
-               });
-             `
-            }} />
          </div>
       </>
    );
