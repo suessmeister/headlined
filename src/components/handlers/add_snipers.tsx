@@ -33,6 +33,8 @@ export function addSnipers(
             image: "/figures/evil_sniper.png",
             nextPhase: now + delay,
             laserCooldown: undefined,
+            x: c.x + 2,
+            y: c.y
          };
       }
 

@@ -266,22 +266,18 @@ const drawWindows = (
         const isSniper = rng() < 0.4;
 
         const charX = windowCenterX - 9;
-        const charY = isSniper ? windowCenterY - 5 : windowCenterY;
+        const verticalOffset = window.innerHeight < 1080 ? -5 : 0;
+        const charY = isSniper
+          ? windowCenterY - 5 + verticalOffset
+          : windowCenterY + verticalOffset;
 
         console.log(
           `🪟 Lit window at (${x.toFixed(1)}, ${y.toFixed(1)}) → character at (${charX.toFixed(1)}, ${charY.toFixed(1)})`
         );
 
-        // const screenWidth = 1920;
-        // const screenHeight = 1080;
-
-        // const scaleX = window.innerWidth / screenWidth;
-        // const scaleY = window.innerHeight / screenHeight;
-        
-
         newCharacters.push({
           id: Date.now() + rng(),
-          x: isSniper ? charX  + 2: charX,
+          x: isSniper ? charX + 2 : charX,
           y: isSniper ? charY : charY - 10.5,
           image: isSniper
             ? "/figures/evil_sniper.png"
