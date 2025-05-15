@@ -715,7 +715,7 @@ export default function ArsenalPage() {
                 <ul className="list-disc pl-5 space-y-1 text-yellow-200 text-sm">
                   <li><span className="font-bold">Phantom Users:</span> Ignore any red simulation warnings - this is normal for NFT minting.</li>
                   <li><span className="font-bold">All sales are final.</span> No refunds available for purchased weapons.</li>
-                  <li>After purchase, please refresh and check the <span className="italic">"Your Guns"</span> tab to select your new weapon for battle.</li>
+                  <li>After purchase, please refresh and check the <span className="italic">Your Guns</span> tab to select your new weapon for battle.</li>
                 </ul>
               </div>
 
