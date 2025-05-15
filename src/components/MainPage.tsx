@@ -12,7 +12,6 @@ const MainPage: React.FC = () => {
    const { publicKey } = useWallet();
 
    const [activeGun, setActiveGun] = useState<{ name: string } | null>(null);
-   const [showIntroScroll, setShowIntroScroll] = useState(false);
    const [isMatchmakingOpen, setIsMatchmakingOpen] = useState(false);
    const [matchFound, setMatchFound] = useState(false);
    const [opponent, setOpponent] = useState<string | null>(null);
@@ -21,6 +20,9 @@ const MainPage: React.FC = () => {
    const [onlineUsers, setOnlineUsers] = useState<number>(0);
    const [consentGiven, setConsentGiven] = useState(false);
    const [zoomLevel, setZoomLevel] = useState(1);
+   const [showIntroScroll, setShowIntroScroll] = useState(false);
+   const [showJoinMatchInfo, setShowJoinMatchInfo] = useState(false);
+   const [showExamples, setShowExamples] = useState(false);
 
    useEffect(() => {
       if (publicKey) {
@@ -95,6 +97,16 @@ const MainPage: React.FC = () => {
    };
 
    const handleJoinMatch = () => {
+      setShowJoinMatchInfo(true);
+   };
+
+   const handleNext = () => {
+      setShowJoinMatchInfo(false);
+      setShowExamples(true);
+   };
+
+   const handleStartMatchmaking = () => {
+      setShowExamples(false);
       const socket = getSocket();
 
       if (!publicKey) {
@@ -207,112 +219,6 @@ const MainPage: React.FC = () => {
                         </label>
                      </div>
                   )}
-               </div>
-            </div>
-         )}
-
-         {showIntroScroll && (
-            <div
-               style={{
-                  /* full‑screen dimmer */
-                  position: "fixed",
-                  inset: 0,
-                  background: "rgba(0,0,0,0.6)",
-                  zIndex: 100000,
-
-                  /* flexbox centering */
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-
-                  /* vertical scroll for very small screens */
-                  overflowY: "auto",
-                  /* edge gutter that scales with viewport */
-                  padding: "4vw",
-
-                  fontFamily: "'Courier New', monospace",
-                  letterSpacing: "0.4px",
-                  color: "white",
-               }}
-            >
-               {/* bounded intro panel */}
-               <div
-                  style={{
-                     width: "100%",
-                     maxWidth: "800px",
-                  }}
-               >
-                  <h1
-                     style={{
-                        fontSize: "clamp(28px, 3.2vw, 42px)",
-                        marginBottom: "1.5rem",
-                        textAlign: "center",
-                        color: "#FFA500",
-                        textShadow: "0 0 8px black",
-                     }}
-                  >
-                     Welcome to <span style={{ color: "white" }}>Headlined</span>.
-                  </h1>
-
-                  <p
-                     style={{
-                        fontSize: "clamp(16px, 1.2vw, 20px)",
-                        lineHeight: "1.8",
-                        textShadow: "0 0 4px black",
-                     }}
-                  >
-                     Your enemies are taking over.
-                     <br />
-                     <br />
-                     Zoom, scan windows, and pick off the enemies before they fire back.&nbsp;
-                     <span style={{ color: "#FFA500" }}>Only headshots count.</span>
-                     <br />
-                     You can shoot the balloons as well.
-                     <br />
-                     <br />
-                     You only need&nbsp;<span style={{ color: "#FFA500" }}>Ctrl</span> to scope and&nbsp;
-                     <span style={{ color: "#FFA500" }}>Click</span> to shoot.
-                     <br />
-                     <br />
-                     The&nbsp;<span style={{ color: "#FFA500" }}>Arsenal</span> contains snipers for purchase
-                     with various scopes and mags. Use the one that inspires you.
-                     <br />
-                     <br />
-                     Join a&nbsp;<strong>Live Match</strong>&nbsp;to go 1‑v‑1 against another opponent.
-                     <br />
-                     <br />
-                     You will be graded on&nbsp;<strong>hits</strong>. Rounds last&nbsp;
-                     <span style={{ color: "#FFA500" }}>2&nbsp;minutes</span>. Both players receive the same
-                     match + RNG. Compete on any platform of your choosing!
-                     <br />
-                     <br />
-                     Will you make headlines and save the city?
-                  </p>
-
-                  <div
-                     style={{
-                        marginTop: "2rem",
-                        display: "flex",
-                        justifyContent: "flex-end",
-                     }}
-                  >
-                     <button
-                        onClick={() => setShowIntroScroll(false)}
-                        style={{
-                           padding: "0.8rem 1.6rem",
-                           fontSize: "clamp(14px, 1.1vw, 18px)",
-                           fontFamily: "monospace",
-                           backgroundColor: "#FF4500",
-                           color: "white",
-                           border: "none",
-                           borderRadius: "6px",
-                           cursor: "pointer",
-                           boxShadow: "0 0 10px #FF4500",
-                        }}
-                     >
-                        Continue →
-                     </button>
-                  </div>
                </div>
             </div>
          )}
@@ -446,35 +352,10 @@ const MainPage: React.FC = () => {
                <div className="rain"></div>
             </div>
 
-            <button
-               onClick={() => setShowIntroScroll(true)}
-               style={{
-                  position: "fixed",
-                  top: "-2%",                // moved up from 10%
-                  left: "50%",
-                  transform: "translateX(-360px)", // moved further left from -275px
-                  zIndex: 1000,
-                  fontSize: "32px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "8px",
-                  transition: "transform 0.2s ease",
-               }}
-               onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateX(-360px) scale(1.2)";
-               }}
-               onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateX(-360px)";
-               }}
-            >
-               📜
-            </button>
-
             {/* LEFT COLUMN */}
             <div className="absolute top-0 left-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                {/* Arsenal */}
-               <Link href="/arsenal" className="flex-1 group relative overflow-hidden cursor-none">
+               <Link href="/arsenal" className="flex-1 group relative overflow-hidden cursor-pointer">
                   {/* Panel */}
                   <div className="sunset-border bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center
                     transition-all duration-300 ease-out
@@ -499,7 +380,7 @@ const MainPage: React.FC = () => {
                </Link>
 
                {/* Headlines */}
-               <Link href="/headlines" className="flex-1 group relative overflow-hidden cursor-none">
+               <Link href="/headlines" className="flex-1 group relative overflow-hidden cursor-pointer">
                   <div className="sunset-border bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center
                     transition-all duration-300 ease-out
                     transform
@@ -517,12 +398,164 @@ const MainPage: React.FC = () => {
                </Link>
             </div>
 
+            {/* Info Icon - Moved outside the left column */}
+            <button
+               onClick={() => setShowIntroScroll(true)}
+               className="absolute top-4 left-[calc(27%+16px)] w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-full 
+                  hover:bg-black/60 transition-all duration-300 group/info z-20"
+            >
+               <span className="text-white text-lg font-bold group-hover/info:scale-110 transition-transform">ⓘ</span>
+            </button>
 
+            {/* Feature Info Modal */}
+            {showIntroScroll && (
+               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+                  <div className="bg-gray-900/90 border-2 border-orange-500/50 rounded-xl p-8 max-w-2xl w-[90%] relative">
+                     <button
+                        onClick={() => setShowIntroScroll(false)}
+                        className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+                     >
+                        ✕
+                     </button>
+
+                     <h2 className="text-2xl font-bold text-orange-400 mb-6">Game Features</h2>
+
+                     <div className="space-y-6">
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <h3 className="text-xl font-bold text-orange-300 mb-2">Arsenal</h3>
+                           <p className="text-white/80">
+                              Your personal collection of weapons and badges. Customize your loadout and showcase your achievements through unique NFTs.
+                           </p>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <h3 className="text-xl font-bold text-orange-300 mb-2">Practice Match</h3>
+                           <p className="text-white/80">
+                              Train your skills in a controlled environment. Perfect for learning the mechanics and testing new strategies without the pressure of ranked matches.
+                           </p>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <h3 className="text-xl font-bold text-orange-300 mb-2">Headlines</h3>
+                           <p className="text-white/80">
+                              Stop by after every live match to stay updated with the latest news, leaderboards, and community highlights. Share a photo and tag us!
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            )}
+
+            {/* Join Match Info Modal */}
+            {showJoinMatchInfo && (
+               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+                  <div className="bg-gray-900/90 border-2 border-orange-500/50 rounded-xl p-8 max-w-md w-[90%] relative">
+                     <button
+                        onClick={() => setShowJoinMatchInfo(false)}
+                        className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+                     >
+                        ✕
+                     </button>
+
+                     <h2 className="text-2xl font-bold text-orange-400 mb-6">Before You Join</h2>
+
+                     <div className="space-y-4">
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <div className="flex items-start space-x-3">
+                              <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center text-orange-400 font-bold">1</div>
+                              <p className="text-white/80 flex-1">
+                                 Hold Control to Scope and Click to Shoot
+                              </p>
+                           </div>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <div className="flex items-start space-x-3">
+                              <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center text-orange-400 font-bold">2</div>
+                              <p className="text-white/80 flex-1">
+                                 Make sure you've selected your gun from the arsenal
+                              </p>
+                           </div>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <div className="flex items-start space-x-3">
+                              <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center text-orange-400 font-bold">3</div>
+                              <p className="text-white/80 flex-1">
+                                 You may shoot balloons and enemy snipers
+                              </p>
+                           </div>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-lg border border-orange-500/30">
+                           <div className="flex items-start space-x-3">
+                              <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center text-orange-400 font-bold">4</div>
+                              <p className="text-white/80 flex-1">
+                                 It is encouraged to play 1 practice match!
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <button
+                        onClick={handleNext}
+                        className="mt-6 w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold py-3 px-6 rounded-lg border border-orange-500/50 transition-all duration-300"
+                     >
+                        Next
+                     </button>
+                  </div>
+               </div>
+            )}
+
+            {/* Examples Modal */}
+            {showExamples && (
+               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+                  <div className="bg-gray-900/90 border-2 border-orange-500/50 rounded-xl p-8 max-w-2xl w-[90%] relative">
+                     <button
+                        onClick={() => setShowExamples(false)}
+                        className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+                     >
+                        ✕
+                     </button>
+
+                     <h2 className="text-2xl font-bold text-orange-400 mb-6">Target Examples</h2>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                           <h3 className="text-xl font-bold text-orange-300">✅ Shoot These</h3>
+                           <div className="bg-yellow-500/20 p-4 rounded-lg border border-green-500/30">
+                              <img src="/figures/balloon.png" alt="Balloon Target" className="w-full h-48 object-contain rounded mb-2" />
+                              <p className="text-white/80">Balloons - Pop them for points!</p>
+                           </div>
+                           <div className="bg-yellow-500/20 p-4 rounded-lg border border-green-500/30">
+                              <img src="/figures/evil_sniper_2.png" alt="Enemy Sniper" className="w-full h-48 object-contain rounded mb-2" />
+                              <p className="text-white/80">Enemy Snipers - Headshots Only!</p>
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <h3 className="text-xl font-bold text-orange-300">❌ Do not Shoot These</h3>
+                           <div className="bg-yellow-500/20 p-4 rounded-lg border border-red-500/30">
+                              <img src="/figures/better_s2.gif" alt="Friendly Target" className="w-full h-48 object-contain rounded mb-2" />
+                              <p className="text-white/80">Non-targets -- Civilians</p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <button
+                        onClick={handleStartMatchmaking}
+                        className="mt-6 w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 font-bold py-3 px-6 rounded-lg border border-orange-500/50 transition-all duration-300"
+                     >
+                        Start Matchmaking
+                     </button>
+                  </div>
+               </div>
+            )}
 
             {/* Right Column */}
             <div className="absolute top-0 right-0 h-screen w-[27%] z-10 flex flex-col pointer-events-auto">
                {/* Join Match */}
-               <div onClick={handleJoinMatch} className="cursor-none flex-1 menu-btn group relative overflow-hidden">
+               <div onClick={handleJoinMatch} className="cursor-pointer flex-1 menu-btn group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex flex-col items-center justify-center sunset-border">
                      <div className="relative w-full h-full">
                         <img
@@ -544,7 +577,7 @@ const MainPage: React.FC = () => {
                </div>
 
                {/* Practice Match */}
-               <div onClick={handlePracticeClick} className="cursor-none flex-1 menu-btn group relative overflow-hidden">
+               <div onClick={handlePracticeClick} className="cursor-pointer flex-1 menu-btn group relative overflow-hidden">
                   <div className="bg-gray-800/80 backdrop-blur-sm p-6 h-full w-full flex items-center justify-center sunset-border">
                      <div className="relative w-full h-full">
                         <img

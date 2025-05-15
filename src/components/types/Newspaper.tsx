@@ -2,8 +2,10 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { newspaperHtml } from "../../app/utils/NewspaperHtml";
+import { useRouter } from "next/navigation";
 
 export default function Newspaper() {
+   const router = useRouter();
    const today = new Date().toLocaleDateString("en-US", {
       weekday: "long",
       day: "2-digit",
@@ -24,6 +26,11 @@ export default function Newspaper() {
          setMatchData(JSON.parse(storedResults));
       }
    }, []);
+
+   const handleGoBack = () => {
+      // Force a full page reload when going back
+      window.location.href = '/';
+   };
 
    const sniperHeadlines: string[] = [
       "The Streets Ran Red: One Sniper, Dozens Dead",
@@ -62,6 +69,12 @@ export default function Newspaper() {
                padding: "2rem"
             }}
          />
+         <button
+            onClick={handleGoBack}
+            className="fixed top-4 right-4 z-[10000] bg-black/40 hover:bg-black/60 text-white px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20 transition-all duration-300"
+         >
+            Go Back
+         </button>
       </>
    );
 }
