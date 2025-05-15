@@ -4,12 +4,18 @@ import { Metaplex } from "@metaplex-foundation/js";
 export async function getNftsForWallet(
   walletAddress: PublicKey,
   connection: Connection,
+  collectionType: 'guns' | 'badges' = 'guns'
 ) {
   try {
     const metaplex = new Metaplex(connection);
     const nfts = await metaplex.nfts().findAllByOwner({ owner: walletAddress });
 
-    const json = await fetch("/data/collection_addresses_2.json");
+    // Choose which collection data file to use based on collection type
+    const jsonPath = collectionType === 'guns'
+      ? "/data/collection_addresses_2.json"
+      : "/data/badge.json";
+
+    const json = await fetch(jsonPath);
     const collectionData = await json.json();
 
     const collectionMints = collectionData.collections.map(
@@ -17,7 +23,7 @@ export async function getNftsForWallet(
     );
 
     // Filter by collection!
-    const gunNfts = nfts.filter(
+    const filteredNfts = nfts.filter(
       (nft) =>
         nft.collection &&
         nft.collection.verified &&
@@ -30,7 +36,7 @@ export async function getNftsForWallet(
 
     // Fetch metadata for each NFT
     const nftsWithMetadata = await Promise.all(
-      gunNfts.map(async (nft) => {
+      filteredNfts.map(async (nft) => {
         try {
           const response = await fetch(nft.uri);
           const metadata = await response.json();
@@ -40,6 +46,7 @@ export async function getNftsForWallet(
             image: metadata.image,
             description: metadata.description || "",
             mint: nft.address.toString(),
+            type: collectionType, // Add type information
           };
         } catch (error) {
           console.error("Error fetching metadata:", error);
@@ -50,7 +57,23 @@ export async function getNftsForWallet(
 
     return nftsWithMetadata.filter(Boolean);
   } catch (error) {
-    console.error("Error fetching NFTs:", error);
+    console.error(`Error fetching ${collectionType} NFTs:`, error);
     return [];
   }
+}
+
+// Convenience function to specifically get badges
+export async function getBadgesForWallet(
+  walletAddress: PublicKey,
+  connection: Connection,
+) {
+  return getNftsForWallet(walletAddress, connection, 'badges');
+}
+
+// Convenience function to specifically get guns
+export async function getGunsForWallet(
+  walletAddress: PublicKey,
+  connection: Connection,
+) {
+  return getNftsForWallet(walletAddress, connection, 'guns');
 }

@@ -100,7 +100,7 @@ async function createCollections() {
 
       try {
          await program.methods
-            .createCollection("Gun Crate", "CR", "https://ckdrycidfx3gcosapaaljy4edvowipn4t46zdytalvcxq5zbqhka.arweave.net/EoccCQMt9mE6QHgAtOOEHV1kPbyfPZHiYF1FeHchgdQ")
+            .createCollection("Honor Badges", "BAD", "https://pbee3vpgipr7k6anfdjksn564ixgik4dbljtk4x4h67ch7rubj5a.arweave.net/eEhN1eZD4_V4DSjSqTe-4i5kK4MK0zVy_D--I_40Cno")
             .accounts({
                payer: payer.publicKey,
                collectionMint,
@@ -135,11 +135,7 @@ async function createCollections() {
             console.error("Transaction logs:", (error as any)?.logs);
          }
       }
-   
 
-   // const outputPath = path.join(__dirname, "../data/collection_addresses_2.json");
-   // fs.writeFileSync(outputPath, JSON.stringify({ collections }, null, 2));
-   // console.log(`Collection addresses saved to ${outputPath}`);
 
 }
 

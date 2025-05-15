@@ -1,0 +1,21 @@
+{
+   "name": "Bronze Horizon",
+   "symbol": "B1",
+   "description": "A beginner's gleam glints from your scope. Record 20 eliminations in one match to mint this badge.",
+   "image": "https://hjsth2y3vh4mp7mhxpgzvo5s7lnig4ql3ehqo3wh6vz4usstnrmq.arweave.net/OmUz6xup-Mf9h7vNmruy-tqDcgvZDwdux_VzykpTbFk",
+   "attributes": [
+      {
+         "trait_type": "1-game kills",
+         "value": "20"
+      }
+   ],
+   "properties": {
+      "files": [
+         {
+            "uri": "https://hjsth2y3vh4mp7mhxpgzvo5s7lnig4ql3ehqo3wh6vz4usstnrmq.arweave.net/OmUz6xup-Mf9h7vNmruy-tqDcgvZDwdux_VzykpTbFk",
+            "type": "image/png"
+         }
+      ],
+      "category": "image"
+   }
+}

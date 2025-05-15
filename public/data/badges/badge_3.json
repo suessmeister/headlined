@@ -1,0 +1,21 @@
+{
+   "name": "Silent Sundown",
+   "symbol": "B3",
+   "description": "By sunset, few of your enemies remain. Record 50 eliminations in one match to mint this badge.",
+   "image": "https://b26auleciiqxbwjq2sjqgvdaefn3d5viqsp6s5ukjqqvlkrqanva.arweave.net/DrwKLIJCIXDZMNSTA1RgIVux9qiEn-l2ikwhVaowA2o",
+   "attributes": [
+      {
+         "trait_type": "1-game kills",
+         "value": "50"
+      }
+   ],
+   "properties": {
+      "files": [
+         {
+            "uri": "https://b26auleciiqxbwjq2sjqgvdaefn3d5viqsp6s5ukjqqvlkrqanva.arweave.net/DrwKLIJCIXDZMNSTA1RgIVux9qiEn-l2ikwhVaowA2o",
+            "type": "image/png"
+         }
+      ],
+      "category": "image"
+   }
+}

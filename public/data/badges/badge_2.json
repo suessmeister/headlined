@@ -1,0 +1,21 @@
+{
+   "name": "Crimson Eclipse",
+   "symbol": "B2",
+   "description": "The sky bleeds red, afraid of your increased performance. Record 35 eliminations in one match to mint this badge.",
+   "image": "https://jfxfzrlkrwyimwybi3tnzkwwbeirpxaogxnjv7r4zq4qa66zixoa.arweave.net/SW5cxWqNsIZbAUbm3KrWCREX3A412pr-PMw5AHvZRdw",
+   "attributes": [
+      {
+         "trait_type": "1-game kills",
+         "value": "35"
+      }
+   ],
+   "properties": {
+      "files": [
+         {
+            "uri": "https://jfxfzrlkrwyimwybi3tnzkwwbeirpxaogxnjv7r4zq4qa66zixoa.arweave.net/SW5cxWqNsIZbAUbm3KrWCREX3A412pr-PMw5AHvZRdw",
+            "type": "image/png"
+         }
+      ],
+      "category": "image"
+   }
+}
