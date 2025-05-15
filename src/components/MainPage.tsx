@@ -473,7 +473,7 @@ const MainPage: React.FC = () => {
                            <div className="flex items-start space-x-3">
                               <div className="w-6 h-6 rounded-full border-2 border-orange-400 flex items-center justify-center text-orange-400 font-bold">2</div>
                               <p className="text-white/80 flex-1">
-                                 Make sure you've selected your gun from the arsenal
+                                 Ensure you have equipped your gun from the arsenal
                               </p>
                            </div>
                         </div>
