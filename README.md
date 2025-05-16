@@ -1,96 +1,50 @@
-# legacy-snipe_sweepers
+# Headlined — A Sunset-Themed 1v1 Sniper Duel
 
-## Getting Started
+**Headlined** is a competitive browser game where two snipers face off in a procedurally generated sunset city. Players enter the same urban arena, battle in real time, and leave behind AI-generated headlines that retell the story of their match.
 
-### Prerequisites
+Play now: [https://headlined.fun](https://headlined.fun)
 
-- Node v18.18.0 or higher
+---
 
-- Rust v1.77.2 or higher
-- Anchor CLI 0.30.1 or higher
-- Solana CLI 1.18.17 or higher
+## Overview
 
-### Installation
+- 1v1 real-time sniper duels  
+- Shared procedural city layout per match  
+- Dynamic enemy waves and sniper mechanics  
+- Fake newspaper headlines based on gameplay performance  
+- Earn NFT badges and weapons as digital trophies  
 
-#### Clone the repo
+---
 
-```shell
-git clone <repo-url>
-cd <repo-name>
-```
+## Core Features
 
-#### Install Dependencies
+### Synchronized Multiplayer
+Players enter the same city, generated from a shared seed. Every match is unique yet fair — both players see the same city, same enemies, and same sniper windows.
 
-```shell
-pnpm install
-```
+### AI Headlines & Newspaper Mode
+At the end of each match, the system generates a mock newspaper front page summarizing the battle with stylized text, stats, and custom headlines based on your performance.
 
-#### Start the web app
+### NFT Integration
+Players can mint sniper rifles and earn digital badges through on-chain actions:
+- Sniper rifles minted via Solana + Metaplex
+- Verified badge collections issued to top players
+- Optional BitBadges integration for identity and access
 
-```
-pnpm dev
-```
+---
 
-## Apps
+## Tech Stack
 
-### anchor
+- **Frontend:** React (Next.js), TypeScript, Three.js  
+- **Backend:** Socket.IO, Supabase (match data & stats)  
+- **Blockchain:** Solana, Anchor, Metaplex  
+- **Deployment:** Hosted at [headlined.fun](https://headlined.fun)
 
-This is a Solana program written in Rust using the Anchor framework.
+---
 
-#### Commands
+## Running Locally
 
-You can use any normal anchor commands. Either move to the `anchor` directory and run the `anchor` command or prefix the
-command with `pnpm`, eg: `pnpm anchor`.
-
-#### Sync the program id:
-
-Running this command will create a new keypair in the `anchor/target/deploy` directory and save the address to the
-Anchor config file and update the `declare_id!` macro in the `./src/lib.rs` file of the program.
-
-You will manually need to update the constant in `anchor/lib/counter-exports.ts` to match the new program id.
-
-```shell
-pnpm anchor keys sync
-```
-
-#### Build the program:
-
-```shell
-pnpm anchor-build
-```
-
-#### Start the test validator with the program deployed:
-
-```shell
-pnpm anchor-localnet
-```
-
-#### Run the tests
-
-```shell
-pnpm anchor-test
-```
-
-#### Deploy to Devnet
-
-```shell
-pnpm anchor deploy --provider.cluster devnet
-```
-
-### web
-
-This is a React app that uses the Anchor generated client to interact with the Solana program.
-
-#### Commands
-
-Start the web app
-
-```shell
-pnpm dev
-```
-
-Build the web app
-
-```shell
-pnpm build
-```
+```bash
+git clone https://github.com/yourusername/headlined.git
+cd headlined
+npm install
+npm run dev
