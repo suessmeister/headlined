@@ -7,22 +7,16 @@ import * as THREE from "three";
 import { useSniperHandlers } from "../../components/handlers/sniper_handler";
 import { useZoomHandlers } from "../../components/handlers/zoom_handler";
 import { generateCity } from "../../components/drawing/city_render";
-import { io } from "socket.io-client";
 import { getSocket } from "../../app/utils/socket";
 import { useRouter } from "next/navigation";
-import FlippingTimer from "../../components/handlers/timer_handler";
 
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useCallback } from "react";
 import { FlyingBalloon } from "../../components/drawing/flying_balloon";
 
 
 import {
-   FlashMessage,
-   IntroMessage,
    InfiniteAmmoToggle,
-
    AmmoBar,
    ReloadTimer,
 } from "../../components/ui/game_ui";
@@ -113,13 +107,11 @@ const Lobby: React.FC = () => {
    const [shots, setShots] = useState(0);
    const [hits, setHits] = useState(0);
    const [isLastShotHit, setIsLastShotHit] = useState(false);
-   const [timeLeft, setTimeLeft] = useState(120);
    const [activeGun, setActiveGun] = useState<{
       name: keyof typeof gun_metadata;
    } | null>(null);
    const [isMatchmakingOpen, setIsMatchmakingOpen] = useState(false);
 
-   const CHARACTER_PROBABILITY = 0.1;
    const [characters, setCharacters] = useState<Character[]>([]);
 
    const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -131,9 +123,6 @@ const Lobby: React.FC = () => {
    const balloonRef = useRef<
       { id: number; x: number; y: number; size: number; isHit: boolean }[]
    >([]);
-
-   const [flashMessage, setFlashMessage] = useState<string | null>(null);
-   const [shouldRedirect, setShouldRedirect] = useState(false);
 
    const initGun = useRef(false);
 
@@ -154,13 +143,9 @@ const Lobby: React.FC = () => {
    const [isPlayerHit, setIsPlayerHit] = useState(false);
 
    const [unlimitedAmmo, setUnlimitedAmmo] = useState(false);
-
-   // right under other useState lines
    const [waveMsgVisible, setWaveMsgVisible] = useState(false);
    const waveLockRef = useRef(false);        // prevents double‑trigger
    const [wave, setWave] = useState(1);      // optional: track wave #
-
-   // 🔝 put with the other useState calls
    const [matchFound, setMatchFound] = useState(false);
    const [opponent, setOpponent] = useState<string | null>(null);
    const [countdown, setCountdown] = useState(5);   // seconds left
@@ -221,11 +206,6 @@ const Lobby: React.FC = () => {
          }, 1000);
       });
 
-
-      socket.on("waiting", ({ message }: { message: string }) => {
-         console.log("⌛ Waiting:", message);
-      });
-
    };
 
    const [balloons, setBalloons] = useState<
@@ -243,11 +223,7 @@ const Lobby: React.FC = () => {
       }
    }, [publicKey, router]);
 
-   useEffect(() => {
-      console.log("wallet object:", wallet);
-      console.log("wallet.adapter:", wallet?.adapter);
-      console.log("publicKey:", publicKey?.toBase58());
-   }, [wallet, publicKey]);
+   useEffect(() => {}, [wallet, publicKey]);
 
    useEffect(() => {
       const spawn = () => {
@@ -258,7 +234,7 @@ const Lobby: React.FC = () => {
 
          setBalloons((prev) => [...prev, { id, startY, duration, size }]);
 
-         // 💥 Add to the tracking ref
+         //Add to the tracking ref
          balloonRef.current.push({
             id,
             x: window.innerWidth + 150, // start off-screen right
@@ -267,7 +243,7 @@ const Lobby: React.FC = () => {
             isHit: false,
          });
 
-         // 🔁 Schedule next spawn
+         //Schedule next spawn
          const nextDelay = 8000 + Math.random() * 8000;
          setTimeout(spawn, nextDelay);
       };
@@ -275,11 +251,7 @@ const Lobby: React.FC = () => {
       spawn();
    }, []);
 
-
-
-
    useEffect(() => {
-      console.log("TICKED ");
       let raf: number;
 
       const tick = () => {
@@ -337,7 +309,7 @@ const Lobby: React.FC = () => {
       return () => cancelAnimationFrame(raf);
    }, []);
 
-   // ─── LASER: character ➜ camera ──────────────────────────────────────────────
+   //LASER
    const fireLaser = (c: Character) => {
       if (!sceneRef.current || !cameraRef.current) return;
 
@@ -357,18 +329,18 @@ const Lobby: React.FC = () => {
       );
 
 
-      // 2️⃣ Ray from screen position
+      // Ray from screen position
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(ndc, cam);
       const ray = raycaster.ray;
 
-      // 3️⃣ Origin of the laser
+      //Origin of the laser
       const origin = ray.origin
          .clone()
          .add(ray.direction.clone().multiplyScalar(40));
 
-      // 4️⃣ Direction to camera
-      // 4️⃣ Direction to camera (with randomized offset for misses)
+      // Direction to camera
+      // Direction to camera (with randomized offset for misses)
       let target = cam.position.clone();
 
       // Add a chance to miss — 30%
@@ -387,7 +359,7 @@ const Lobby: React.FC = () => {
       const dir = target.clone().sub(origin).normalize();
       const fullLength = origin.distanceTo(target);
 
-      // 5️⃣ Create cylinder with full length (we'll scale it up)
+      // Create cylinder with full length (we'll scale it up)
       const radius = 0.05;
       const geom = new THREE.CylinderGeometry(
          radius,
@@ -445,7 +417,7 @@ const Lobby: React.FC = () => {
       };
       requestAnimationFrame(grow);
 
-      // 7️⃣ Fade out after full growth
+      //Fade out after full growth
       const startFade = performance.now();
       const fade = (t: number) => {
          const alpha = 1 - (t - startFade) / 400;
@@ -484,9 +456,7 @@ const Lobby: React.FC = () => {
    });
 
    useEffect(() => {
-      //  ⬇ add "unlimitedAmmo" here
       if (!initGun.current || isReloading || ammo > 0 || unlimitedAmmo) return;
-      /* … rest of the reload logic … */
    }, [ammo, isReloading, maxAmmo, activeGun, unlimitedAmmo]);
 
    useEffect(() => {
@@ -499,7 +469,6 @@ const Lobby: React.FC = () => {
          setAmmo(capacity);
          setMaxAmmo(capacity);
       } else {
-         // 👇 Fallback to "Default Sniper"
          const fallback: { name: keyof typeof gun_metadata } = { name: "Default Sniper" };
          sessionStorage.setItem("selectedGun", JSON.stringify(fallback));
          setActiveGun(fallback);
@@ -571,7 +540,7 @@ const Lobby: React.FC = () => {
       cameraRef.current = camera;
       rendererRef.current = renderer;
 
-      // 🔥 After renderer setup, now safely generate city!
+      // After renderer setup, now safely generate city!
       if (canvasRef.current) {
          const seed = `practice-${Date.now()}`;
          generateCity(canvasRef.current, (chars) => {
@@ -634,8 +603,8 @@ const Lobby: React.FC = () => {
       const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
 
       if (!anyAlive && snipersVisible) {
-         if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
-         if (waveLockRef.current) return; // ⛔️ avoid double-triggers
+         if (wave >= MAX_WAVES) return; // stop everything after final wave
+         if (waveLockRef.current) return; //  avoid double-triggers
 
          waveLockRef.current = true;
          setWaveMsgVisible(true);
@@ -675,7 +644,6 @@ const Lobby: React.FC = () => {
          setMaxAmmo(Number(gun_metadata[parsedGun.name].capacity));
          setIsReloading(false);
       }
-      // ❗ else do NOTHING
    }, []);
 
    return (

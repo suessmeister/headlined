@@ -52,13 +52,7 @@ pub mod headlined {
             &[b"collection_authority", &crate::ID.to_bytes()],
             &crate::ID,
         );
-        msg!(
-            "📌 Derived collection authority PDA: {}",
-            collection_authority
-        );
-
       
-
         let data = DataV2 {
             name: title,
             symbol,
@@ -173,10 +167,7 @@ pub mod headlined {
             &[b"collection_authority", &crate::ID.to_bytes()],
             &crate::ID,
         );
-        msg!(
-            "📌 Derived collection authority PDA: {}",
-            collection_authority
-        );
+    
 
         let sniper_metadata = DataV2 {
             name: metadata_title,
@@ -194,7 +185,6 @@ pub mod headlined {
         };
 
         let acc = ctx.accounts; //for readability
-        msg!("about to create metadata");
 
         let metadata_instr = CreateMetadataAccountV3Builder::new()
             .metadata(metadata_pda)
@@ -221,7 +211,7 @@ pub mod headlined {
             &[signer_seeds], // no signer seeds? unless using PDA mint authority
         )?;
 
-        msg!("📌 Derived metadata PDA: {}", metadata_pda);
+        
         let master_edition_ix = CreateMasterEditionV3Builder::new()
             .edition(master_edition_pda)
             .mint(acc.mint.key())

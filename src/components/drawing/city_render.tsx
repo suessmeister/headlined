@@ -25,10 +25,10 @@ export function generateCity(
   ctx.clearRect(0, 0, fixedWidth, fixedHeight);
   // ctx.scale(1, 1); // Keep as 1 for pure logical coords
 
-  // 1️⃣ DRAW SKY FIRST
+  // DRAW SKY FIRST
   drawAnimatedSky(ctx, screenWidth, screenHeight);
 
-  // 2️⃣ THEN draw city
+  // THEN draw city
   // ctx.clearRect(0, 0, screenWidth, screenHeight); // optional clear before buildings
   const newCharacters: Character[] = [];
   drawBuildings(ctx, screenWidth, screenHeight, newCharacters, rng);
@@ -192,13 +192,13 @@ const drawBuildings = (
       ctx.lineTo(archX + archWidth / 2, y - 10);
       ctx.stroke();
 
-      // Draw small decorative circles at arch points
+      // draw small decorative circles at arch points
       ctx.beginPath();
       ctx.arc(archX + archWidth / 4, y - 5, 2, 0, Math.PI * 2);
       ctx.arc(archX + (archWidth * 3) / 4, y - 5, 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw small decorative spires above arch
+      //Draw small decorative spires above arch
       const spireHeight = 8;
       ctx.beginPath();
       ctx.moveTo(archX + archWidth / 2, y - 15);

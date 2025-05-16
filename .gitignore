@@ -38,3 +38,4 @@ tmp
 
 # production backend
 /server_backend
+.env

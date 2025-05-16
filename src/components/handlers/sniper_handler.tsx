@@ -91,7 +91,6 @@ export function useSniperHandlers({
         return dx * dx + dy * dy <= rad * rad;
       }) as Character | undefined;
 
-      /* ─── build tracer ray ─── */
       const mouse = new THREE.Vector2(
           (rawX / window.innerWidth) * 2 - 1,
           -(rawY / window.innerHeight) * 2 + 1
@@ -122,8 +121,6 @@ export function useSniperHandlers({
           const proj = new THREE.Vector3().copy(tracer.position).project(cameraRef.current!);
           const flashX = (proj.x * 0.5 + 0.5) * window.innerWidth;
           const flashY = -(proj.y * 0.5 - 0.5) * window.innerHeight;
-
-          console.log(`🟢 Shot landed at: x=${flashX.toFixed(1)}, y=${flashY.toFixed(1)}`);
 
           /* balloons are tested live (they were fine) */
           const hitBalloon = balloonRef.current.find((b) => {

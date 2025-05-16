@@ -23,8 +23,8 @@ const SniperImg = styled(motion.img) <{ x: number; y: number }>`
 
 const SkullWrapper = styled.div<{ x: number; y: number }>`
   position: absolute;
-  left: ${({ x }) => x - 14}px;   // 🔁 shifted right
-  top: ${({ y }) => y - 3}px;   // 🔁 shifted down
+  left: ${({ x }) => x - 14}px;   // shifted right
+  top: ${({ y }) => y - 3}px;   //shifted down
   z-index: 11;
   text-align: center;
   pointer-events: none;
@@ -55,10 +55,6 @@ const Wings = styled(motion.div)`
   letter-spacing: 4px;  // space them out
 `;
 
-
-
-
-/* ───────────────── component ───────────────── */
 const EnemySnipers: React.FC<Props> = ({
    characters,
    snipersVisible,
@@ -119,7 +115,6 @@ const EnemySnipers: React.FC<Props> = ({
                         y={c.y * scaleY}
                         src={c.image}
                         alt="Sniper"
-                        /* --- same pattern as FlyingBalloon --- */
                         initial={{ rotate: 0, y: 0, opacity: 1 }}
                         animate={
                            isDead
@@ -136,7 +131,6 @@ const EnemySnipers: React.FC<Props> = ({
                      />
                   )}
 
-                  {/* active hitbox while sniper is alive */}
                   {c.isSniper && !c.isHit && snipersVisible && (
                      <motion.div
                         id={`sniper-hitbox-${c.id}`}
@@ -156,7 +150,6 @@ const EnemySnipers: React.FC<Props> = ({
                      
                   )}
 
-                  {/* skull appears after slump animation completes */}
                   {showSkull && (
                      <SkullWrapper x={c.x * scaleX} y={c.y * scaleY}>
                         <Skull>💀</Skull>

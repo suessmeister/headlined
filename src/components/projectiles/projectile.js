@@ -5,7 +5,6 @@ function onMouseClick(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  // Set up raycaster
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(mouse, camera);
   const direction = raycaster.ray.direction.clone();
@@ -18,7 +17,6 @@ function onMouseClick(event) {
   projectile.position.copy(camera.position);
   scene.add(projectile);
 
-  // Animate projectile
   const speed = 0.1;
   const target = camera.position.clone().add(direction.multiplyScalar(100));
   function animateProjectile() {

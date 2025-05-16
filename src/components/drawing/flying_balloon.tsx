@@ -43,7 +43,7 @@ export const FlyingBalloon: React.FC<Props> = ({
         balloon.size = size;
 
         if (balloon.isHit && !isHit) {
-          setIsHit(true); // 🚨 trigger crash
+          setIsHit(true); // trigger crash
         }
       } else {
         balloonRef.current.push({ id, x, y, size, isHit: false });

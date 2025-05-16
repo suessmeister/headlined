@@ -11,19 +11,11 @@ import { getSocket } from "../app/utils/socket";
 import { useRouter } from "next/navigation";
 import FlippingTimer from "./handlers/timer_handler";
 
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useCallback } from "react";
 import { FlyingBalloon } from "./drawing/flying_balloon";
 import { Character } from "./types/Character";
 import { addSnipers } from "./handlers/add_snipers";
-import {
-  FlashMessage,
-  IntroMessage,
-  InfiniteAmmoToggle,
-  AmmoBar,
-  ReloadTimer,
-} from "./ui/game_ui";
 import EnemySnipers from "./drawing/enemy_snipers";
 import seedrandom from "seedrandom"
 
@@ -134,11 +126,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   >([]);
 
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
-  // const [waiting, setWaiting] = useState(true);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  const { publicKey, disconnect, sendTransaction, wallet } = useWallet();
-  const [matchSeed, setMatchSeed] = useState<string | null>(null);
   const [flash, setFlash] = useState<"hit" | "miss" | null>(null);
 
   // Tracking Enemy States!
@@ -190,7 +177,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
       setBalloons((prev) => [...prev, { id, startY, duration, size }]);
 
-      // 💥 Add to the tracking ref
+      //  Add to the tracking ref
       balloonRef.current.push({
         id,
         x: window.innerWidth + 150, // start off-screen right
@@ -199,7 +186,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         isHit: false,
       });
 
-      // 🔁 Schedule next spawn
+      // Schedule next spawn
       const nextDelay = 8000 + rngRef.current() * 8000;
       setTimeout(spawn, nextDelay);
     };
@@ -231,7 +218,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
                 ...c,
                 phase: "dark",
                 image: "",
-                nextPhase: now + exitDelay,                     // ← always in the future
+                nextPhase: now + exitDelay,                    
               };
             }
 
@@ -269,7 +256,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // ─── LASER: character ➜ camera ──────────────────────────────────────────────
+  // laser
   const fireLaser = (c: Character) => {
     if (!sceneRef.current || !cameraRef.current) return;
 
@@ -288,18 +275,18 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       -((c.y + visualOffsetY) / logicalHeight) * 2 + 1
     );
 
-    // 2️⃣ Ray from screen position
+    // Ray from screen position
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(ndc, cam);
     const ray = raycaster.ray;
 
-    // 3️⃣ Origin of the laser
+    // Origin of the laser
     const origin = ray.origin
       .clone()
       .add(ray.direction.clone().multiplyScalar(40));
 
-    // 4️⃣ Direction to camera
-    // 4️⃣ Direction to camera (with randomized offset for misses)
+    // Direction to camera
+    // Direction to camera (with randomized offset for misses)
     let target = cam.position.clone();
 
     // Add a chance to miss — 30%
@@ -318,7 +305,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     const dir = target.clone().sub(origin).normalize();
     const fullLength = origin.distanceTo(target);
 
-    // 5️⃣ Create cylinder with full length (we'll scale it up)
+    // Create cylinder with full length (we'll scale it up)
     const radius = 0.05;
     const geom = new THREE.CylinderGeometry(
       radius,
@@ -376,7 +363,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     };
     requestAnimationFrame(grow);
 
-    // 7️⃣ Fade out after full growth
+    //Fade out after full growth
     const startFade = performance.now();
     const fade = (t: number) => {
       const alpha = 1 - (t - startFade) / 400;
@@ -429,7 +416,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       setShowReloading(true);
       document.body.style.cursor = "default";
       setReloadSecondsLeft(reloadDuration);
-      // console.log("Reloading...");
 
       const start = performance.now();
 
@@ -445,7 +431,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
           setIsReloading(false);
           setShowReloading(false);
           setReloadSecondsLeft(null);
-          // console.log("Reloaded!");
         }
       };
 
@@ -456,31 +441,24 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   useEffect(() => {
     const socket = getSocket();
 
-    console.log("🎮 City component mounted");
-
     if (!socket.connected) {
-      console.log("🔌 Connecting socket...");
       socket.connect();
     }
 
     const seed = sessionStorage.getItem("matchSeed");
     const matchId = sessionStorage.getItem("matchId");
 
-    console.log("📦 matchId:", matchId, "| seed:", seed);
 
     if (seed && canvasRef.current) {
-      console.log("🧠 Generating city with seed");
       generateCity(canvasRef.current, setCharacters, seed);
     }
 
     if (matchId) {
-      console.log("📡 Emitting ready_in_city");
       socket.emit("ready_in_city", { roomId: matchId });
     }
 
     socket.on("start", ({ roomId, seed }) => {
       matchStartTimeRef.current = performance.now();
-      console.log("🎬 MATCH STARTING:", roomId, seed);
       setGameStarted(true);
 
       setSnipersVisible(false);
@@ -501,7 +479,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     });
 
     socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
-      console.log("💥 Kill received:", characterId, "by", by);
       setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
       setTimeout(() => setFlashMessage(null), 2000);
 
@@ -513,7 +490,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     });
 
     socket.on("match_ended", ({ results }: { results: any[] }) => {
-      console.log("🏁 Match ended. Results:", results);
       const ordered = [...results].sort((a, b) => b.shotsFired - a.shotsFired);
       setMatchResults(ordered);
 
@@ -555,7 +531,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
       setBalloons((prev) => [...prev, { id, startY, duration, size }]);
 
-      // 💥 Add to the tracking ref
+      //Add to the tracking ref
       balloonRef.current.push({
         id,
         x: window.innerWidth + 150, // start off-screen right
@@ -572,7 +548,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     spawn();
   }, []);
 
-  // ⬅ include router so ESLint is happy
+  // include router so ESLint is happy
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -616,8 +592,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
     // Check zoom periodically
     const zoomCheckInterval = setInterval(checkZoom, 100);
-
-
 
     return () => {
       clearInterval(zoomCheckInterval);
@@ -680,8 +654,8 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     const anyAlive = characters.some((c) => c.isSniper && !c.isHit);
 
     if (!anyAlive && snipersVisible) {
-      if (wave >= MAX_WAVES) return; // ⛔️ stop everything after final wave
-      if (waveLockRef.current) return; // ⛔️ avoid double-triggers
+      if (wave >= MAX_WAVES) return; // stop everything after final wave
+      if (waveLockRef.current) return; // avoid double-triggers
 
       waveLockRef.current = true;
       setWaveMsgVisible(true);
@@ -700,7 +674,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   useEffect(() => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
       setIsReloading(true);
-      // console.log("Reloading...");
       setIsZoomed(false);
       setShowReloading(true);
       document.body.style.cursor = "default";
@@ -708,7 +681,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         setAmmo(maxAmmo);
         setIsReloading(false);
         setShowReloading(false);
-        // console.log("Reloaded!");
       }, 3000); // 3 seconds reload time
     }
   }, [ammo, isReloading, maxAmmo, gameStarted]);
