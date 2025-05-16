@@ -57,7 +57,6 @@ export function UiLayout({
         minHeight: "100vh",
       }}
     >
-
       {showWelcome ? (
         <div className="absolute inset-0 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -74,9 +73,8 @@ export function UiLayout({
             transform: isMainPage ? "translateX(200px)" : "none", // move back toward right
           }}
         >
-
-          {!isLandingPage && (
-            isMainPage ? (
+          {!isLandingPage &&
+            (isMainPage ? (
               <button
                 onClick={() => {
                   disconnect();
@@ -106,8 +104,7 @@ export function UiLayout({
               >
                 [Go Back]
               </button>
-            )
-          )}
+            ))}
         </div>
       )}
       <Suspense

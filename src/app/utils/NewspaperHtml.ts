@@ -1,5 +1,12 @@
 // src/utils/newspaperHtml.ts
-export const newspaperHtml = (headline: string, date: string, wallet_a: string, wallet_b: string, a_hits: number, b_hits: number) => `
+export const newspaperHtml = (
+  headline: string,
+  date: string,
+  wallet_a: string,
+  wallet_b: string,
+  a_hits: number,
+  b_hits: number,
+) => `
 <link
    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=Playfair+Display+SC:wght@900&family=Playfair+Display:ital,wght@0,800;1,800&family=Manrope:wght@800&display=swap"
    rel="stylesheet">
@@ -23,7 +30,7 @@ export const newspaperHtml = (headline: string, date: string, wallet_a: string, 
 
             <p>As the sun dipped behind the skyline, casting long shadows 
             across the twisted alleys of a cursed city, 
-            two unknown snipers—${wallet_a.slice(0,4)}... and ${wallet_b.slice(0,4)}... stepped into the darkness. 
+            two unknown snipers—${wallet_a.slice(0, 4)}... and ${wallet_b.slice(0, 4)}... stepped into the darkness. 
             Their rifles loaded, their minds set, they hunted through the eerie silence, knowing only one would leave the night victorious. </p>
 
             <p>The sniper, known for popping balloons midair with eerie precision, made quick work of the chaos in the city. With every step, ${wallet_a.slice(0, 4)}... landed headshot after headshot, clearing rooftops and alleys alike. Even a rogue balloon drifting across the skyline wasn’t spared. By the time ${wallet_b.slice(0, 4)}... could reload, the skyline was quiet. And ${wallet_a.slice(0, 4)}... had already claimed the final kill.</p>

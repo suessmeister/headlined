@@ -1,12 +1,11 @@
-import p5 from 'p5';
-import { Character } from '../types/Character';
+import p5 from "p5";
+import { Character } from "../types/Character";
 import seedrandom from "seedrandom";
-
 
 export function generateCity(
   canvas: HTMLCanvasElement,
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>,
-  seed: string
+  seed: string,
 ) {
   const rng = seedrandom(seed);
   const ctx = canvas.getContext("2d");
@@ -37,7 +36,11 @@ export function generateCity(
   // fitCanvasToViewport(canvas);
 }
 
-function drawAnimatedSky(ctx: CanvasRenderingContext2D, width: number, height: number) {
+function drawAnimatedSky(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
   const now = Date.now();
   const t = ((now / 1000) % 60) / 60; // loops every 60 seconds
   const topColor = lerpColor("#FF512F", "#0F2027", t);
@@ -62,7 +65,7 @@ function drawAnimatedSky(ctx: CanvasRenderingContext2D, width: number, height: n
   ctx.fillStyle = `rgba(255, 255, 255, ${starAlpha})`;
   for (let i = 0; i < 50; i++) {
     const x = (i * 137) % width;
-    const y = (i * 89) % height * 0.6;
+    const y = ((i * 89) % height) * 0.6;
     ctx.beginPath();
     ctx.arc(x, y, 1.5, 0, Math.PI * 2);
     ctx.fill();
@@ -73,10 +76,14 @@ function lerpColor(c1: string, c2: string, t: number): string {
   const hex = (c: string) =>
     c.length === 4
       ? c
-        .substring(1)
-        .split("")
-        .map((ch) => parseInt(ch + ch, 16))
-      : [parseInt(c.substring(1, 3), 16), parseInt(c.substring(3, 5), 16), parseInt(c.substring(5, 7), 16)];
+          .substring(1)
+          .split("")
+          .map((ch) => parseInt(ch + ch, 16))
+      : [
+          parseInt(c.substring(1, 3), 16),
+          parseInt(c.substring(3, 5), 16),
+          parseInt(c.substring(5, 7), 16),
+        ];
 
   const [r1, g1, b1] = hex(c1);
   const [r2, g2, b2] = hex(c2);
@@ -85,7 +92,6 @@ function lerpColor(c1: string, c2: string, t: number): string {
   const b = Math.round(b1 + (b2 - b1) * t);
   return `rgb(${r}, ${g}, ${b})`;
 }
-
 
 const drawBuildings = (
   ctx: CanvasRenderingContext2D,
@@ -271,10 +277,6 @@ const drawWindows = (
           ? windowCenterY - 5 + verticalOffset
           : windowCenterY + verticalOffset;
 
-        console.log(
-          `🪟 Lit window at (${x.toFixed(1)}, ${y.toFixed(1)}) → character at (${charX.toFixed(1)}, ${charY.toFixed(1)})`
-        );
-
         newCharacters.push({
           id: Date.now() + rng(),
           x: isSniper ? charX + 2 : charX,
@@ -287,8 +289,6 @@ const drawWindows = (
           nextPhase: isSniper ? Date.now() + 5000 : undefined,
         });
       }
-
-
     }
   }
 };

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useWallet } from "@solana/wallet-adapter-react";
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
@@ -17,7 +17,7 @@ import { FlyingBalloon } from "./drawing/flying_balloon";
 import { Character } from "./types/Character";
 import { addSnipers } from "./handlers/add_snipers";
 import EnemySnipers from "./drawing/enemy_snipers";
-import seedrandom from "seedrandom"
+import seedrandom from "seedrandom";
 
 const MAX_WAVES = 2; // maximum number of waves
 const DARK_STAGGER_MS_FIRST = 400;
@@ -71,7 +71,6 @@ const gun_metadata = {
     reload: "2.4",
   },
 };
-
 
 // Sniper scope logo styled component
 const SniperScope = styled.img<{ x: number; y: number; visible: boolean }>`
@@ -137,7 +136,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const [showReloading, setShowReloading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
 
-
   const [reloadSecondsLeft, setReloadSecondsLeft] = useState<number | null>(
     null,
   );
@@ -153,19 +151,16 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   const matchStartTimeRef = useRef<number | null>(null);
 
   const [waveMsgVisible, setWaveMsgVisible] = useState(false);
-  const waveLockRef = useRef(false);        // prevents double‑trigger
-  const [wave, setWave] = useState(1);      // optional: track wave #
+  const waveLockRef = useRef(false); // prevents double‑trigger
+  const [wave, setWave] = useState(1); // optional: track wave #
   const [snipersVisible, setSnipersVisible] = useState(false);
 
   const rngRef = useRef<seedrandom.PRNG>(seedrandom(matchId));
-
 
   // add near your other useState declarations
   type MatchResult = { wallet: string; shotsFired: number };
 
   const [matchResults, setMatchResults] = useState<MatchResult[] | null>(null);
-
-
 
   useEffect(() => {
     const spawn = () => {
@@ -195,7 +190,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
   }, []);
 
   useEffect(() => {
-    console.log("TICKED ");
     let raf: number;
 
     const tick = () => {
@@ -211,18 +205,16 @@ const City: React.FC<CityProps> = ({ matchId }) => {
           if (c.nextPhase && now >= c.nextPhase) {
             if (c.phase === "warmup") {
               // 1) 0.5 s between snipers
-              const exitDelay = nextDarkOrder * 1700;          // 0‑ms, 500‑ms, 1000‑ms…
-              nextDarkOrder++;                                  // increment *once* per sniper
+              const exitDelay = nextDarkOrder * 1700; // 0‑ms, 500‑ms, 1000‑ms…
+              nextDarkOrder++; // increment *once* per sniper
 
               return {
                 ...c,
                 phase: "dark",
                 image: "",
-                nextPhase: now + exitDelay,                    
+                nextPhase: now + exitDelay,
               };
             }
-
-
 
             if (c.phase === "dark") {
               return {
@@ -236,7 +228,11 @@ const City: React.FC<CityProps> = ({ matchId }) => {
           }
 
           // laser fire every cooldown
-          if (c.phase === "aggressive" && !c.isHit && now >= (c.laserCooldown ?? 0)) {
+          if (
+            c.phase === "aggressive" &&
+            !c.isHit &&
+            now >= (c.laserCooldown ?? 0)
+          ) {
             const nextCooldown = now + 2000 + rngRef.current() * 1200;
 
             c.laserCooldown = nextCooldown;
@@ -272,7 +268,7 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
     const ndc = new THREE.Vector2(
       ((c.x + visualOffsetX) / logicalWidth) * 2 - 1,
-      -((c.y + visualOffsetY) / logicalHeight) * 2 + 1
+      -((c.y + visualOffsetY) / logicalHeight) * 2 + 1,
     );
 
     // Ray from screen position
@@ -377,7 +373,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     };
   };
 
-
   const unlimitedAmmo = false; //NEVER HAVE UNLIMITED IN CITY LOL
   useSniperHandlers({
     sceneRef,
@@ -407,8 +402,8 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     if (gameStarted && ammo !== null && ammo <= 0 && !isReloading) {
       const reloadDuration = activeGun
         ? parseFloat(
-          gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
-        )
+            gun_metadata[activeGun.name as keyof typeof gun_metadata].reload,
+          )
         : 10; // fallback if no activeGun
 
       setIsReloading(true);
@@ -448,7 +443,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
     const seed = sessionStorage.getItem("matchSeed");
     const matchId = sessionStorage.getItem("matchId");
 
-
     if (seed && canvasRef.current) {
       generateCity(canvasRef.current, setCharacters, seed);
     }
@@ -470,7 +464,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       }, 3000); // Display intro message for 3s
     });
 
-
     socket.on("timer", ({ timeLeft }: { timeLeft: number }) => {
       setTimeLeft(timeLeft);
       if (timeLeft <= 0) {
@@ -478,28 +471,34 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       }
     });
 
-    socket.on("shot", ({ characterId, by }: { characterId: number; by: string }) => {
-      setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
-      setTimeout(() => setFlashMessage(null), 2000);
+    socket.on(
+      "shot",
+      ({ characterId, by }: { characterId: number; by: string }) => {
+        setFlashMessage(`Player ${by.slice(0, 4)}... hit an enemy!`);
+        setTimeout(() => setFlashMessage(null), 2000);
 
-      if (by === socket.id) {
-        setHits((h) => h + 1);
-      } else {
-        setEnemyHits((h) => h + 1);
-      }
-    });
+        if (by === socket.id) {
+          setHits((h) => h + 1);
+        } else {
+          setEnemyHits((h) => h + 1);
+        }
+      },
+    );
 
     socket.on("match_ended", ({ results }: { results: any[] }) => {
       const ordered = [...results].sort((a, b) => b.shotsFired - a.shotsFired);
       setMatchResults(ordered);
 
       // Store match results in sessionStorage for the newspaper
-      sessionStorage.setItem("matchResults", JSON.stringify({
-        walletA: ordered[0]?.wallet || "",
-        walletB: ordered[1]?.wallet || "",
-        a_kills: ordered[0]?.shotsFired || 0,
-        b_kills: ordered[1]?.shotsFired || 0
-      }));
+      sessionStorage.setItem(
+        "matchResults",
+        JSON.stringify({
+          walletA: ordered[0]?.wallet || "",
+          walletB: ordered[1]?.wallet || "",
+          a_kills: ordered[0]?.shotsFired || 0,
+          b_kills: ordered[1]?.shotsFired || 0,
+        }),
+      );
 
       socket.disconnect();
     });
@@ -511,7 +510,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
       socket.off("match_ended");
     };
   }, []);
-
 
   const [balloons, setBalloons] = useState<
     { id: number; startY: number; duration: number; size: number }[]
@@ -668,7 +666,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
         waveLockRef.current = false;
       }, 3000);
     }
-
   }, [characters, snipersVisible, wave]);
 
   useEffect(() => {
@@ -687,38 +684,37 @@ const City: React.FC<CityProps> = ({ matchId }) => {
 
   return (
     <>
-
       {matchResults && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            color: 'white',
-            fontFamily: 'monospace',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            background: "rgba(0,0,0,0.85)",
+            color: "white",
+            fontFamily: "monospace",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 10000,
           }}
         >
           <h2 style={{ fontSize: 38, marginBottom: 24 }}>Match Results</h2>
 
           {matchResults.map((p, i) => (
-            <div key={p.wallet} style={{ fontSize: 26, margin: '6px 0' }}>
+            <div key={p.wallet} style={{ fontSize: 26, margin: "6px 0" }}>
               {i + 1}. {p.wallet.slice(0, 4)}… — {p.shotsFired} kills
             </div>
           ))}
 
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             style={{
               marginTop: 32,
-              padding: '10px 24px',
+              padding: "10px 24px",
               fontSize: 18,
               borderRadius: 8,
-              cursor: 'pointer',
+              cursor: "pointer",
             }}
           >
             Back to Lobby
@@ -769,7 +765,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
           Your shots have awoken more snipers!
         </div>
       )}
-
 
       {flashMessage && (
         <div
@@ -911,8 +906,6 @@ const City: React.FC<CityProps> = ({ matchId }) => {
             setCharacters={setCharacters}
           />
         )}
-
-
 
         <>
           {balloons.map((b) => (

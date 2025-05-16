@@ -8,9 +8,7 @@ import type { Headlined } from "../target/types/headlined.ts";
 export { Headlined, headlinedIDL };
 
 // The programId is imported from the program IDL.
-export const SNIPE_SWEEPERS_PROGRAM_ID = new PublicKey(
-  headlinedIDL.address,
-);
+export const SNIPE_SWEEPERS_PROGRAM_ID = new PublicKey(headlinedIDL.address);
 
 // This is a helper function to get the SnipeSweepers Anchor program.
 export function getSnipeSweepersProgram(

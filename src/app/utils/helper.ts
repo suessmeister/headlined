@@ -4,16 +4,17 @@ import { Metaplex } from "@metaplex-foundation/js";
 export async function getNftsForWallet(
   walletAddress: PublicKey,
   connection: Connection,
-  collectionType: 'guns' | 'badges' = 'guns'
+  collectionType: "guns" | "badges" = "guns",
 ) {
   try {
     const metaplex = new Metaplex(connection);
     const nfts = await metaplex.nfts().findAllByOwner({ owner: walletAddress });
 
     // Choose which collection data file to use based on collection type
-    const jsonPath = collectionType === 'guns'
-      ? "/data/collection_addresses_2.json"
-      : "/data/badge.json";
+    const jsonPath =
+      collectionType === "guns"
+        ? "/data/collection_addresses_2.json"
+        : "/data/badge.json";
 
     const json = await fetch(jsonPath);
     const collectionData = await json.json();
@@ -67,7 +68,7 @@ export async function getBadgesForWallet(
   walletAddress: PublicKey,
   connection: Connection,
 ) {
-  return getNftsForWallet(walletAddress, connection, 'badges');
+  return getNftsForWallet(walletAddress, connection, "badges");
 }
 
 // Convenience function to specifically get guns
@@ -75,5 +76,5 @@ export async function getGunsForWallet(
   walletAddress: PublicKey,
   connection: Connection,
 ) {
-  return getNftsForWallet(walletAddress, connection, 'guns');
+  return getNftsForWallet(walletAddress, connection, "guns");
 }

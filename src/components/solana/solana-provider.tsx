@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  PhantomWalletAdapter, 
-  SolflareWalletAdapter
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 // import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 
@@ -22,8 +22,6 @@ import { useCluster } from "../cluster/cluster-data-access";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-
-
 export const WalletButton = dynamic(
   async () =>
     (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
@@ -40,14 +38,9 @@ export function SolanaProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     [],
   );
-
-  
 
   return (
     <ConnectionProvider endpoint={endpoint}>

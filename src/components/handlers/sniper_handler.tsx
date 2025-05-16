@@ -9,7 +9,9 @@ interface SniperHandlersParams {
   setShots: React.Dispatch<React.SetStateAction<number>>;
   setHits: React.Dispatch<React.SetStateAction<number>>;
   setIsLastShotHit: React.Dispatch<React.SetStateAction<boolean>>;
-  setSniperScopePosition: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
+  setSniperScopePosition: React.Dispatch<
+    React.SetStateAction<{ x: number; y: number } | null>
+  >;
   setIsSniperScopeVisible: React.Dispatch<React.SetStateAction<boolean>>;
   characterRef: React.MutableRefObject<Character[]>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
@@ -64,9 +66,9 @@ export function useSniperHandlers({
       const { x: rawX, y: rawY } = isZoomedRef.current
         ? { x: zoomPosRef.current.x - 5, y: zoomPosRef.current.y + 14 }
         : {
-          x: e.clientX + (Math.random() - 0.5) * 100,
-          y: e.clientY + (Math.random() - 0.5) * 100,
-        };
+            x: e.clientX + (Math.random() - 0.5) * 100,
+            y: e.clientY + (Math.random() - 0.5) * 100,
+          };
 
       setShots((p) => p + 1);
 
@@ -84,7 +86,7 @@ export function useSniperHandlers({
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         const rad = r.width / 2;
-        const adjX = rawX - 8.4 * scaleX;   // ← apply offsets
+        const adjX = rawX - 8.4 * scaleX; // ← apply offsets
         const adjY = rawY + 22.7 * scaleY;
         const dx = adjX - cx;
         const dy = adjY - cy;
@@ -92,16 +94,19 @@ export function useSniperHandlers({
       }) as Character | undefined;
 
       const mouse = new THREE.Vector2(
-          (rawX / window.innerWidth) * 2 - 1,
-          -(rawY / window.innerHeight) * 2 + 1
-        );
+        (rawX / window.innerWidth) * 2 - 1,
+        -(rawY / window.innerHeight) * 2 + 1,
+      );
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, cameraRef.current);
       const dir = raycaster.ray.direction.clone().normalize();
 
       const tracer = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
-        new THREE.LineBasicMaterial({ color: 0x39FF14 })
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(0, 0, -1),
+        ]),
+        new THREE.LineBasicMaterial({ color: 0x39ff14 }),
       );
       tracer.position.copy(cameraRef.current.position);
       tracer.quaternion.copy(cameraRef.current.quaternion);
@@ -118,7 +123,9 @@ export function useSniperHandlers({
           requestAnimationFrame(fly);
         } else {
           /* project tip for scope flash only */
-          const proj = new THREE.Vector3().copy(tracer.position).project(cameraRef.current!);
+          const proj = new THREE.Vector3()
+            .copy(tracer.position)
+            .project(cameraRef.current!);
           const flashX = (proj.x * 0.5 + 0.5) * window.innerWidth;
           const flashY = -(proj.y * 0.5 - 0.5) * window.innerHeight;
 
@@ -137,10 +144,16 @@ export function useSniperHandlers({
 
           /* apply results */
           if (sniperHit) {
-            setCharacters((prev) => prev.map((c) => (c.id === sniperHit.id ? { ...c, isHit: true } : c)));
+            setCharacters((prev) =>
+              prev.map((c) =>
+                c.id === sniperHit.id ? { ...c, isHit: true } : c,
+              ),
+            );
           }
           if (hitBalloon) {
-            const idx = balloonRef.current.findIndex((b) => b.id === hitBalloon.id);
+            const idx = balloonRef.current.findIndex(
+              (b) => b.id === hitBalloon.id,
+            );
             if (idx !== -1) balloonRef.current[idx].isHit = true;
           }
 

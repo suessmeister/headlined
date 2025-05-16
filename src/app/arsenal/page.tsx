@@ -34,9 +34,9 @@ import { useRouter } from "next/navigation";
 
 export default function ArsenalPage() {
   const { wallet, signTransaction, publicKey } = useWallet();
-  const [activeTab, setActiveTab] = useState<
-    "shop" | "your-guns" | "badges"
-  >("your-guns");
+  const [activeTab, setActiveTab] = useState<"shop" | "your-guns" | "badges">(
+    "your-guns",
+  );
   const [sliderPosition, setSliderPosition] = useState(0);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [randomQuote, setRandomQuote] = useState<{
@@ -49,9 +49,12 @@ export default function ArsenalPage() {
 
   const [activeGun, setActiveGun] = useState<any | null>(null);
   const { program, provider } = useHeadlinedProgram();
-  const [matchStats, setMatchStats] = useState<{ participated: boolean; kills: number }>({
+  const [matchStats, setMatchStats] = useState<{
+    participated: boolean;
+    kills: number;
+  }>({
     participated: false,
-    kills: 0
+    kills: 0,
   });
 
   const connection = new Connection(
@@ -86,7 +89,6 @@ export default function ArsenalPage() {
   const handleSelectGun = (gun: any) => {
     setActiveGun(gun);
     sessionStorage.setItem("selectedGun", JSON.stringify(gun));
-
   };
 
   useEffect(() => {
@@ -101,15 +103,9 @@ export default function ArsenalPage() {
     }
   }, [activeTab]);
 
+  useEffect(() => {}, [wallet, publicKey]);
 
   useEffect(() => {
-    console.log("wallet object:", wallet);
-    console.log("wallet.adapter:", wallet?.adapter);
-    console.log("publicKey:", publicKey?.toBase58());
-  }, [wallet, publicKey]);
-
-  useEffect(() => {
-    console.log("Active Gun:", activeGun);
     if (activeGun) {
       sessionStorage.setItem("selectedGun", JSON.stringify(activeGun));
     }
@@ -129,13 +125,12 @@ export default function ArsenalPage() {
       if (!publicKey) return;
       try {
         // Fetch guns
-        const nfts = await getNftsForWallet(publicKey, connection, 'guns');
+        const nfts = await getNftsForWallet(publicKey, connection, "guns");
         setOwnedNFTs(nfts);
 
         // Fetch badges
         const badges = await getBadgesForWallet(publicKey, connection);
         setOwnedBadges(badges);
-        console.log("Owned badges:", badges);
       } catch (err) {
         console.error("Error fetching NFTs:", err);
       }
@@ -169,7 +164,6 @@ export default function ArsenalPage() {
       return;
     }
 
-    console.log(program.programId.toBase58());
     const collections = await fetch("/data/collection_addresses_2.json"); //convert to json
     const guns = await fetch("/data/arweave_links.json");
 
@@ -180,10 +174,6 @@ export default function ArsenalPage() {
     const gun = gunData.snipers[index];
 
     const gunPrice = 0.03 * LAMPORTS_PER_SOL;
-
-    console.log(collection);
-    console.log(gun);
-
     const collectionMint = new PublicKey(collection.collectionMint);
     const collectionMetadata = new PublicKey(collection.collectionMetadata);
     const collectionMasterEdition = new PublicKey(
@@ -251,14 +241,11 @@ export default function ArsenalPage() {
         MPL_TOKEN_METADATA_PROGRAM_ID,
       );
 
-    const [collectionAuthorityPda, _collectionAuthorityBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("collection_authority"), program.programId.toBuffer()],
-      program.programId,
-    );
-
-    console.log("Collection Authority PDA:", collectionAuthorityPda.toBase58());
-    console.log(metadataPda.toBase58());
-    console.log(masterEditionPda.toBase58());
+    const [collectionAuthorityPda, _collectionAuthorityBump] =
+      PublicKey.findProgramAddressSync(
+        [Buffer.from("collection_authority"), program.programId.toBuffer()],
+        program.programId,
+      );
 
     const ixMint = await program.methods
       .mint(gun.name, collection.symbol, gun.metadata_link)
@@ -281,7 +268,7 @@ export default function ArsenalPage() {
           pubkey: collectionAuthorityPda,
           isWritable: false,
           isSigner: false,
-        }
+        },
       ])
       .instruction();
 
@@ -303,7 +290,6 @@ export default function ArsenalPage() {
 
     // Manually simulate (optional, for debugging)
     try {
-
       if (!signTransaction) {
         toast.error("Incompatible Wallet");
         return;
@@ -313,17 +299,18 @@ export default function ArsenalPage() {
 
       const sig = await connection.sendRawTransaction(signedTx.serialize());
 
-      await connection.confirmTransaction({
-        signature: sig,
-        blockhash: latest.blockhash,
-        lastValidBlockHeight: latest.lastValidBlockHeight,
-      }, "confirmed");
+      await connection.confirmTransaction(
+        {
+          signature: sig,
+          blockhash: latest.blockhash,
+          lastValidBlockHeight: latest.lastValidBlockHeight,
+        },
+        "confirmed",
+      );
 
       toast.success(`Gun purchased: ${gun.name} (${sig.slice(0, 8)}…)`);
-
     } catch (err: any) {
-      console.error("🚨 Transaction failed", err?.logs ?? err);
-      toast.error("Gun purchase failed – see console for details");
+      toast.error("TX failed. Check your wallet and try again, if applicable.");
     }
   }
 
@@ -333,33 +320,36 @@ export default function ArsenalPage() {
   const badgeKillThresholds = {
     1: 20,
     2: 35,
-    3: 50
+    3: 50,
   };
 
   // Badge descriptions
   const badgeDescriptions = {
     1: "A beginner's gleam glints from your scope. Record 20 eliminations in one match to mint this badge.",
     2: "The sky bleeds red, afraid of your increased performance. Record 35 eliminations in one match to mint this badge.",
-    3: "By sunset, few of your enemies remain. Record 50 eliminations in one match to mint this badge."
+    3: "By sunset, few of your enemies remain. Record 50 eliminations in one match to mint this badge.",
   };
 
   // Badge names
   const badgeNames = {
     1: "Bronze Horizon",
     2: "Crimson Eclipse",
-    3: "Silent Sundown"
+    3: "Silent Sundown",
   };
 
   // Function to check if the user owns a specific badge
   const userOwnsBadge = (badgeNum: number) => {
     // Check if any of the owned badges has a name that matches the badge number
-    return ownedBadges.some(badge => badge.name === badgeNames[badgeNum as keyof typeof badgeNames]);
+    return ownedBadges.some(
+      (badge) => badge.name === badgeNames[badgeNum as keyof typeof badgeNames],
+    );
   };
 
   // Function to render a badge with proper styling based on unlocked status
   const renderBadge = (badgeNum: number) => {
     const isUnlocked = unlockedBadges.includes(badgeNum);
-    const killThreshold = badgeKillThresholds[badgeNum as keyof typeof badgeKillThresholds];
+    const killThreshold =
+      badgeKillThresholds[badgeNum as keyof typeof badgeKillThresholds];
     const hasMetKillThreshold = matchStats.kills >= killThreshold;
     const isMinted = userOwnsBadge(badgeNum);
 
@@ -368,32 +358,48 @@ export default function ArsenalPage() {
 
     return (
       <div key={badgeNum} className="flex flex-col items-center h-full">
-        <div className={`relative group mb-4 ${effectivelyUnlocked ? 'animate-pulse-subtle' : ''}`}>
+        <div
+          className={`relative group mb-4 ${effectivelyUnlocked ? "animate-pulse-subtle" : ""}`}
+        >
           {/* Dark overlay for locked badges */}
           {!effectivelyUnlocked && (
             <div className="absolute inset-0 bg-black/70 rounded-full group-hover:bg-black/60 transition-all z-10"></div>
           )}
-          <div className={`relative p-2 ${effectivelyUnlocked ? 'bg-gradient-to-br from-green-900/40 to-green-700/40' : 'bg-gradient-to-br from-gray-700/30 to-gray-900/30'} rounded-xl ${effectivelyUnlocked ? 'border border-green-500/50 shadow-green-500/30 shadow-lg' : 'border border-green-800/30 shadow-lg'} overflow-hidden`}>
+          <div
+            className={`relative p-2 ${effectivelyUnlocked ? "bg-gradient-to-br from-green-900/40 to-green-700/40" : "bg-gradient-to-br from-gray-700/30 to-gray-900/30"} rounded-xl ${effectivelyUnlocked ? "border border-green-500/50 shadow-green-500/30 shadow-lg" : "border border-green-800/30 shadow-lg"} overflow-hidden`}
+          >
             <div className="w-48 h-48 md:w-56 md:h-56 relative">
               <Image
                 src={`/badges/badge_${badgeNum}.png`}
                 alt={`Achievement Badge ${badgeNum}`}
                 fill
-                className={`object-contain ${!effectivelyUnlocked ? 'filter grayscale' : ''}`}
+                className={`object-contain ${!effectivelyUnlocked ? "filter grayscale" : ""}`}
               />
             </div>
-            <div className={`absolute bottom-0 left-0 right-0 p-2 ${effectivelyUnlocked ? 'bg-green-900/70' : 'bg-black/70'} text-center`}>
-              <p className={`${effectivelyUnlocked ? 'text-green-300' : 'text-gray-400'} font-bold`}>
-                {isMinted ? 'Minted' : isUnlocked ? 'Unlocked' : 'Locked'}
+            <div
+              className={`absolute bottom-0 left-0 right-0 p-2 ${effectivelyUnlocked ? "bg-green-900/70" : "bg-black/70"} text-center`}
+            >
+              <p
+                className={`${effectivelyUnlocked ? "text-green-300" : "text-gray-400"} font-bold`}
+              >
+                {isMinted ? "Minted" : isUnlocked ? "Unlocked" : "Locked"}
               </p>
             </div>
           </div>
 
           {/* Badge overlay with military-style accents - brighter for unlocked badge */}
-          <div className={`absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 ${effectivelyUnlocked ? 'border-green-400' : 'border-green-500/50'} rounded-tl-lg z-20`}></div>
-          <div className={`absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 ${effectivelyUnlocked ? 'border-green-400' : 'border-green-500/50'} rounded-tr-lg z-20`}></div>
-          <div className={`absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 ${effectivelyUnlocked ? 'border-green-400' : 'border-green-500/50'} rounded-bl-lg z-20`}></div>
-          <div className={`absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 ${effectivelyUnlocked ? 'border-green-400' : 'border-green-500/50'} rounded-br-lg z-20`}></div>
+          <div
+            className={`absolute top-1 left-1 w-6 h-6 border-t-2 border-l-2 ${effectivelyUnlocked ? "border-green-400" : "border-green-500/50"} rounded-tl-lg z-20`}
+          ></div>
+          <div
+            className={`absolute top-1 right-1 w-6 h-6 border-t-2 border-r-2 ${effectivelyUnlocked ? "border-green-400" : "border-green-500/50"} rounded-tr-lg z-20`}
+          ></div>
+          <div
+            className={`absolute bottom-1 left-1 w-6 h-6 border-b-2 border-l-2 ${effectivelyUnlocked ? "border-green-400" : "border-green-500/50"} rounded-bl-lg z-20`}
+          ></div>
+          <div
+            className={`absolute bottom-1 right-1 w-6 h-6 border-b-2 border-r-2 ${effectivelyUnlocked ? "border-green-400" : "border-green-500/50"} rounded-br-lg z-20`}
+          ></div>
 
           {/* Glow effect for unlocked or minted badge */}
           {effectivelyUnlocked && (
@@ -414,14 +420,26 @@ export default function ArsenalPage() {
           {!effectivelyUnlocked && !isMinted && (
             <div className="flex items-center justify-center">
               <label className="inline-flex items-center cursor-pointer">
-                <div className={`h-5 w-5 flex items-center justify-center rounded border ${hasMetKillThreshold ? 'bg-green-600 border-green-700' : 'bg-gray-700 border-gray-600'}`}>
+                <div
+                  className={`h-5 w-5 flex items-center justify-center rounded border ${hasMetKillThreshold ? "bg-green-600 border-green-700" : "bg-gray-700 border-gray-600"}`}
+                >
                   {hasMetKillThreshold && (
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
                 </div>
-                <span className="ms-2 text-sm font-medium text-gray-300">Can Mint</span>
+                <span className="ms-2 text-sm font-medium text-gray-300">
+                  Can Mint
+                </span>
               </label>
             </div>
           )}
@@ -463,7 +481,6 @@ export default function ArsenalPage() {
       return;
     }
 
-    console.log(program.programId.toBase58());
     const collections = await fetch("/data/badge.json");
     const badges = await fetch("/data/individual_badges.json");
 
@@ -474,9 +491,6 @@ export default function ArsenalPage() {
     const badge = badgeData.badges[index];
 
     const badgePrice = 0.01 * LAMPORTS_PER_SOL; // Lower price for badges compared to guns
-
-    console.log(collection);
-    console.log(badge);
 
     const collectionMint = new PublicKey(collection.collectionMint);
     const collectionMetadata = new PublicKey(collection.collectionMetadata);
@@ -545,14 +559,11 @@ export default function ArsenalPage() {
         MPL_TOKEN_METADATA_PROGRAM_ID,
       );
 
-    const [collectionAuthorityPda, _collectionAuthorityBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("collection_authority"), program.programId.toBuffer()],
-      program.programId,
-    );
-
-    console.log("Collection Authority PDA:", collectionAuthorityPda.toBase58());
-    console.log(metadataPda.toBase58());
-    console.log(masterEditionPda.toBase58());
+    const [collectionAuthorityPda, _collectionAuthorityBump] =
+      PublicKey.findProgramAddressSync(
+        [Buffer.from("collection_authority"), program.programId.toBuffer()],
+        program.programId,
+      );
 
     const ixMint = await program.methods
       .mint(badge.name, collection.symbol, badge.metadata_link)
@@ -575,7 +586,7 @@ export default function ArsenalPage() {
           pubkey: collectionAuthorityPda,
           isWritable: false,
           isSigner: false,
-        }
+        },
       ])
       .instruction();
 
@@ -605,11 +616,14 @@ export default function ArsenalPage() {
 
       const sig = await connection.sendRawTransaction(signedTx.serialize());
 
-      await connection.confirmTransaction({
-        signature: sig,
-        blockhash: latest.blockhash,
-        lastValidBlockHeight: latest.lastValidBlockHeight,
-      }, "confirmed");
+      await connection.confirmTransaction(
+        {
+          signature: sig,
+          blockhash: latest.blockhash,
+          lastValidBlockHeight: latest.lastValidBlockHeight,
+        },
+        "confirmed",
+      );
 
       toast.success(`Badge minted: ${badge.name} (${sig.slice(0, 8)}…)`);
 
@@ -617,8 +631,8 @@ export default function ArsenalPage() {
       const newMintedBadge = {
         name: badge.name,
         mint: badgeMint.publicKey.toString(),
-        type: 'badges',
-        symbol: collection.symbol
+        type: "badges",
+        symbol: collection.symbol,
       };
       setOwnedBadges([...ownedBadges, newMintedBadge]);
 
@@ -626,10 +640,8 @@ export default function ArsenalPage() {
       if (!unlockedBadges.includes(index + 1)) {
         setUnlockedBadges([...unlockedBadges, index + 1]);
       }
-
     } catch (err: any) {
-      console.error("🚨 Transaction failed", err?.logs ?? err);
-      toast.error("Badge minting failed – see console for details");
+      toast.error("TX failed. Check your wallet and try again, if applicable.");
     }
   }
 
@@ -653,8 +665,8 @@ export default function ArsenalPage() {
   useEffect(() => {
     // Get match results from sessionStorage
     const getMatchResults = () => {
-      if (typeof window !== 'undefined' && publicKey) {
-        const matchResults = sessionStorage.getItem('matchResults');
+      if (typeof window !== "undefined" && publicKey) {
+        const matchResults = sessionStorage.getItem("matchResults");
         if (matchResults) {
           try {
             const matchData = JSON.parse(matchResults);
@@ -682,7 +694,6 @@ export default function ArsenalPage() {
   }, [publicKey]);
 
   return (
-
     <div className="relative w-full min-h-screen overflow-hidden">
       {/* 🔽 Background Image (fixed behind content) */}
       <div className="fixed inset-0 z-0">
@@ -711,11 +722,23 @@ export default function ArsenalPage() {
               </Dialog.Description>
 
               <div className="mt-4 bg-yellow-900/50 p-3 rounded border border-yellow-600">
-                <h3 className="text-yellow-400 font-semibold mb-1">Important Notes:</h3>
+                <h3 className="text-yellow-400 font-semibold mb-1">
+                  Important Notes:
+                </h3>
                 <ul className="list-disc pl-5 space-y-1 text-yellow-200 text-sm">
-                  <li><span className="font-bold">Phantom Users:</span> Ignore any red simulation warnings - this is normal for NFT minting.</li>
-                  <li><span className="font-bold">All sales are final.</span> No refunds available for purchased weapons.</li>
-                  <li>After purchase, please refresh and check the <span className="italic">Your Guns</span> tab to select your new weapon for battle.</li>
+                  <li>
+                    <span className="font-bold">Phantom Users:</span> Ignore any
+                    red simulation warnings - this is normal for NFT minting.
+                  </li>
+                  <li>
+                    <span className="font-bold">All sales are final.</span> No
+                    refunds available for purchased weapons.
+                  </li>
+                  <li>
+                    After purchase, please refresh and check the{" "}
+                    <span className="italic">Your Guns</span> tab to select your
+                    new weapon for battle.
+                  </li>
                 </ul>
               </div>
 
@@ -749,14 +772,15 @@ export default function ArsenalPage() {
 
                   <div className="overflow-hidden flex items-center h-[100px]">
                     <h1
-                      className={`font-mono tracking-wide italic text-green-400 ${randomQuote.quote.length > 100
-                        ? "text-xl"
-                        : randomQuote.quote.length > 70
-                          ? "text-2xl"
-                          : randomQuote.quote.length > 50
-                            ? "text-3xl"
-                            : "text-4xl"
-                        }`}
+                      className={`font-mono tracking-wide italic text-green-400 ${
+                        randomQuote.quote.length > 100
+                          ? "text-xl"
+                          : randomQuote.quote.length > 70
+                            ? "text-2xl"
+                            : randomQuote.quote.length > 50
+                              ? "text-3xl"
+                              : "text-4xl"
+                      }`}
                     >
                       &ldquo;{randomQuote.quote}&rdquo;
                     </h1>
@@ -790,7 +814,10 @@ export default function ArsenalPage() {
                 {/* Ammo decoration */}
                 <div className="absolute -right-4 -top-4 w-8 h-24 flex flex-col gap-2">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-full h-6 bg-gradient-to-r from-yellow-700 to-yellow-500 rounded-sm"></div>
+                    <div
+                      key={i}
+                      className="w-full h-6 bg-gradient-to-r from-yellow-700 to-yellow-500 rounded-sm"
+                    ></div>
                   ))}
                 </div>
               </div>
@@ -803,7 +830,10 @@ export default function ArsenalPage() {
               <div className="absolute -top-16 -left-10 z-20">
                 <div className="relative w-48 h-28 transform -rotate-12 overflow-visible">
                   {/* Spiky jagged edge background */}
-                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 160 90">
+                  <svg
+                    className="absolute inset-0 w-full h-full"
+                    viewBox="0 0 160 90"
+                  >
                     <path
                       d="M80,5 
                          L95,0 L105,10 L120,5 L125,20 L140,25 L130,40 L145,55 
@@ -845,28 +875,31 @@ export default function ArsenalPage() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setActiveTab("shop")}
-                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === "shop"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-green-800"
-                    }`}
+                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${
+                    activeTab === "shop"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-green-800"
+                  }`}
                 >
                   Shop
                 </button>
                 <button
                   onClick={() => setActiveTab("your-guns")}
-                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === "your-guns"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-green-800"
-                    }`}
+                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${
+                    activeTab === "your-guns"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-green-800"
+                  }`}
                 >
                   Your Guns
                 </button>
                 <button
                   onClick={() => setActiveTab("badges")}
-                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${activeTab === "badges"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-green-800"
-                    }`}
+                  className={`relative w-[120px] py-3 rounded-xl font-bold transition-all duration-300 z-10 ${
+                    activeTab === "badges"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-green-800"
+                  }`}
                 >
                   Badges
                 </button>
@@ -923,10 +956,11 @@ export default function ArsenalPage() {
                       <div
                         key={index}
                         onClick={() => handleSelectGun(gun)}
-                        className={`transform transition-all duration-300 hover:scale-105 cursor-pointer ${activeGun?.mint === gun.mint
-                          ? "ring-4 ring-green-400"
-                          : ""
-                          }`}
+                        className={`transform transition-all duration-300 hover:scale-105 cursor-pointer ${
+                          activeGun?.mint === gun.mint
+                            ? "ring-4 ring-green-400"
+                            : ""
+                        }`}
                       >
                         <div className="relative h-[450px] w-[350px] mx-auto bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-lg shadow-gray-500/20 border-2 border-gray-600/30">
                           <div className="absolute inset-4">
@@ -957,23 +991,42 @@ export default function ArsenalPage() {
 
               {activeTab === "badges" && (
                 <div className="p-8 bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-2xl border border-green-700/50">
-                  <h2 className="text-2xl text-green-400 font-bold mb-6 text-center">Achievement Badges</h2>
+                  <h2 className="text-2xl text-green-400 font-bold mb-6 text-center">
+                    Achievement Badges
+                  </h2>
 
                   {/* Match Stats Box in badges tab */}
                   <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 border border-green-600/50 rounded-lg p-4 shadow-lg mb-6 max-w-xs mx-auto">
-                    <h3 className="text-green-400 text-base font-bold mb-2 text-center">Last Match Stats</h3>
+                    <h3 className="text-green-400 text-base font-bold mb-2 text-center">
+                      Last Match Stats
+                    </h3>
                     <div className="text-center">
                       {!publicKey ? (
-                        <p className="text-yellow-300 text-sm">Connect wallet to view stats</p>
+                        <p className="text-yellow-300 text-sm">
+                          Connect wallet to view stats
+                        </p>
                       ) : !matchStats.participated ? (
                         <p className="text-yellow-300">Play a match first</p>
                       ) : (
                         <div className="flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-red-500 mr-1"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
-                          <span className="text-red-400 font-bold text-2xl">{matchStats.kills}</span>
-                          <span className="ml-1 text-gray-300 text-sm">kills</span>
+                          <span className="text-red-400 font-bold text-2xl">
+                            {matchStats.kills}
+                          </span>
+                          <span className="ml-1 text-gray-300 text-sm">
+                            kills
+                          </span>
                         </div>
                       )}
                     </div>
@@ -984,19 +1037,27 @@ export default function ArsenalPage() {
                   </div>
 
                   <div className="mt-8 text-center p-3 bg-black/40 border border-yellow-600/30 rounded">
-                    <p className="text-yellow-300/80 italic">Only after a glorious victory can you mint your badge!</p>
+                    <p className="text-yellow-300/80 italic">
+                      Only after a glorious victory can you mint your badge!
+                    </p>
                   </div>
 
                   {/* For testing - a button to unlock badges in sequence */}
-                  {process.env.NODE_ENV === 'development' && (
+                  {process.env.NODE_ENV === "development" && (
                     <div className="mt-4 text-center">
                       <button
                         onClick={unlockNextBadge}
                         className="px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded hover:bg-gray-600"
                       >
-                        Dev: Unlock Next Badge ({unlockedBadges.length === 0 ? "1" :
-                          unlockedBadges.length === 1 ? "2" :
-                            unlockedBadges.length === 2 ? "3" : "Reset"})
+                        Dev: Unlock Next Badge (
+                        {unlockedBadges.length === 0
+                          ? "1"
+                          : unlockedBadges.length === 1
+                            ? "2"
+                            : unlockedBadges.length === 2
+                              ? "3"
+                              : "Reset"}
+                        )
                       </button>
                     </div>
                   )}
@@ -1026,7 +1087,6 @@ export default function ArsenalPage() {
           {publicKey.toBase58().slice(-4)}
         </div>
       )}
-
     </div>
   );
 }
