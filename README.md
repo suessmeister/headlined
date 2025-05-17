@@ -26,9 +26,10 @@ Players enter the same city, generated from a shared seed. Every match is unique
 
 ### NFT Integration
 Players can mint sniper rifles and earn digital badges through on-chain actions:
-- Sniper rifles minted via Solana + Metaplex
-- Verified badge collections issued to top players
-- Optional BitBadges integration for identity and access
+- Sniper rifles minted via Solana + Metaplex. Pick the one with attributes you like!
+- After matches, check out your arsenal! You might be eligible for a badge.
+- NFTs are minted through a collection only accessible through a PDA. No external weapons can participate in the game!
+
 
   
 ### Play-To-Own!
