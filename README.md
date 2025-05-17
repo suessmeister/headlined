@@ -53,7 +53,7 @@ Thanks to Typescript + Railway, we're built for browser-based, 2d entertainment.
 - Phantom Users Only: Red Transaction Simulation does not internally work on some browsers. **This will not affect the transaction.**
 - Why aren't my shots hitting when I'm not aiming? **Because to win, you have to aim... :)**
 - I have come across an odd error I would like to be addressed?
-- Reach out to us at **headlined77@gmail.com**I would love to hear from you and will fix it immidiately. (And shoutout you)
+- Reach out to us at **headlined77@gmail.com**. I would love to hear from you and will fix it immidiately. (And shoutout you)
 ---
 
 ## Running Locally
